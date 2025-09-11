@@ -1,84 +1,103 @@
-// /api/analyze.js  (Vercel Serverless, Node 18+)
-// Debug 版：加強日誌，協助判斷金鑰/請求錯誤
+// /api/analyze.js  —— 乾淨輸出版（只回傳 text，結尾含 ```json 區塊）
+// 適用：Vercel Serverless / Node 18+
 
 export default async function handler(req, res) {
   try {
-    if (req.method !== 'POST') {
-      return res.status(405).json({ error: 'Method not allowed' });
+    if (req.method !== "POST") {
+      return res.status(405).json({ error: "Method not allowed" });
     }
 
-    // 1) 檢查環境變數（不印金鑰，只印是否存在）
-    const hasKey = !!process.env.OPENAI_API_KEY;
-    if (!hasKey) {
-      console.error('ENV CHECK ❌ : OPENAI_API_KEY is MISSING (Production env not set or no redeploy)');
+    // 1) 檢查環境變數
+    if (!process.env.OPENAI_API_KEY) {
+      console.error("ENV ❌ : OPENAI_API_KEY missing");
       return res.status(500).json({
-        error: 'missing_env',
-        detail: 'OPENAI_API_KEY not set in Vercel (Settings → Environment Variables). After saving, Redeploy.'
+        error: "missing_env",
+        detail:
+          "OPENAI_API_KEY not set in Vercel. Add it in Project → Settings → Environment Variables, then Redeploy.",
       });
-    } else {
-      console.log('ENV CHECK ✅ : OPENAI_API_KEY is PRESENT');
     }
 
     // 2) 解析輸入
     const { aBeast, aKin, bBeast, bKin, context } = req.body ?? {};
     if (!aBeast || !aKin || !bBeast || !bKin || !context) {
-      console.warn('INPUT WARN: missing fields', { aBeast, aKin, bBeast, bKin, context });
-      return res.status(400).json({ error: 'missing_fields', need: ['aBeast','aKin','bBeast','bKin','context'] });
+      return res.status(400).json({
+        error: "missing_fields",
+        need: ["aBeast", "aKin", "bBeast", "bKin", "context"],
+      });
     }
 
-    // 3) Prompt
-    const system = `你是「六獸六親分析器」。依規則輸出：個性、衝突、協調策略、六維分數與JSON。
-規則：六獸=青龍(創新/展望/溝通)、朱雀(表達/輿論/快)、勾陳(穩健/流程/保守)、螣蛇(機巧/變通/隱憂)、白虎(決斷/競爭/高壓)、玄武(洞察/內控/風險)；
-六親=父母(規範/知識/文件)、兄弟(協作/資源)、子孫(創意/解法/舒緩)、妻財(資源/績效/交付)、官鬼(秩序/責任/壓力)；
-六維：fit/comm/pace/account/trust/innov（0–100）。語氣中立務實，不涉宿命。字數≤500+JSON。`;
+    // 3) Prompt（要求固定輸出，並強制附帶 JSON 區塊）
+    const system = `你是「六獸六親分析器」。請用中立、務實、可行的建議語氣，輸出結構化結果，字數精煉。六獸：青龍/朱雀/勾陳/螣蛇/白虎/玄武；六親：父母/兄弟/子孫/妻財/官鬼。
+六維分數鍵：fit, comm, pace, account, trust, innov（0–100）。
+輸出一定要包含結尾的 \`\`\`json 區塊（只含 scores 與 tags）。`;
 
-    const user = `我方＝「${aBeast}×${aKin}」；對方＝「${bBeast}×${bKin}」；情境＝「${context}」。
-請產出：
+    const user = `我方：${aBeast}×${aKin}
+對方：${bBeast}×${bKin}
+情境：${context}
+
+請依下列格式輸出（保留段落編號與小標）：
 1) 個性描述（各2–3句）
-2) 衝突熱點≤3
-3) 協調策略：短期3條／長期3條
-4) 六維度分數（每維一句解讀）
+2) 衝突熱點（≤3 點）
+3) 協調策略：短期3條／長期3條（具體可操作）
+4) 六維度分數解讀（fit, comm, pace, account, trust, innov；每維一句）
 5) JSON：
+\`\`\`json
 {
- "pair":{"A":{"beast":"${aBeast}","kin":"${aKin}"},"B":{"beast":"${bBeast}","kin":"${bKin}"},"context":"${context}"},
- "scores":{"fit":0-100,"comm":0-100,"pace":0-100,"account":0-100,"trust":0-100,"innov":0-100},
- "tags":[]
-}`;
+  "scores": {
+    "fit": 0, "comm": 0, "pace": 0, "account": 0, "trust": 0, "innov": 0
+  },
+  "tags": ["三到五個重點標籤"]
+}
+\`\`\`
+請務必提供有效的 JSON（鍵名與範圍正確），且不要在 JSON 外多加註解。`;
 
     // 4) 呼叫 OpenAI Responses API
-    const resp = await fetch('https://api.openai.com/v1/responses', {
-      method: 'POST',
+    const r = await fetch("https://api.openai.com/v1/responses", {
+      method: "POST",
       headers: {
-        'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
-        'Content-Type': 'application/json'
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: 'gpt-4.1-mini',
+        model: "gpt-4.1-mini",
+        // 你可以視需要調整 temperature
+        temperature: 0.9,
         input: [
-          { role: 'system', content: system },
-          { role: 'user', content: user }
-        ]
-      })
+          { role: "system", content: system },
+          { role: "user", content: user },
+        ],
+      }),
     });
 
-    // 5) 錯誤處理（把 OpenAI 的錯誤原文印到 Logs）
-    if (!resp.ok) {
-      const errText = await resp.text();
-      console.error('OPENAI API ERROR ❌ :', errText);
-      return res.status(500).json({ error: 'openai_failed', detail: errText });
+    if (!r.ok) {
+      const errText = await r.text();
+      console.error("OPENAI ❌ :", errText);
+      return res.status(500).json({ error: "openai_failed", detail: errText });
     }
 
-    // 6) 正常回傳
-    const data = await resp.json();
-    const text =
-      data.output_text ??
-      data.choices?.[0]?.message?.content ??
-      JSON.stringify(data, null, 2);
+    const data = await r.json();
 
-    console.log('OPENAI API OK ✅');
+    // 5) 只抽出純文字結果（兼容 Responses API 的 output 結構）
+    let text = data.output_text;
+    if (!text && Array.isArray(data.output)) {
+      text = data.output
+        .map((o) =>
+          Array.isArray(o.content)
+            ? o.content.map((c) => c.text || "").join("\n")
+            : ""
+        )
+        .join("\n")
+        .trim();
+    }
+    if (!text) {
+      // 安全退路：仍找不到就回原始資料（避免空白）
+      text = JSON.stringify(data, null, 2);
+    }
+
+    // 6) 回傳乾淨 payload：前端只會拿到 text
     return res.status(200).json({ text });
   } catch (e) {
-    console.error('SERVER ERROR ❌ :', e);
-    return res.status(500).json({ error: 'server_error', detail: String(e) });
+    console.error("SERVER ❌ :", e);
+    return res.status(500).json({ error: "server_error", detail: String(e) });
   }
 }

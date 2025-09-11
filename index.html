@@ -3,27 +3,25 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>六獸六親 一鍵分析（雷達圖＋列印）</title>
+  <title>六獸 × 六親 × 地支｜一鍵分析</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
-    /* 列印樣式 */
-    @media print { @page { margin: 14mm; } .no-print { display:none !important; } body { background:white !important; } .print-card { box-shadow:none !important; border:1px solid #e5e7eb; } }
-    /* 分數條與標籤樣式 */
+    @media print { @page { margin: 14mm; } .no-print { display:none !important; } body { background:#fff !important; } .print-card { box-shadow:none !important; border:1px solid #e5e7eb; } }
     .scores{display:grid;grid-template-columns:1fr;gap:8px;margin-top:6px}
     .score{display:flex;align-items:center;gap:10px;font-size:13px;color:#334155}
     .bar{flex:1;height:10px;background:#e2e8f0;border-radius:9999px;overflow:hidden}
     .bar>i{display:block;height:100%;background:#6366f1}
-    .score b{width:80px;display:inline-block;color:#0f172a}
-    .score em{width:34px;text-align:right;color:#475569;font-style:normal}
+    .score b{width:92px;display:inline-block;color:#0f172a}
+    .score em{width:36px;text-align:right;color:#475569;font-style:normal}
     .tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
     .tag{background:#eef2ff;color:#3730a3;padding:4px 10px;border-radius:9999px;font-size:12px}
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
-  <div class="max-w-4xl mx-auto p-6 space-y-5">
+  <div class="max-w-5xl mx-auto p-6 space-y-5">
     <header class="no-print">
-      <h1 class="text-2xl font-bold">六獸六親 一鍵分析</h1>
+      <h1 class="text-2xl font-bold">六獸 × 六親 × 地支｜一鍵分析</h1>
       <p class="text-slate-500 text-sm">選好我方/對方與情境 → 按「一鍵分析」。支援分數條、雷達圖、列印 / 匯出 PDF。</p>
     </header>
 
@@ -36,10 +34,16 @@
           <option>青龍</option><option>朱雀</option><option>勾陳</option>
           <option>螣蛇</option><option>白虎</option><option>玄武</option>
         </select>
-        <select id="aKin" class="w-full border rounded-lg p-2">
+        <select id="aKin" class="w-full mb-2 border rounded-lg p-2">
           <option value="">六親</option>
           <option>父母</option><option>兄弟</option><option>子孫</option>
           <option>妻財</option><option>官鬼</option>
+        </select>
+        <select id="aBranch" class="w-full border rounded-lg p-2">
+          <option value="">地支</option>
+          <option>子</option><option>丑</option><option>寅</option><option>卯</option>
+          <option>辰</option><option>巳</option><option>午</option><option>未</option>
+          <option>申</option><option>酉</option><option>戌</option><option>亥</option>
         </select>
       </section>
 
@@ -51,10 +55,16 @@
           <option>青龍</option><option>朱雀</option><option>勾陳</option>
           <option>螣蛇</option><option>白虎</option><option>玄武</option>
         </select>
-        <select id="bKin" class="w-full border rounded-lg p-2">
+        <select id="bKin" class="w-full mb-2 border rounded-lg p-2">
           <option value="">六親</option>
           <option>父母</option><option>兄弟</option><option>子孫</option>
           <option>妻財</option><option>官鬼</option>
+        </select>
+        <select id="bBranch" class="w-full border rounded-lg p-2">
+          <option value="">地支</option>
+          <option>子</option><option>丑</option><option>寅</option><option>卯</option>
+          <option>辰</option><option>巳</option><option>午</option><option>未</option>
+          <option>申</option><option>酉</option><option>戌</option><option>亥</option>
         </select>
       </section>
     </div>
@@ -98,21 +108,31 @@
     document.querySelectorAll('.preset').forEach(b=>b.onclick=()=>$('#context').value=b.textContent);
 
     function getSelections(){
-      return { aBeast: $('#aBeast').value, aKin: $('#aKin').value, bBeast: $('#bBeast').value, bKin: $('#bKin').value, context: $('#context').value.trim() };
+      return {
+        aBeast: $('#aBeast').value, aKin: $('#aKin').value, aBranch: $('#aBranch').value,
+        bBeast: $('#bBeast').value, bKin: $('#bKin').value, bBranch: $('#bBranch').value,
+        context: $('#context').value.trim()
+      };
     }
-    function updateChips({aBeast,aKin,bBeast,bKin,context}){
-      $('#chipA').textContent = (aBeast||'—') + (aKin?(' × '+aKin):'');
-      $('#chipB').textContent = (bBeast||'—') + (bKin?(' × '+bKin):'');
+
+    function updateChips({aBeast,aKin,aBranch,bBeast,bKin,bBranch,context}){
+      $('#chipA').textContent = [aBeast,aKin,aBranch].filter(Boolean).join(' × ') || '—';
+      $('#chipB').textContent = [bBeast,bKin,bBranch].filter(Boolean).join(' × ') || '—';
       $('#chipC').textContent = context || '—';
     }
 
-    // 文字→HTML排版＋JSON解析（含分數條/標籤），並回傳 scores 供雷達圖使用
+    // 文字→HTML排版＋JSON解析（含分數條/標籤）
     function formatOutputWithJson(text){
       if(!text) return { html: '', scores: null, tags: [] };
+
       // 取出 ```json 區塊
       const jsonBlock = text.match(/```json([\s\S]*?)```/i);
       let json = null;
-      if(jsonBlock){ try{ json = JSON.parse(jsonBlock[1]); }catch(_){ json = null; } text = text.replace(jsonBlock[0], '').trim(); }
+      if(jsonBlock){
+        try{ json = JSON.parse(jsonBlock[1]); }catch(_){ json = null; }
+        text = text.replace(jsonBlock[0], '').trim();
+      }
+
       // 嘗試取得分數：優先 JSON，否則從純文字行中解析
       let scores = json && json.scores ? json.scores : null;
       if(!scores){
@@ -122,13 +142,15 @@
         const filled = Object.values(map).filter(v=>typeof v==='number' && !isNaN(v));
         if(filled.length>=2) scores = map;
       }
+
       // 標題與列點
       let html = text
         .replace(/\n\s*\n/g, '\n')
         .replace(/^\s*\d+\)\s*(.+)$/gm, '<h3 class="text-lg font-semibold mt-4">$1<\/h3>')
         .replace(/^\s*[-–]\s*(.+)$/gm, '<li>$1<\/li>');
       html = html.replace(/(?:<li>[^<]*<\/li>\n?)+/g, m => `<ul class="list-disc pl-5 space-y-1">${m}<\/ul>`);
-      // 若有分數與標籤
+
+      // 若有 JSON 分數與標籤
       if(scores){
         const s = scores; const clamp = v => Math.max(0, Math.min(100, Number(v)||0));
         const row = (label, key, color) => `<div class=\"score\"><b>${label}<\/b><div class=\"bar\"><i style=\"width:${clamp(s[key])}%;background:${color}\"><\/i><\/div><em>${clamp(s[key])}<\/em><\/div>`;
@@ -145,6 +167,7 @@
         const tagsHTML = json && Array.isArray(json.tags) && json.tags.length ? `<div class=\"tags\">${json.tags.map(t=>`<span class=\\\"tag\\\">${t}<\/span>`).join('')}<\/div>` : '';
         html = `${html}${scoreHTML}${tagsHTML}`;
       }
+
       return { html, scores, tags: (json && json.tags) ? json.tags : [] };
     }
 
@@ -160,8 +183,7 @@
       const canvas = document.createElement('canvas'); canvas.id = 'radar'; wrap.appendChild(canvas);
       if(radarChart){ radarChart.destroy(); }
       radarChart = new Chart(canvas.getContext('2d'), {
-        type: 'radar',
-        data: { labels, datasets: [{ label: '六維度雷達圖', data, fill: true, backgroundColor: 'rgba(99,102,241,0.15)', borderColor: 'rgba(99,102,241,1)', pointBackgroundColor: 'rgba(99,102,241,1)'}]},
+        type: 'radar', data: { labels, datasets: [{ label: '六維度雷達圖', data, fill: true, backgroundColor: 'rgba(99,102,241,0.15)', borderColor: 'rgba(99,102,241,1)', pointBackgroundColor: 'rgba(99,102,241,1)'}] },
         options: { scales: { r: { suggestedMin: 0, suggestedMax: 100, ticks: { stepSize: 20 } } }, plugins: { legend: { display: false } } }
       });
     }
@@ -169,16 +191,28 @@
     // 一鍵分析
     $('#go').onclick = async () => {
       const payload = getSelections(); updateChips(payload);
-      if (!(payload.aBeast && payload.aKin && payload.bBeast && payload.bKin && payload.context)) { alert('請先選滿四個選項並填情境'); return; }
+      if (!(payload.aBeast && payload.aKin && payload.aBranch && payload.bBeast && payload.bKin && payload.bBranch && payload.context)) {
+        alert('請先選滿：我方/對方「六獸、六親、地支」與情境'); return;
+      }
       $('#status').textContent = '分析中…'; $('#result').innerHTML = ''; document.getElementById('chart').innerHTML='';
       try {
         const res = await fetch('/api/analyze', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
         const data = await res.json();
-        const plain = data.text || data.result || JSON.stringify(data, null, 2);
+        // 乾淨字串（後端已只回傳 text；仍保留退路）
+        let plain = data.text || data.result;
+        if(!plain && Array.isArray(data.output)){
+          plain = data.output.map(o=> (o.content||[]).map(c=>c.text||'').join('\n')).join('\n');
+        }
+        if(!plain) plain = JSON.stringify(data, null, 2);
+
         const formatted = formatOutputWithJson(plain);
-        $('#result').innerHTML = formatted.html; renderRadar(formatted.scores);
+        $('#result').innerHTML = formatted.html;
+        renderRadar(formatted.scores);
         $('#status').textContent = '✅ 完成';
-      } catch (e) { $('#status').textContent = '❌ 失敗'; $('#result').textContent = String(e); }
+      } catch (e) {
+        $('#status').textContent = '❌ 失敗';
+        $('#result').textContent = String(e);
+      }
     };
 
     // 列印 / 匯出 PDF（附上雷達圖快照）
@@ -200,15 +234,14 @@
         .chart img{max-width:520px;width:100%;}
         @page{margin:14mm}
       </style></head><body>
-      <h1>六獸六親分析（列印版）</h1>
+      <h1>六獸六親×地支 分析（列印版）</h1>
       <div class=meta>產生時間：${new Date().toLocaleString()}</div>
       <div class=chips>
-        <span class=chip>我方：${sel.aBeast||'—'} × ${sel.aKin||'—'}</span>
-        <span class=chip>對方：${sel.bBeast||'—'} × ${sel.bKin||'—'}</span>
+        <span class=chip>我方：${[sel.aBeast||'—', sel.aKin||'—', sel.aBranch||'—'].join(' × ')}</span>
+        <span class=chip>對方：${[sel.bBeast||'—', sel.bKin||'—', sel.bBranch||'—'].join(' × ')}</span>
         <span class=chip>情境：${sel.context||'—'}</span>
       </div>
-      <div class=box>
-        <div class=result>${$('#result').innerHTML || '<em>尚未產生結果</em>'}</div>
+      <div class=box><div class=result>${$('#result').innerHTML || '<em>尚未產生結果</em>'}</div>
         ${chartImg ? `<div class=\"chart\"><img src=\"${chartImg}\" alt=\"雷達圖\"></div>` : ''}
       </div>
       <script>window.onload=()=>window.print()<\/script></body></html>`;

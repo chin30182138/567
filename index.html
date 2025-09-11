@@ -3,14 +3,26 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>六獸六親 一鍵分析</title>
+  <title>六獸六親 一鍵分析（列印友善）</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    /* 列印樣式 */
+    @media print {
+      @page { margin: 14mm; }
+      .no-print { display:none !important; }
+      body { background:white !important; }
+      .print-card { box-shadow:none !important; border:1px solid #e5e7eb; }
+    }
+  </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
-  <div class="max-w-4xl mx-auto p-6 space-y-4">
-    <h1 class="text-2xl font-bold">六獸六親 一鍵分析（安全版）</h1>
+  <div class="max-w-4xl mx-auto p-6 space-y-5">
+    <header class="no-print">
+      <h1 class="text-2xl font-bold">六獸六親 一鍵分析</h1>
+      <p class="text-slate-500 text-sm">選好我方/對方與情境 → 按「一鍵分析」。可直接「列印 / 匯出 PDF」。</p>
+    </header>
 
-    <div class="grid md:grid-cols-2 gap-4">
+    <div class="grid md:grid-cols-2 gap-4 no-print">
       <!-- 我方 -->
       <section class="bg-white p-4 rounded-2xl shadow-sm">
         <h2 class="font-semibold mb-3">我方</h2>
@@ -42,25 +54,35 @@
       </section>
     </div>
 
-    <section class="bg-white p-4 rounded-2xl shadow-sm">
-      <h2 class="font-semibold mb-2">情境</h2>
+    <!-- 情境 preset + 自由輸入 -->
+    <section class="bg-white p-4 rounded-2xl shadow-sm space-y-2 no-print">
+      <h2 class="font-semibold">情境</h2>
       <div class="flex gap-2 flex-wrap mb-2">
         <button class="preset px-3 py-1.5 rounded-full bg-slate-100">年度目標協調</button>
         <button class="preset px-3 py-1.5 rounded-full bg-slate-100">績效回饋會議</button>
         <button class="preset px-3 py-1.5 rounded-full bg-slate-100">跨部門協作</button>
         <button class="preset px-3 py-1.5 rounded-full bg-slate-100">壓期交付專案</button>
+        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">人際關係協調</button>
+        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">愛情</button>
       </div>
       <input id="context" class="w-full border rounded-lg p-2" placeholder="輸入情境…" />
     </section>
 
-    <div class="flex gap-3">
+    <!-- 動作列 -->
+    <div class="flex flex-wrap items-center gap-3 no-print">
       <button id="go" class="px-4 py-2 rounded-xl bg-indigo-600 text-white">一鍵分析</button>
+      <button id="print" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-800">列印 / 匯出 PDF</button>
       <span id="status" class="text-sm text-slate-600"></span>
     </div>
 
-    <section class="bg-white p-4 rounded-2xl shadow-sm">
-      <h2 class="font-semibold mb-2">結果</h2>
-      <pre id="result" class="whitespace-pre-wrap text-sm"></pre>
+    <!-- 結果區 -->
+    <section class="bg-white p-5 rounded-2xl shadow-sm print-card">
+      <div class="flex flex-wrap gap-2 text-sm text-slate-600 mb-3">
+        <span class="px-3 py-1 bg-slate-100 rounded-full">我方：<strong id="chipA">—</strong></span>
+        <span class="px-3 py-1 bg-slate-100 rounded-full">對方：<strong id="chipB">—</strong></span>
+        <span class="px-3 py-1 bg-slate-100 rounded-full">情境：<strong id="chipC">—</strong></span>
+      </div>
+      <div id="result" class="prose max-w-none text-[15px]"></div>
     </section>
   </div>
 
@@ -68,30 +90,84 @@
     const $ = s => document.querySelector(s);
     document.querySelectorAll('.preset').forEach(b=>b.onclick=()=>$('#context').value=b.textContent);
 
-    $('#go').onclick = async () => {
-      const payload = {
+    function getSelections(){
+      return {
         aBeast: $('#aBeast').value, aKin: $('#aKin').value,
         bBeast: $('#bBeast').value, bKin: $('#bKin').value,
         context: $('#context').value.trim()
       };
+    }
+
+    function updateChips({aBeast,aKin,bBeast,bKin,context}){
+      $('#chipA').textContent = (aBeast||'—') + (aKin?(' × '+aKin):'');
+      $('#chipB').textContent = (bBeast||'—') + (bKin?(' × '+bKin):'');
+      $('#chipC').textContent = context || '—';
+    }
+
+    // 簡易排版：把模型輸出中的編號/小標整理成 HTML
+    function formatOutput(text){
+      if(!text) return '';
+      let html = text
+        .replace(/\n\s*\n/g, '\n') // 壓縮多餘空行
+        .replace(/^\s*\d+\)\s*(.+)$/gm, '<h3 class="text-lg font-semibold mt-4">$1</h3>') // 1) 標題
+        .replace(/^\s*-\s*(.+)$/gm, '<li>$1</li>'); // 列點
+      // 把連續的 <li> 包成 <ul>
+      html = html.replace(/(?:<li>[^<]*<\/li>\n?)+/g, m => `<ul class="list-disc pl-5 space-y-1">${m}</ul>`);
+      return html;
+    }
+
+    $('#go').onclick = async () => {
+      const payload = getSelections();
+      updateChips(payload);
       if (!(payload.aBeast && payload.aKin && payload.bBeast && payload.bKin && payload.context)) {
         alert('請先選滿四個選項並填情境'); return;
       }
       $('#status').textContent = '分析中…';
-      $('#result').textContent = '';
+      $('#result').innerHTML = '';
       try {
         const res = await fetch('/api/analyze', {
-          method: 'POST',
-          headers: {'Content-Type':'application/json'},
+          method: 'POST', headers: {'Content-Type':'application/json'},
           body: JSON.stringify(payload)
         });
         const data = await res.json();
-        $('#result').textContent = data.text ?? JSON.stringify(data, null, 2);
+        const plain = data.text || data.result || JSON.stringify(data, null, 2);
+        $('#result').innerHTML = formatOutput(plain);
         $('#status').textContent = '✅ 完成';
       } catch (e) {
         $('#status').textContent = '❌ 失敗';
         $('#result').textContent = String(e);
       }
+    };
+
+    // 列印 / 匯出 PDF
+    $('#print').onclick = () => {
+      const sel = getSelections();
+      updateChips(sel); // 確保晶片更新
+      const html = `<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><title>列印</title>
+      <style>
+        body{font-family:ui-sans-serif,system-ui,-apple-system,"Noto Sans TC";color:#0f172a;margin:18px;}
+        h1{font-size:20px;margin:0 0 6px;}
+        .meta{color:#64748b;font-size:12px;margin-bottom:10px}
+        .chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 14px}
+        .chip{background:#eef2f7;border-radius:999px;padding:6px 10px;font-size:12px;color:#0f172a}
+        .box{border:1px solid #e5e7eb;border-radius:12px;padding:14px}
+        .result{font-size:14px;line-height:1.6}
+        ul{margin:6px 0 6px 18px}
+        h3{margin:10px 0 4px}
+        @page{margin:14mm}
+      </style></head><body>
+      <h1>六獸六親分析（列印版）</h1>
+      <div class="meta">產生時間：${new Date().toLocaleString()}</div>
+      <div class="chips">
+        <span class="chip">我方：${sel.aBeast||'—'} × ${sel.aKin||'—'}</span>
+        <span class="chip">對方：${sel.bBeast||'—'} × ${sel.bKin||'—'}</span>
+        <span class="chip">情境：${sel.context||'—'}</span>
+      </div>
+      <div class="box"><div class="result">${$('#result').innerHTML || '<em>尚未產生結果</em>'}</div></div>
+      <script>window.onload=()=>window.print()<\/script></body></html>`;
+      const w = window.open('', '_blank');
+      w.document.write(html);
+      w.document.close();
     };
   </script>
 </body>

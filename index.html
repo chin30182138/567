@@ -3,9 +3,19 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>六獸六親 一鍵分析（列印友善）</title>
+  <title>六獸六親 一鍵分析（完整版）</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
+    /* 分數條與標籤樣式 */
+    .scores{display:grid;grid-template-columns:1fr;gap:8px;margin-top:6px}
+    .score{display:flex;align-items:center;gap:10px;font-size:13px;color:#334155}
+    .bar{flex:1;height:10px;background:#e2e8f0;border-radius:9999px;overflow:hidden}
+    .bar>i{display:block;height:100%;background:#6366f1}
+    .score b{width:80px;display:inline-block;color:#0f172a}
+    .score em{width:34px;text-align:right;color:#475569;font-style:normal}
+    .tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+    .tag{background:#eef2ff;color:#3730a3;padding:4px 10px;border-radius:9999px;font-size:12px}
+
     /* 列印樣式 */
     @media print {
       @page { margin: 14mm; }
@@ -19,7 +29,7 @@
   <div class="max-w-4xl mx-auto p-6 space-y-5">
     <header class="no-print">
       <h1 class="text-2xl font-bold">六獸六親 一鍵分析</h1>
-      <p class="text-slate-500 text-sm">選好我方/對方與情境 → 按「一鍵分析」。可直接「列印 / 匯出 PDF」。</p>
+      <p class="text-slate-500 text-sm">選好我方/對方與情境 → 按「一鍵分析」。支援分數條與「列印 / 匯出 PDF」。</p>
     </header>
 
     <div class="grid md:grid-cols-2 gap-4 no-print">
@@ -64,6 +74,7 @@
         <button class="preset px-3 py-1.5 rounded-full bg-slate-100">壓期交付專案</button>
         <button class="preset px-3 py-1.5 rounded-full bg-slate-100">人際關係協調</button>
         <button class="preset px-3 py-1.5 rounded-full bg-slate-100">愛情</button>
+        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">性愛</button>
       </div>
       <input id="context" class="w-full border rounded-lg p-2" placeholder="輸入情境…" />
     </section>
@@ -104,15 +115,49 @@
       $('#chipC').textContent = context || '—';
     }
 
-    // 簡易排版：把模型輸出中的編號/小標整理成 HTML
-    function formatOutput(text){
+    // 文字→HTML排版＋JSON解析（含分數條/標籤）
+    function formatOutputWithJson(text){
       if(!text) return '';
+
+      // 取出 ```json 區塊
+      const jsonBlock = text.match(/```json([\s\S]*?)```/i);
+      let json = null;
+      if(jsonBlock){
+        try{ json = JSON.parse(jsonBlock[1]); }catch(_){ json = null; }
+        text = text.replace(jsonBlock[0], '').trim();
+      }
+
+      // 標題與列點
       let html = text
-        .replace(/\n\s*\n/g, '\n') // 壓縮多餘空行
-        .replace(/^\s*\d+\)\s*(.+)$/gm, '<h3 class="text-lg font-semibold mt-4">$1</h3>') // 1) 標題
-        .replace(/^\s*-\s*(.+)$/gm, '<li>$1</li>'); // 列點
-      // 把連續的 <li> 包成 <ul>
-      html = html.replace(/(?:<li>[^<]*<\/li>\n?)+/g, m => `<ul class="list-disc pl-5 space-y-1">${m}</ul>`);
+        .replace(/\n\s*\n/g, '\n')
+        .replace(/^\s*\d+\)\s*(.+)$/gm, '<h3 class="text-lg font-semibold mt-4">$1<\/h3>')
+        .replace(/^\s*[-–]\s*(.+)$/gm, '<li>$1<\/li>');
+      html = html.replace(/(?:<li>[^<]*<\/li>\n?)+/g, m => `<ul class="list-disc pl-5 space-y-1">${m}<\/ul>`);
+
+      // 若有 JSON 分數與標籤
+      if(json && json.scores){
+        const s = json.scores;
+        const clamp = v => Math.max(0, Math.min(100, Number(v)||0));
+        const row = (label, key, color) => `<div class="score"><b>${label}</b><div class="bar"><i style="width:${clamp(s[key])}%;background:${color}"><\/i><\/div><em>${clamp(s[key])}<\/em><\/div>`;
+
+        const scoreHTML = `
+          <h3 class="text-lg font-semibold mt-4">六維度分數<\/h3>
+          <div class="scores">
+            ${row('契合 fit','fit','#22c55e')}
+            ${row('溝通 comm','comm','#06b6d4')}
+            ${row('節奏 pace','pace','#f59e0b')}
+            ${row('權責 account','account','#8b5cf6')}
+            ${row('信任 trust','trust','#ef4444')}
+            ${row('創新 innov','innov','#6366f1')}
+          <\/div>`;
+
+        const tagsHTML = Array.isArray(json.tags) && json.tags.length
+          ? `<div class="tags">${json.tags.map(t=>`<span class=\"tag\">${t}<\/span>`).join('')}<\/div>`
+          : '';
+
+        html = `${html}${scoreHTML}${tagsHTML}`;
+      }
+
       return html;
     }
 
@@ -131,7 +176,7 @@
         });
         const data = await res.json();
         const plain = data.text || data.result || JSON.stringify(data, null, 2);
-        $('#result').innerHTML = formatOutput(plain);
+        $('#result').innerHTML = formatOutputWithJson(plain);
         $('#status').textContent = '✅ 完成';
       } catch (e) {
         $('#status').textContent = '❌ 失敗';
@@ -142,14 +187,14 @@
     // 列印 / 匯出 PDF
     $('#print').onclick = () => {
       const sel = getSelections();
-      updateChips(sel); // 確保晶片更新
-      const html = `<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><title>列印</title>
+      updateChips(sel);
+      const html = `<!doctype html><html lang="zh-Hant"><head><meta charset=\"utf-8\"><title>列印</title>
       <style>
-        body{font-family:ui-sans-serif,system-ui,-apple-system,"Noto Sans TC";color:#0f172a;margin:18px;}
+        body{font-family:ui-sans-serif,system-ui,-apple-system,\"Noto Sans TC\";color:#0f172a;margin:18px;}
         h1{font-size:20px;margin:0 0 6px;}
         .meta{color:#64748b;font-size:12px;margin-bottom:10px}
         .chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 14px}
-        .chip{background:#eef2f7;border-radius:999px;padding:6px 10px;font-size:12px;color:#0f172a}
+        .chip{background:#eef2f7;border-radius:9999px;padding:6px 10px;font-size:12px;color:#0f172a}
         .box{border:1px solid #e5e7eb;border-radius:12px;padding:14px}
         .result{font-size:14px;line-height:1.6}
         ul{margin:6px 0 6px 18px}
@@ -157,13 +202,13 @@
         @page{margin:14mm}
       </style></head><body>
       <h1>六獸六親分析（列印版）</h1>
-      <div class="meta">產生時間：${new Date().toLocaleString()}</div>
-      <div class="chips">
-        <span class="chip">我方：${sel.aBeast||'—'} × ${sel.aKin||'—'}</span>
-        <span class="chip">對方：${sel.bBeast||'—'} × ${sel.bKin||'—'}</span>
-        <span class="chip">情境：${sel.context||'—'}</span>
+      <div class=meta>產生時間：${new Date().toLocaleString()}</div>
+      <div class=chips>
+        <span class=chip>我方：${sel.aBeast||'—'} × ${sel.aKin||'—'}</span>
+        <span class=chip>對方：${sel.bBeast||'—'} × ${sel.bKin||'—'}</span>
+        <span class=chip>情境：${sel.context||'—'}</span>
       </div>
-      <div class="box"><div class="result">${$('#result').innerHTML || '<em>尚未產生結果</em>'}</div></div>
+      <div class=box><div class=result>${$('#result').innerHTML || '<em>尚未產生結果</em>'}</div></div>
       <script>window.onload=()=>window.print()<\/script></body></html>`;
       const w = window.open('', '_blank');
       w.document.write(html);

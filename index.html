@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>六獸 × 六親 × 地支｜一鍵分析（Responses 解析最終版）</title>
+  <title>六獸 × 六親 × 地支｜一鍵分析</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
@@ -21,8 +21,8 @@
 <body class="bg-slate-50 text-slate-800">
   <div class="max-w-5xl mx-auto p-6 space-y-5">
     <header class="no-print">
-      <h1 class="text-2xl font-bold">仙人六獸 × 六親 × 地支｜一鍵分析</h1>
-      <p class="text-slate-500 text-sm">最終修正版：正確解析 OpenAI <em>Responses API</em> 回傳、穩定列印（含雷達圖）、本機存檔與匯出。</p>
+      <h1 class="text-2xl font-bold">六獸 × 六親 × 地支｜一鍵分析</h1>
+      <p class="text-slate-500 text-sm">選好我方/對方與情境 → 按「一鍵分析」。支援分數條、雷達圖、列印 / 匯出 PDF。</p>
     </header>
 
     <div class="grid md:grid-cols-2 gap-4 no-print">
@@ -88,13 +88,6 @@
     <div class="flex flex-wrap items-center gap-3 no-print">
       <button id="go" class="px-4 py-2 rounded-xl bg-indigo-600 text-white">一鍵分析</button>
       <button id="print" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-800">列印 / 匯出 PDF</button>
-      <label class="flex items-center gap-2 text-sm text-slate-700 ml-2">
-        <input id="deepMode" type="checkbox" class="w-4 h-4"> 進階深入分析
-      </label>
-      <input id="saveName" class="border rounded-lg px-3 py-2 text-sm" placeholder="檔名（可自訂）" style="min-width:200px">
-      <button id="save" class="px-4 py-2 rounded-xl bg-emerald-600 text-white">存檔</button>
-      <button id="export" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-800">匯出 JSON</button>
-      <button id="savedToggle" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-800">我的檔案</button>
       <span id="status" class="text-sm text-slate-600"></span>
     </div>
 
@@ -108,54 +101,17 @@
       <div id="result" class="prose max-w-none text-[15px]"></div>
       <div id="chart" class="mt-4"></div>
     </section>
-
-    <!-- 我的檔案（本機存檔） -->
-    <section id="savedPanel" class="no-print bg-white p-4 rounded-2xl shadow-sm hidden">
-      <div class="flex items-center justify-between mb-3">
-        <h2 class="font-semibold">我的檔案</h2>
-        <div class="text-sm text-slate-500">（保存在這台裝置的瀏覽器 LocalStorage）</div>
-      </div>
-      <div id="savedList" class="divide-y divide-slate-100"></div>
-    </section>
   </div>
 
   <script>
     const $ = s => document.querySelector(s);
-    const STORAGE_KEY = 'lx_saved_v1';
-    let lastPlain = '';
-    let lastFormatted = null;
-    let radarChart = null;
-    let isBusy = false;
-    let currentAbort = null;
-
-    function setBusy(b){
-      isBusy = b;
-      const go = document.getElementById('go');
-      const printBtn = document.getElementById('print');
-      const saveBtn = document.getElementById('save');
-      go.disabled = b; printBtn.disabled = b; saveBtn.disabled = b;
-      go.classList.toggle('opacity-60', b);
-      document.getElementById('status').textContent = b ? '分析中…' : '';
-    }
-
-    // 情境 preset 點選 → 帶入輸入框
-    // 單一事件委派，避免重複綁定造成怪異行為
-    document.addEventListener('click', (e) => {
-      const btn = e.target.closest('.preset');
-      if (!btn) return;
-      e.preventDefault();
-      const ctx = document.getElementById('context');
-      ctx.value = btn.textContent.trim();
-      // 觸發 input 事件，讓外部可能的監聽也能收到
-      ctx.dispatchEvent(new Event('input', { bubbles: true }));
-    });
+    document.querySelectorAll('.preset').forEach(b=>b.onclick=()=>$('#context').value=b.textContent);
 
     function getSelections(){
       return {
         aBeast: $('#aBeast').value, aKin: $('#aKin').value, aBranch: $('#aBranch').value,
         bBeast: $('#bBeast').value, bKin: $('#bKin').value, bBranch: $('#bBranch').value,
-        context: $('#context').value.trim(),
-        depth: $('#deepMode').checked ? 'deep' : 'basic'
+        context: $('#context').value.trim()
       };
     }
 
@@ -165,38 +121,11 @@
       $('#chipC').textContent = context || '—';
     }
 
-    // 解析 Responses API：盡量抽出文字
-    function extractTextFromResponse(data, raw){
-      try{
-        // Responses API 常見：text 直接在 data.text
-        if (typeof data?.text === 'string' && data.text.trim()) return data.text;
-        // 更常見：data.output[0].content[].text
-        if (Array.isArray(data?.output)){
-          const chunks = [];
-          for (const msg of data.output){
-            const arr = msg?.content || [];
-            for (const c of arr){ if (c?.text) chunks.push(c.text); }
-          }
-          if (chunks.length) return chunks.join('\n');
-        }
-        // 有些包在 data.result
-        if (typeof data?.result === 'string' && data.result.trim()) return data.result;
-        // 兜底：把重要欄位攤平
-        if (data && typeof data === 'object'){
-          const guess = data?.choices?.[0]?.message?.content || data?.message || '';
-          if (typeof guess === 'string' && guess.trim()) return guess;
-        }
-      }catch(_){}
-      return raw || '';
-    }
-
     // 文字→HTML排版＋JSON解析（含分數條/標籤）
     function formatOutputWithJson(text){
-      if (text == null) text = '';
-      if (typeof text !== 'string') { try { text = JSON.stringify(text); } catch(_) { text = String(text); } }
       if(!text) return { html: '', scores: null, tags: [] };
 
-      // 抽出 ```json 區塊
+      // 取出 ```json 區塊
       const jsonBlock = text.match(/```json([\s\S]*?)```/i);
       let json = null;
       if(jsonBlock){
@@ -204,12 +133,12 @@
         text = text.replace(jsonBlock[0], '').trim();
       }
 
-      // 嘗試取得分數：優先 JSON，否則從純文字抓
+      // 嘗試取得分數：優先 JSON，否則從純文字行中解析
       let scores = json && json.scores ? json.scores : null;
       if(!scores){
         const map = { fit:null, comm:null, pace:null, account:null, trust:null, innov:null };
-        const rx = /(fit|comm|pace|account|trust|innov)\s*(\d{1,3})/ig; let m;
-        while((m = rx.exec(text))){ map[m[1].toLowerCase()] = Number(m[2]); }
+        const rx = /(fit|comm|pace|account|trust|innov)\s*(\d{1,3})/ig;
+        let m; while((m = rx.exec(text))){ map[m[1].toLowerCase()] = Number(m[2]); }
         const filled = Object.values(map).filter(v=>typeof v==='number' && !isNaN(v));
         if(filled.length>=2) scores = map;
       }
@@ -217,7 +146,7 @@
       // 標題與列點
       let html = text
         .replace(/\n\s*\n/g, '\n')
-        .replace(/^\s*\d+\)\s*(.+)$/gm, '<h3 class="text-lg font-semibold mt-4'>$1<\/h3>')
+        .replace(/^\s*\d+\)\s*(.+)$/gm, '<h3 class="text-lg font-semibold mt-4">$1<\/h3>')
         .replace(/^\s*[-–]\s*(.+)$/gm, '<li>$1<\/li>');
       html = html.replace(/(?:<li>[^<]*<\/li>\n?)+/g, m => `<ul class="list-disc pl-5 space-y-1">${m}<\/ul>`);
 
@@ -243,9 +172,11 @@
     }
 
     // Radar 圖
+    let radarChart = null;
     function renderRadar(scores){
-      const wrap = document.getElementById('chart'); wrap.innerHTML = '';
-      if(!scores) return;
+      const wrap = document.getElementById('chart');
+      wrap.innerHTML = '';
+      if(!scores){ return; }
       const clamp = v => Math.max(0, Math.min(100, Number(v)||0));
       const labels = ['契合 fit','溝通 comm','節奏 pace','權責 account','信任 trust','創新 innov'];
       const data = [clamp(scores.fit),clamp(scores.comm),clamp(scores.pace),clamp(scores.account),clamp(scores.trust),clamp(scores.innov)];
@@ -253,110 +184,56 @@
       if(radarChart){ radarChart.destroy(); }
       radarChart = new Chart(canvas.getContext('2d'), {
         type: 'radar', data: { labels, datasets: [{ label: '六維度雷達圖', data, fill: true, backgroundColor: 'rgba(99,102,241,0.15)', borderColor: 'rgba(99,102,241,1)', pointBackgroundColor: 'rgba(99,102,241,1)'}] },
-        options: { scales: { r: { suggestedMin: 0, suggestedMax: 100, ticks: { stepSize: 20 }, pointLabels: { font: { size: 16 }, color: '#0f172a' } } }, plugins: { legend: { display: false } } }
-      });
-      window.radarChart = radarChart; // 列印快照
-    }
-
-    // 下載工具
-    function download(filename, content, type='application/json'){
-      const blob = new Blob([content], {type}); const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
-      setTimeout(()=>URL.revokeObjectURL(url), 500);
-    }
-
-    // 本機存檔 helper
-    const loadAllSaved = ()=>{ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]'); }catch(_){ return []; } };
-    const saveAllSaved = (list)=> localStorage.setItem(STORAGE_KEY, JSON.stringify(list.slice(0,100)));
-
-    function snapshot(){
-      const sel = getSelections();
-      const nameInput = ($('#saveName').value||'').trim();
-      const autoName = `${(sel.aBeast||'—')}×${(sel.aKin||'—')}×${(sel.aBranch||'—')} vs ${(sel.bBeast||'—')}×${(sel.bKin||'—')}×${(sel.bBranch||'—')}｜${sel.context||'未命名'}`;
-      return { id: Date.now().toString(36)+Math.random().toString(36).slice(2,8), time: new Date().toISOString(), name: nameInput||autoName, selections: sel, text: lastPlain||'', html: document.getElementById('result').innerHTML||'', scores: lastFormatted?.scores||null, tags: lastFormatted?.tags||[] };
-    }
-
-    function renderSavedList(){
-      const list = loadAllSaved(); const wrap = document.getElementById('savedList');
-      if(!list.length){ wrap.innerHTML = '<div class="text-sm text-slate-500">尚無存檔，先產生一次分析後按「存檔」。</div>'; return; }
-      wrap.innerHTML = list.map(item=>{
-        const t = new Date(item.time).toLocaleString(); const s = item.selections||{}; const title = item.name || `${(s.aBeast||'—')}×${(s.aKin||'—')}×${(s.aBranch||'—')} vs ${(s.bBeast||'—')}×${(s.bKin||'—')}×${(s.bBranch||'—')}`;
-        return `<div class=\"py-3 flex items-start justify-between gap-3\">\n          <div>\n            <div class=\"font-medium\">${title}</div>\n            <div class=\"text-xs text-slate-500\">${t} ｜ 情境：${s.context||'—'}</div>\n          </div>\n          <div class=\"shrink-0 flex gap-2\">\n            <button data-act=\"load\" data-id=\"${item.id}\" class=\"px-2 py-1 text-xs rounded bg-indigo-50 text-indigo-700\">載入</button>\n            <button data-act=\"export\" data-id=\"${item.id}\" class=\"px-2 py-1 text-xs rounded bg-slate-100\">匯出JSON</button>\n            <button data-act=\"del\" data-id=\"${item.id}\" class=\"px-2 py-1 text-xs rounded bg-rose-50 text-rose-700\">刪除</button>\n          </div>\n        </div>`;
-      }).join('');
-      wrap.querySelectorAll('button').forEach(btn=>{
-        btn.onclick = ()=>{
-          const id = btn.getAttribute('data-id'); const act = btn.getAttribute('data-act');
-          const list2 = loadAllSaved(); const idx = list2.findIndex(x=>x.id===id); if(idx<0) return; const item = list2[idx];
-          if(act==='del'){ list2.splice(idx,1); saveAllSaved(list2); renderSavedList(); }
-          else if(act==='export'){ download(`analysis_${id}.json`, JSON.stringify(item,null,2)); }
-          else if(act==='load'){
-            document.getElementById('aBeast').value = item.selections.aBeast||'';
-            document.getElementById('aKin').value = item.selections.aKin||'';
-            document.getElementById('aBranch').value = item.selections.aBranch||'';
-            document.getElementById('bBeast').value = item.selections.bBeast||'';
-            document.getElementById('bKin').value = item.selections.bKin||'';
-            document.getElementById('bBranch').value = item.selections.bBranch||'';
-            document.getElementById('context').value = item.selections.context||'';
-            updateChips(item.selections);
-            document.getElementById('result').innerHTML = item.html||'';
-            if(item.scores){ renderRadar(item.scores); }
-            lastPlain = item.text||''; lastFormatted = { html:item.html, scores:item.scores, tags:item.tags };
-            window.scrollTo({top:0,behavior:'smooth'});
-          }
-        };
+        options: { scales: { r: { suggestedMin: 0, suggestedMax: 100, ticks: { stepSize: 20 } } }, plugins: { legend: { display: false } } }
       });
     }
 
-    function toggleSavedPanel(){ const el = document.getElementById('savedPanel'); el.classList.toggle('hidden'); if(!el.classList.contains('hidden')) renderSavedList(); }
-
-    // 一鍵分析（健壯 fetch + Responses 解析）
-    document.getElementById('go').onclick = async () => {
-      if (isBusy) return;
+    // 一鍵分析
+    $('#go').onclick = async () => {
       const payload = getSelections(); updateChips(payload);
-      if (!(payload.aBeast && payload.aKin && payload.aBranch && payload.bBeast && payload.bKin && payload.bBranch && payload.context)) { alert('請先選滿：我方/對方「六獸、六親、地支」與情境'); return; }
-      document.getElementById('result').innerHTML = '';
-      document.getElementById('chart').innerHTML='';
-      setBusy(true);
-
-      // 30 秒逾時 + 可中止請求，避免「一直轉圈」
-      if (currentAbort) { try { currentAbort.abort(); } catch(_){} }
-      const ctrl = new AbortController();
-      currentAbort = ctrl;
-      const timer = setTimeout(() => { try { ctrl.abort('timeout'); } catch(_){} }, 30000);
-
+      if (!(payload.aBeast && payload.aKin && payload.aBranch && payload.bBeast && payload.bKin && payload.bBranch && payload.context)) {
+        alert('請先選滿：我方/對方「六獸、六親、地支」與情境'); return;
+      }
+      $('#status').textContent = '分析中…'; $('#result').innerHTML = ''; document.getElementById('chart').innerHTML='';
       try {
-        const res = await fetch('/api/analyze', {
-          method: 'POST',
-          headers: {'Content-Type':'application/json'},
-          body: JSON.stringify(payload),
-          signal: ctrl.signal
-        });
-        const raw = await res.text();
-        let data; try { data = JSON.parse(raw); } catch(_) { data = { raw }; }
-        if(!res.ok){ throw new Error((data && data.error && data.error.message) || data.raw || ('HTTP '+res.status)); }
+        const res = await fetch('/api/analyze', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+        const data = await res.json();
+        // 乾淨字串（後端已只回傳 text；仍保留退路）
+        let plain = data.text || data.result;
+        if(!plain && Array.isArray(data.output)){
+          plain = data.output.map(o=> (o.content||[]).map(c=>c.text||'').join('\n')).join('\n');
+        }
+        if(!plain) plain = JSON.stringify(data, null, 2);
 
-        let plain = extractTextFromResponse(data, raw);
         const formatted = formatOutputWithJson(plain);
-        lastPlain = plain; lastFormatted = formatted;
-        document.getElementById('result').innerHTML = formatted.html;
+        $('#result').innerHTML = formatted.html;
         renderRadar(formatted.scores);
-        document.getElementById('status').textContent = '✅ 完成';
+        $('#status').textContent = '✅ 完成';
       } catch (e) {
-        const msg = (e && (e.name==='AbortError' || e.message==='timeout')) ? '請求逾時（>30秒）。請檢查網路或稍後再試。' : ((e && e.message) ? e.message : String(e));
-        document.getElementById('status').textContent = '❌ ' + msg;
-        document.getElementById('result').textContent = msg;
-      } finally {
-        clearTimeout(timer);
-        setBusy(false);
+        $('#status').textContent = '❌ 失敗';
+        $('#result').textContent = String(e);
       }
     };
 
     // 列印 / 匯出 PDF（附上雷達圖快照）
-    document.getElementById('print').onclick = () => {
+    $('#print').onclick = () => {
       const sel = getSelections(); updateChips(sel);
       const chartImg = (window.radarChart && window.radarChart.canvas) ? window.radarChart.canvas.toDataURL('image/png') : '';
       const html = `<!doctype html><html lang=\"zh-Hant\"><head><meta charset=\"utf-8\"><title>列印</title>
-      <style>body{font-family:ui-sans-serif,system-ui,-apple-system,\"Noto Sans TC\";color:#0f172a;margin:18px;}h1{font-size:20px;margin:0 0 6px;}.meta{color:#64748b;font-size:12px;margin-bottom:10px}.chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 14px}.chip{background:#eef2f7;border-radius:999px;padding:6px 10px;font-size:12px;color:#0f172a}.box{border:1px solid #e5e7eb;border-radius:12px;padding:14px}.result{font-size:14px;line-height:1.6}ul{margin:6px 0 6px 18px}h3{margin:10px 0 4px}.chart{margin-top:12px;text-align:center}.chart img{max-width:520px;width:100%;}@page{margin:14mm}</style></head><body>
+      <style>
+        body{font-family:ui-sans-serif,system-ui,-apple-system,\"Noto Sans TC\";color:#0f172a;margin:18px;}
+        h1{font-size:20px;margin:0 0 6px;}
+        .meta{color:#64748b;font-size:12px;margin-bottom:10px}
+        .chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 14px}
+        .chip{background:#eef2f7;border-radius:9999px;padding:6px 10px;font-size:12px;color:#0f172a}
+        .box{border:1px solid #e5e7eb;border-radius:12px;padding:14px}
+        .result{font-size:14px;line-height:1.6}
+        ul{margin:6px 0 6px 18px}
+        h3{margin:10px 0 4px}
+        .chart{margin-top:12px;text-align:center}
+        .chart img{max-width:520px;width:100%;}
+        @page{margin:14mm}
+      </style></head><body>
       <h1>六獸六親×地支 分析（列印版）</h1>
       <div class=meta>產生時間：${new Date().toLocaleString()}</div>
       <div class=chips>
@@ -364,53 +241,12 @@
         <span class=chip>對方：${[sel.bBeast||'—', sel.bKin||'—', sel.bBranch||'—'].join(' × ')}</span>
         <span class=chip>情境：${sel.context||'—'}</span>
       </div>
-      <div class=box>
-        <div class=result>${document.getElementById('result').innerHTML || '<em>尚未產生結果</em>'}</div>
+      <div class=box><div class=result>${$('#result').innerHTML || '<em>尚未產生結果</em>'}</div>
         ${chartImg ? `<div class=\"chart\"><img src=\"${chartImg}\" alt=\"雷達圖\"></div>` : ''}
       </div>
       <script>window.onload=()=>window.print()<\/script></body></html>`;
       const w = window.open('', '_blank'); w.document.write(html); w.document.close();
     };
-
-    // 存檔 / 匯出 / 檔案面板
-    function download(filename, content, type='application/json'){
-      const blob = new Blob([content], {type}); const url = URL.createObjectURL(blob);
-      const a = document.createElement('a'); a.href = url; a.download = filename; a.click();
-      setTimeout(()=>URL.revokeObjectURL(url), 500);
-    }
-    const loadAllSaved = ()=>{ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]'); }catch(_){ return []; } };
-    const saveAllSaved = (list)=> localStorage.setItem(STORAGE_KEY, JSON.stringify(list.slice(0,100)));
-
-    document.getElementById('save').onclick = () => {
-      if(!((document.getElementById('result').innerHTML)||'').trim()){ alert('尚未有分析結果，請先點「一鍵分析」。'); return; }
-      const sel = getSelections();
-      const nameInput = ($('#saveName').value||'').trim();
-      const autoName = `${(sel.aBeast||'—')}×${(sel.aKin||'—')}×${(sel.aBranch||'—')} vs ${(sel.bBeast||'—')}×${(sel.bKin||'—')}×${(sel.bBranch||'—')}｜${sel.context||'未命名'}`;
-      const snap = { id: Date.now().toString(36)+Math.random().toString(36).slice(2,8), time: new Date().toISOString(), name: nameInput||autoName, selections: sel, text: lastPlain||'', html: document.getElementById('result').innerHTML||'', scores: lastFormatted?.scores||null, tags: lastFormatted?.tags||[] };
-      const list = loadAllSaved(); list.unshift(snap); saveAllSaved(list);
-      document.getElementById('status').textContent = '💾 已存檔';
-    };
-
-    document.getElementById('export').onclick = () => {
-      if(!((document.getElementById('result').innerHTML)||'').trim()){ alert('尚未有分析結果，請先點「一鍵分析」。'); return; }
-      const sel = getSelections();
-      const nameInput = ($('#saveName').value||'').trim();
-      const autoName = `${(sel.aBeast||'—')}×${(sel.aKin||'—')}×${(sel.aBranch||'—')} vs ${(sel.bBeast||'—')}×${(sel.bKin||'—')}×${(sel.bBranch||'—')}｜${sel.context||'未命名'}`;
-      const snap = { time: new Date().toISOString(), name: nameInput||autoName, selections: sel, text: lastPlain||'', html: document.getElementById('result').innerHTML||'', scores: lastFormatted?.scores||null, tags: lastFormatted?.tags||[] };
-      download(`analysis_${new Date().toISOString().replace(/[:.]/g,'-')}.json`, JSON.stringify(snap,null,2));
-    };
-
-    document.getElementById('savedToggle').onclick = () => {
-      const el = document.getElementById('savedPanel'); el.classList.toggle('hidden'); if(!el.classList.contains('hidden')){
-        const list = loadAllSaved(); const wrap = document.getElementById('savedList');
-        if(!list.length){ wrap.innerHTML = '<div class="text-sm text-slate-500">尚無存檔，先產生一次分析後按「存檔」。</div>'; return; }
-        wrap.innerHTML = list.map(item=>{
-          const t = new Date(item.time).toLocaleString(); const s = item.selections||{}; const title = item.name || `${(s.aBeast||'—')}×${(s.aKin||'—')}×${(s.aBranch||'—')} vs ${(s.bBeast||'—')}×${(s.bKin||'—')}×${(s.bBranch||'—')}`;
-          return `<div class=\"py-3 flex items-start justify-between gap-3\">\n            <div>\n              <div class=\"font-medium\">${title}</div>\n              <div class=\"text-xs text-slate-500\">${t} ｜ 情境：${s.context||'—'}</div>\n            </div>\n          </div>`;
-        }).join('');
-      }
-    };
   </script>
 </body>
 </html>
-

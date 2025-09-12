@@ -88,6 +88,10 @@
     <div class="flex flex-wrap items-center gap-3 no-print">
       <button id="go" class="px-4 py-2 rounded-xl bg-indigo-600 text-white">一鍵分析</button>
       <button id="print" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-800">列印 / 匯出 PDF</button>
+      <label class="flex items-center gap-2 text-sm text-slate-700 ml-2">
+        <input id="deepMode" type="checkbox" class="w-4 h-4"> 進階深入分析
+      </label>
+      <input id="saveName" class="border rounded-lg px-3 py-2 text-sm" placeholder="檔名（可自訂）" style="min-width:200px">
       <button id="save" class="px-4 py-2 rounded-xl bg-emerald-600 text-white">存檔</button>
       <button id="export" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-800">匯出 JSON</button>
       <button id="savedToggle" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-800">我的檔案</button>
@@ -127,8 +131,10 @@
       return {
         aBeast: $('#aBeast').value, aKin: $('#aKin').value, aBranch: $('#aBranch').value,
         bBeast: $('#bBeast').value, bKin: $('#bKin').value, bBranch: $('#bBranch').value,
-        context: $('#context').value.trim()
+        context: $('#context').value.trim(),
+        depth: $('#deepMode').checked ? 'deep' : 'basic'
       };
+    }
     }
 
     function updateChips({aBeast,aKin,aBranch,bBeast,bKin,bBranch,context}){
@@ -220,15 +226,20 @@
 
     function snapshot(){
       const sel = getSelections();
-      return {
+      const nameInput = ($('#saveName').value||'').trim();
+      const autoName = `${(sel.aBeast||'—')}×${(sel.aKin||'—')}×${(sel.aBranch||'—')} vs ${(sel.bBeast||'—')}×${(sel.bKin||'—')}×${(sel.bBranch||'—')}｜${sel.context||'未命名'}`;
+      const data = {
         id: Date.now().toString(36)+Math.random().toString(36).slice(2,8),
         time: new Date().toISOString(),
+        name: nameInput || autoName,
         selections: sel,
         text: lastPlain || '',
         html: document.getElementById('result').innerHTML || '',
         scores: lastFormatted?.scores || null,
         tags: lastFormatted?.tags || []
       };
+      return data;
+    }
     }
 
     function renderSavedList(){
@@ -238,7 +249,7 @@
       wrap.innerHTML = list.map(item=>{
         const t = new Date(item.time).toLocaleString();
         const s = item.selections||{};
-        const title = `${(s.aBeast||'—')}×${(s.aKin||'—')}×${(s.aBranch||'—')} vs ${(s.bBeast||'—')}×${(s.bKin||'—')}×${(s.bBranch||'—')}`;
+        const title = item.name || `${(s.aBeast||'—')}×${(s.aKin||'—')}×${(s.aBranch||'—')} vs ${(s.bBeast||'—')}×${(s.bKin||'—')}×${(s.bBranch||'—')}`;
         return `<div class=\"py-3 flex items-start justify-between gap-3\">\n          <div>\n            <div class=\"font-medium\">${title}</div>\n            <div class=\"text-xs text-slate-500\">${t} ｜ 情境：${s.context||'—'}</div>\n          </div>\n          <div class=\"shrink-0 flex gap-2\">\n            <button data-act=\"load\" data-id=\"${item.id}\" class=\"px-2 py-1 text-xs rounded bg-indigo-50 text-indigo-700\">載入</button>\n            <button data-act=\"export\" data-id=\"${item.id}\" class=\"px-2 py-1 text-xs rounded bg-slate-100\">匯出JSON</button>\n            <button data-act=\"del\" data-id=\"${item.id}\" class=\"px-2 py-1 text-xs rounded bg-rose-50 text-rose-700\">刪除</button>\n          </div>\n        </div>`;
       }).join('');
       wrap.querySelectorAll('button').forEach(btn=>{

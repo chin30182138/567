@@ -125,10 +125,29 @@
     let lastPlain = '';
     let lastFormatted = null;
     let radarChart = null;
+    let isBusy = false;
+    let currentAbort = null;
+
+    function setBusy(b){
+      isBusy = b;
+      const go = document.getElementById('go');
+      const printBtn = document.getElementById('print');
+      const saveBtn = document.getElementById('save');
+      go.disabled = b; printBtn.disabled = b; saveBtn.disabled = b;
+      go.classList.toggle('opacity-60', b);
+      document.getElementById('status').textContent = b ? '分析中…' : '';
+    }
 
     // 情境 preset 點選 → 帶入輸入框
-    document.querySelectorAll('.preset').forEach(btn => {
-      btn.onclick = () => { document.getElementById('context').value = btn.textContent.trim(); };
+    // 單一事件委派，避免重複綁定造成怪異行為
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.preset');
+      if (!btn) return;
+      e.preventDefault();
+      const ctx = document.getElementById('context');
+      ctx.value = btn.textContent.trim();
+      // 觸發 input 事件，讓外部可能的監聽也能收到
+      ctx.dispatchEvent(new Event('input', { bubbles: true }));
     });
 
     function getSelections(){
@@ -292,16 +311,30 @@
 
     // 一鍵分析（健壯 fetch + Responses 解析）
     document.getElementById('go').onclick = async () => {
+      if (isBusy) return;
       const payload = getSelections(); updateChips(payload);
       if (!(payload.aBeast && payload.aKin && payload.aBranch && payload.bBeast && payload.bKin && payload.bBranch && payload.context)) { alert('請先選滿：我方/對方「六獸、六親、地支」與情境'); return; }
-      document.getElementById('status').textContent = '分析中…';
       document.getElementById('result').innerHTML = '';
       document.getElementById('chart').innerHTML='';
+      setBusy(true);
+
+      // 30 秒逾時 + 可中止請求，避免「一直轉圈」
+      if (currentAbort) { try { currentAbort.abort(); } catch(_){} }
+      const ctrl = new AbortController();
+      currentAbort = ctrl;
+      const timer = setTimeout(() => { try { ctrl.abort('timeout'); } catch(_){} }, 30000);
+
       try {
-        const res = await fetch('/api/analyze', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+        const res = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: {'Content-Type':'application/json'},
+          body: JSON.stringify(payload),
+          signal: ctrl.signal
+        });
         const raw = await res.text();
         let data; try { data = JSON.parse(raw); } catch(_) { data = { raw }; }
         if(!res.ok){ throw new Error((data && data.error && data.error.message) || data.raw || ('HTTP '+res.status)); }
+
         let plain = extractTextFromResponse(data, raw);
         const formatted = formatOutputWithJson(plain);
         lastPlain = plain; lastFormatted = formatted;
@@ -309,8 +342,12 @@
         renderRadar(formatted.scores);
         document.getElementById('status').textContent = '✅ 完成';
       } catch (e) {
-        document.getElementById('status').textContent = '❌ 失敗';
-        document.getElementById('result').textContent = (e && e.message) ? e.message : String(e);
+        const msg = (e && (e.name==='AbortError' || e.message==='timeout')) ? '請求逾時（>30秒）。請檢查網路或稍後再試。' : ((e && e.message) ? e.message : String(e));
+        document.getElementById('status').textContent = '❌ ' + msg;
+        document.getElementById('result').textContent = msg;
+      } finally {
+        clearTimeout(timer);
+        setBusy(false);
       }
     };
 

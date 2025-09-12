@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>六獸 × 六親 × 地支｜一鍵分析（穩定修復）</title>
+  <title>六獸 × 六親 × 地支｜一鍵分析（含存檔）</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
@@ -22,7 +22,7 @@
   <div class="max-w-5xl mx-auto p-6 space-y-5">
     <header class="no-print">
       <h1 class="text-2xl font-bold">六獸 × 六親 × 地支｜一鍵分析</h1>
-      <p class="text-slate-500 text-sm">修復：text.match 錯誤、去除多餘大括號、健壯 fetch/JSON 解析、情境按鈕正常。</p>
+      <p class="text-slate-500 text-sm">選好我方/對方與情境 → 按「一鍵分析」。支援分數條、雷達圖（放大標籤）、列印、存檔/匯出。</p>
     </header>
 
     <div class="grid md:grid-cols-2 gap-4 no-print">
@@ -124,11 +124,12 @@
     const STORAGE_KEY = 'lx_saved_v1';
     let lastPlain = '';
     let lastFormatted = null;
-    let radarChart = null;
 
-    // 情境 preset 點選 → 帶入輸入框（單一綁定）
+    // 修復情境 preset 點擊事件
     document.querySelectorAll('.preset').forEach(btn => {
-      btn.onclick = () => { document.getElementById('context').value = btn.textContent.trim(); };
+      btn.onclick = () => {
+        document.getElementById('context').value = btn.textContent;
+      };
     });
 
     function getSelections(){
@@ -148,7 +149,6 @@
 
     // 文字→HTML排版＋JSON解析（含分數條/標籤）
     function formatOutputWithJson(text){
-      // <<< 修復：text 不是字串時會報 .match 錯誤
       if (text == null) text = '';
       if (typeof text !== 'string') { try { text = JSON.stringify(text); } catch(_) { text = String(text); } }
       if(!text) return { html: '', scores: null, tags: [] };
@@ -174,7 +174,7 @@
       // 標題與列點
       let html = text
         .replace(/\n\s*\n/g, '\n')
-        .replace(/^\s*\d+\)\s*(.+)$/gm, '<h3 class="text-lg font-semibold mt-4'>$1<\/h3>')
+        .replace(/^\s*\d+\)\s*(.+)$/gm, '<h3 class="text-lg font-semibold mt-4">$1<\/h3>')
         .replace(/^\s*[-–]\s*(.+)$/gm, '<li>$1<\/li>');
       html = html.replace(/(?:<li>[^<]*<\/li>\n?)+/g, m => `<ul class="list-disc pl-5 space-y-1">${m}<\/ul>`);
 
@@ -200,6 +200,7 @@
     }
 
     // Radar 圖
+    let radarChart = null;
     function renderRadar(scores){
       const wrap = document.getElementById('chart');
       wrap.innerHTML = '';
@@ -213,7 +214,8 @@
         type: 'radar', data: { labels, datasets: [{ label: '六維度雷達圖', data, fill: true, backgroundColor: 'rgba(99,102,241,0.15)', borderColor: 'rgba(99,102,241,1)', pointBackgroundColor: 'rgba(99,102,241,1)'}] },
         options: { scales: { r: { suggestedMin: 0, suggestedMax: 100, ticks: { stepSize: 20 }, pointLabels: { font: { size: 16 }, color: '#0f172a' } } }, plugins: { legend: { display: false } } }
       });
-      window.radarChart = radarChart; // 列印快照
+      // 供列印快照
+      window.radarChart = radarChart;
     }
 
     // 下載工具
@@ -232,23 +234,42 @@
       const sel = getSelections();
       const nameInput = ($('#saveName').value||'').trim();
       const autoName = `${(sel.aBeast||'—')}×${(sel.aKin||'—')}×${(sel.aBranch||'—')} vs ${(sel.bBeast||'—')}×${(sel.bKin||'—')}×${(sel.bBranch||'—')}｜${sel.context||'未命名'}`;
-      return { id: Date.now().toString(36)+Math.random().toString(36).slice(2,8), time: new Date().toISOString(), name: nameInput||autoName, selections: sel, text: lastPlain||'', html: document.getElementById('result').innerHTML||'', scores: lastFormatted?.scores||null, tags: lastFormatted?.tags||[] };
+      const data = {
+        id: Date.now().toString(36)+Math.random().toString(36).slice(2,8),
+        time: new Date().toISOString(),
+        name: nameInput || autoName,
+        selections: sel,
+        text: lastPlain || '',
+        html: document.getElementById('result').innerHTML || '',
+        scores: lastFormatted?.scores || null,
+        tags: lastFormatted?.tags || []
+      };
+      return data;
     }
 
     function renderSavedList(){
-      const list = loadAllSaved(); const wrap = document.getElementById('savedList');
+      const list = loadAllSaved();
+      const wrap = document.getElementById('savedList');
       if(!list.length){ wrap.innerHTML = '<div class="text-sm text-slate-500">尚無存檔，先產生一次分析後按「存檔」。</div>'; return; }
       wrap.innerHTML = list.map(item=>{
-        const t = new Date(item.time).toLocaleString(); const s = item.selections||{}; const title = item.name || `${(s.aBeast||'—')}×${(s.aKin||'—')}×${(s.aBranch||'—')} vs ${(s.bBeast||'—')}×${(s.bKin||'—')}×${(s.bBranch||'—')}`;
+        const t = new Date(item.time).toLocaleString();
+        const s = item.selections||{};
+        const title = item.name || `${(s.aBeast||'—')}×${(s.aKin||'—')}×${(s.aBranch||'—')} vs ${(s.bBeast||'—')}×${(s.bKin||'—')}×${(s.bBranch||'—')}`;
         return `<div class=\"py-3 flex items-start justify-between gap-3\">\n          <div>\n            <div class=\"font-medium\">${title}</div>\n            <div class=\"text-xs text-slate-500\">${t} ｜ 情境：${s.context||'—'}</div>\n          </div>\n          <div class=\"shrink-0 flex gap-2\">\n            <button data-act=\"load\" data-id=\"${item.id}\" class=\"px-2 py-1 text-xs rounded bg-indigo-50 text-indigo-700\">載入</button>\n            <button data-act=\"export\" data-id=\"${item.id}\" class=\"px-2 py-1 text-xs rounded bg-slate-100\">匯出JSON</button>\n            <button data-act=\"del\" data-id=\"${item.id}\" class=\"px-2 py-1 text-xs rounded bg-rose-50 text-rose-700\">刪除</button>\n          </div>\n        </div>`;
       }).join('');
       wrap.querySelectorAll('button').forEach(btn=>{
         btn.onclick = ()=>{
-          const id = btn.getAttribute('data-id'); const act = btn.getAttribute('data-act');
-          const list2 = loadAllSaved(); const idx = list2.findIndex(x=>x.id===id); if(idx<0) return; const item = list2[idx];
-          if(act==='del'){ list2.splice(idx,1); saveAllSaved(list2); renderSavedList(); }
-          else if(act==='export'){ download(`analysis_${id}.json`, JSON.stringify(item,null,2)); }
-          else if(act==='load'){
+          const id = btn.getAttribute('data-id');
+          const act = btn.getAttribute('data-act');
+          const list2 = loadAllSaved();
+          const idx = list2.findIndex(x=>x.id===id);
+          if(idx<0) return;
+          const item = list2[idx];
+          if(act==='del'){
+            list2.splice(idx,1); saveAllSaved(list2); renderSavedList();
+          } else if(act==='export'){
+            download(`analysis_${id}.json`, JSON.stringify(item,null,2));
+          } else if(act==='load'){
             document.getElementById('aBeast').value = item.selections.aBeast||'';
             document.getElementById('aKin').value = item.selections.aKin||'';
             document.getElementById('aBranch').value = item.selections.aBranch||'';
@@ -266,25 +287,29 @@
       });
     }
 
-    function toggleSavedPanel(){ const el = document.getElementById('savedPanel'); el.classList.toggle('hidden'); if(!el.classList.contains('hidden')) renderSavedList(); }
+    function toggleSavedPanel(){
+      const el = document.getElementById('savedPanel');
+      el.classList.toggle('hidden');
+      if(!el.classList.contains('hidden')) renderSavedList();
+    }
 
-    // 一鍵分析（健壯 fetch + 解析）
+    // 一鍵分析
     document.getElementById('go').onclick = async () => {
       const payload = getSelections(); updateChips(payload);
-      if (!(payload.aBeast && payload.aKin && payload.aBranch && payload.bBeast && payload.bKin && payload.bBranch && payload.context)) { alert('請先選滿：我方/對方「六獸、六親、地支」與情境'); return; }
+      if (!(payload.aBeast && payload.aKin && payload.aBranch && payload.bBeast && payload.bKin && payload.bBranch && payload.context)) {
+        alert('請先選滿：我方/對方「六獸、六親、地支」與情境'); return;
+      }
       document.getElementById('status').textContent = '分析中…';
       document.getElementById('result').innerHTML = '';
       document.getElementById('chart').innerHTML='';
       try {
         const res = await fetch('/api/analyze', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-        const raw = await res.text();
-        let data; try { data = JSON.parse(raw); } catch(_) { data = { raw }; }
-        if(!res.ok){ throw new Error((data && data.error && data.error.message) || data.raw || ('HTTP '+res.status)); }
-        let plain = (data && (data.text || data.result)) || '';
-        if(!plain && Array.isArray(data && data.output)){
+        const data = await res.json();
+        let plain = data.text || data.result;
+        if(!plain && Array.isArray(data.output)){
           plain = data.output.map(o=> (o.content||[]).map(c=>c.text||'').join('\n')).join('\n');
         }
-        if(!plain) plain = data.raw || raw || '';
+        if(!plain) plain = JSON.stringify(data, null, 2);
 
         const formatted = formatOutputWithJson(plain);
         lastPlain = plain; lastFormatted = formatted;
@@ -293,7 +318,7 @@
         document.getElementById('status').textContent = '✅ 完成';
       } catch (e) {
         document.getElementById('status').textContent = '❌ 失敗';
-        document.getElementById('result').textContent = (e && e.message) ? e.message : String(e);
+        document.getElementById('result').textContent = String(e);
       }
     };
 
@@ -302,7 +327,20 @@
       const sel = getSelections(); updateChips(sel);
       const chartImg = (window.radarChart && window.radarChart.canvas) ? window.radarChart.canvas.toDataURL('image/png') : '';
       const html = `<!doctype html><html lang=\"zh-Hant\"><head><meta charset=\"utf-8\"><title>列印</title>
-      <style>body{font-family:ui-sans-serif,system-ui,-apple-system,\"Noto Sans TC\";color:#0f172a;margin:18px;}h1{font-size:20px;margin:0 0 6px;}.meta{color:#64748b;font-size:12px;margin-bottom:10px}.chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 14px}.chip{background:#eef2f7;border-radius:999px;padding:6px 10px;font-size:12px;color:#0f172a}.box{border:1px solid #e5e7eb;border-radius:12px;padding:14px}.result{font-size:14px;line-height:1.6}ul{margin:6px 0 6px 18px}h3{margin:10px 0 4px}.chart{margin-top:12px;text-align:center}.chart img{max-width:520px;width:100%;}@page{margin:14mm}</style></head><body>
+      <style>
+        body{font-family:ui-sans-serif,system-ui,-apple-system,\"Noto Sans TC\";color:#0f172a;margin:18px;}
+        h1{font-size:20px;margin:0 0 6px;}
+        .meta{color:#64748b;font-size:12px;margin-bottom:10px}
+        .chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 14px}
+        .chip{background:#eef2f7;border-radius:9999px;padding:6px 10px;font-size:12px;color:#0f172a}
+        .box{border:1px solid #e5e7eb;border-radius:12px;padding:14px}
+        .result{font-size:14px;line-height:1.6}
+        ul{margin:6px 0 6px 18px}
+        h3{margin:10px 0 4px}
+        .chart{margin-top:12px;text-align:center}
+        .chart img{max-width:520px;width:100%;}
+        @page{margin:14mm}
+      </style></head><body>
       <h1>六獸六親×地支 分析（列印版）</h1>
       <div class=meta>產生時間：${new Date().toLocaleString()}</div>
       <div class=chips>

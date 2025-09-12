@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>六獸 × 六親 × 地支｜一鍵分析（修正版）</title>
+  <title>六獸 × 六親 × 地支｜一鍵分析（穩定修復）</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
@@ -22,7 +22,7 @@
   <div class="max-w-5xl mx-auto p-6 space-y-5">
     <header class="no-print">
       <h1 class="text-2xl font-bold">六獸 × 六親 × 地支｜一鍵分析</h1>
-      <p class="text-slate-500 text-sm">這是救急穩定版：情境按鈕可用、雷達圖可列印、可存檔/匯出。</p>
+      <p class="text-slate-500 text-sm">穩定修復版：修正多餘大括號、重複事件、強化 fetch/JSON 解析，避免「The string did not match the expected pattern」錯誤。</p>
     </header>
 
     <div class="grid md:grid-cols-2 gap-4 no-print">
@@ -81,7 +81,7 @@
         <button class="preset px-3 py-1.5 rounded-full bg-slate-100">愛情</button>
         <button class="preset px-3 py-1.5 rounded-full bg-slate-100">性愛</button>
       </div>
-      <input id="context" class="w-full border rounded-lg p-2" placeholder="輸入情境…（點上方快速鍵亦可）" />
+      <input id="context" class="w-full border rounded-lg p-2" placeholder="輸入情境…" />
     </section>
 
     <!-- 動作列 -->
@@ -120,30 +120,23 @@
   </div>
 
   <script>
-  // —— 安全初始化，避免未載入就取 DOM ——
-  document.addEventListener('DOMContentLoaded', () => {
-    const $ = (s) => document.querySelector(s);
-    window.$ = $; // 給其他函式用
-
+    const $ = s => document.querySelector(s);
     const STORAGE_KEY = 'lx_saved_v1';
     let lastPlain = '';
     let lastFormatted = null;
     let radarChart = null;
 
-    // ——— Preset 按鈕：可點選帶入情境 ——
-    document.querySelectorAll('.preset').forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const box = $('#context');
-        if (box) box.value = btn.textContent.trim();
-      });
+    // 情境 preset 點選 → 帶入輸入框
+    document.querySelectorAll('.preset').forEach(btn => {
+      btn.onclick = () => { document.getElementById('context').value = btn.textContent.trim(); };
     });
 
     function getSelections(){
       return {
-        aBeast: $('#aBeast')?.value || '', aKin: $('#aKin')?.value || '', aBranch: $('#aBranch')?.value || '',
-        bBeast: $('#bBeast')?.value || '', bKin: $('#bKin')?.value || '', bBranch: $('#bBranch')?.value || '',
-        context: $('#context')?.value.trim() || '',
-        depth: $('#deepMode')?.checked ? 'deep' : 'basic',
+        aBeast: $('#aBeast').value, aKin: $('#aKin').value, aBranch: $('#aBranch').value,
+        bBeast: $('#bBeast').value, bKin: $('#bKin').value, bBranch: $('#bBranch').value,
+        context: $('#context').value.trim(),
+        depth: $('#deepMode').checked ? 'deep' : 'basic'
       };
     }
 
@@ -202,11 +195,10 @@
       const canvas = document.createElement('canvas'); canvas.id = 'radar'; wrap.appendChild(canvas);
       if(radarChart){ radarChart.destroy(); }
       radarChart = new Chart(canvas.getContext('2d'), {
-        type: 'radar',
-        data: { labels, datasets: [{ label: '六維度雷達圖', data, fill: true, backgroundColor: 'rgba(99,102,241,0.15)', borderColor: 'rgba(99,102,241,1)', pointBackgroundColor: 'rgba(99,102,241,1)'}] },
+        type: 'radar', data: { labels, datasets: [{ label: '六維度雷達圖', data, fill: true, backgroundColor: 'rgba(99,102,241,0.15)', borderColor: 'rgba(99,102,241,1)', pointBackgroundColor: 'rgba(99,102,241,1)'}] },
         options: { scales: { r: { suggestedMin: 0, suggestedMax: 100, ticks: { stepSize: 20 }, pointLabels: { font: { size: 16 }, color: '#0f172a' } } }, plugins: { legend: { display: false } } }
       });
-      window.radarChart = radarChart; // 給列印快照用
+      window.radarChart = radarChart; // 列印快照
     }
 
     function download(filename, content, type='application/json'){
@@ -220,13 +212,13 @@
 
     function snapshot(){
       const sel = getSelections();
-      const nameInput = ($('#saveName')?.value||'').trim();
+      const nameInput = ($('#saveName').value||'').trim();
       const autoName = `${(sel.aBeast||'—')}×${(sel.aKin||'—')}×${(sel.aBranch||'—')} vs ${(sel.bBeast||'—')}×${(sel.bKin||'—')}×${(sel.bBranch||'—')}｜${sel.context||'未命名'}`;
-      return { id: Date.now().toString(36)+Math.random().toString(36).slice(2,8), time: new Date().toISOString(), name: nameInput||autoName, selections: sel, text: lastPlain||'', html: $('#result')?.innerHTML||'', scores: lastFormatted?.scores||null, tags: lastFormatted?.tags||[] };
+      return { id: Date.now().toString(36)+Math.random().toString(36).slice(2,8), time: new Date().toISOString(), name: nameInput||autoName, selections: sel, text: lastPlain||'', html: document.getElementById('result').innerHTML||'', scores: lastFormatted?.scores||null, tags: lastFormatted?.tags||[] };
     }
 
     function renderSavedList(){
-      const list = loadAllSaved(); const wrap = $('#savedList');
+      const list = loadAllSaved(); const wrap = document.getElementById('savedList');
       if(!list.length){ wrap.innerHTML = '<div class="text-sm text-slate-500">尚無存檔，先產生一次分析後按「存檔」。</div>'; return; }
       wrap.innerHTML = list.map(item=>{
         const t = new Date(item.time).toLocaleString(); const s = item.selections||{}; const title = item.name || `${(s.aBeast||'—')}×${(s.aKin||'—')}×${(s.aBranch||'—')} vs ${(s.bBeast||'—')}×${(s.bKin||'—')}×${(s.bBranch||'—')}`;
@@ -239,9 +231,16 @@
           if(act==='del'){ list2.splice(idx,1); saveAllSaved(list2); renderSavedList(); }
           else if(act==='export'){ download(`analysis_${id}.json`, JSON.stringify(item,null,2)); }
           else if(act==='load'){
-            $('#aBeast').value = item.selections.aBeast||''; $('#aKin').value = item.selections.aKin||''; $('#aBranch').value = item.selections.aBranch||'';
-            $('#bBeast').value = item.selections.bBeast||''; $('#bKin').value = item.selections.bKin||''; $('#bBranch').value = item.selections.bBranch||''; $('#context').value = item.selections.context||''; updateChips(item.selections);
-            $('#result').innerHTML = item.html||''; if(item.scores){ renderRadar(item.scores); }
+            document.getElementById('aBeast').value = item.selections.aBeast||'';
+            document.getElementById('aKin').value = item.selections.aKin||'';
+            document.getElementById('aBranch').value = item.selections.aBranch||'';
+            document.getElementById('bBeast').value = item.selections.bBeast||'';
+            document.getElementById('bKin').value = item.selections.bKin||'';
+            document.getElementById('bBranch').value = item.selections.bBranch||'';
+            document.getElementById('context').value = item.selections.context||'';
+            updateChips(item.selections);
+            document.getElementById('result').innerHTML = item.html||'';
+            if(item.scores){ renderRadar(item.scores); }
             lastPlain = item.text||''; lastFormatted = { html:item.html, scores:item.scores, tags:item.tags };
             window.scrollTo({top:0,behavior:'smooth'});
           }
@@ -249,27 +248,40 @@
       });
     }
 
-    function toggleSavedPanel(){ const el = $('#savedPanel'); el.classList.toggle('hidden'); if(!el.classList.contains('hidden')) renderSavedList(); }
+    function toggleSavedPanel(){ const el = document.getElementById('savedPanel'); el.classList.toggle('hidden'); if(!el.classList.contains('hidden')) renderSavedList(); }
 
-    // ——— 一鍵分析 ——
-    $('#go').addEventListener('click', async () => {
+    // 一鍵分析（健壯 fetch + 錯誤處理）
+    document.getElementById('go').onclick = async () => {
       const payload = getSelections(); updateChips(payload);
       if (!(payload.aBeast && payload.aKin && payload.aBranch && payload.bBeast && payload.bKin && payload.bBranch && payload.context)) { alert('請先選滿：我方/對方「六獸、六親、地支」與情境'); return; }
-      $('#status').textContent = '分析中…'; $('#result').innerHTML = ''; $('#chart').innerHTML='';
+      document.getElementById('status').textContent = '分析中…';
+      document.getElementById('result').innerHTML = '';
+      document.getElementById('chart').innerHTML = '';
       try {
         const res = await fetch('/api/analyze', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-        const data = await res.json();
-        let plain = data.text || data.result; // 後端建議只回 text
-        if(!plain && Array.isArray(data.output)){ plain = data.output.map(o=> (o.content||[]).map(c=>c.text||'').join('\n')).join('\n'); }
-        if(!plain) plain = JSON.stringify(data, null, 2);
-        const formatted = formatOutputWithJson(plain); lastPlain = plain; lastFormatted = formatted;
-        $('#result').innerHTML = formatted.html; renderRadar(formatted.scores);
-        $('#status').textContent = '✅ 完成';
-      } catch (e) { $('#status').textContent = '❌ 失敗'; $('#result').textContent = String(e); }
-    });
+        const text = await res.text();
+        let data; try { data = JSON.parse(text); } catch { data = { text: '', raw: text }; }
+        if(!res.ok){
+          const msg = data?.error?.message || data?.raw || `HTTP ${res.status}`;
+          throw new Error(msg);
+        }
+        let plain = data.text || data.result;
+        if(!plain && Array.isArray(data.output)){
+          plain = data.output.map(o=> (o.content||[]).map(c=>c.text||'').join('\n')).join('\n');
+        }
+        if(!plain) plain = data.raw || text || '（無內容）';
+        const formatted = formatOutputWithJson(plain);
+        lastPlain = plain; lastFormatted = formatted;
+        document.getElementById('result').innerHTML = formatted.html;
+        renderRadar(formatted.scores);
+        document.getElementById('status').textContent = '✅ 完成';
+      } catch (e) {
+        document.getElementById('status').textContent = '❌ 失敗';
+        document.getElementById('result').textContent = (e && e.message) ? e.message : String(e);
+      }
+    };
 
-    // ——— 列印 / 匯出 PDF ——
-    $('#print').addEventListener('click', () => {
+    document.getElementById('print').onclick = () => {
       const sel = getSelections(); updateChips(sel);
       const chartImg = (window.radarChart && window.radarChart.canvas) ? window.radarChart.canvas.toDataURL('image/png') : '';
       const html = `<!doctype html><html lang=\"zh-Hant\"><head><meta charset=\"utf-8\"><title>列印</title>
@@ -282,17 +294,23 @@
         <span class=chip>情境：${sel.context||'—'}</span>
       </div>
       <div class=box>
-        <div class=result>${($('#result')?.innerHTML)||'<em>尚未產生結果</em>'}</div>
+        <div class=result>${document.getElementById('result').innerHTML || '<em>尚未產生結果</em>'}</div>
         ${chartImg ? `<div class=\"chart\"><img src=\"${chartImg}\" alt=\"雷達圖\"></div>` : ''}
-      </div><script>window.onload=()=>window.print()<\/script></body></html>`;
+      </div>
+      <script>window.onload=()=>window.print()<\/script></body></html>`;
       const w = window.open('', '_blank'); w.document.write(html); w.document.close();
-    });
+    };
 
-    // ——— 存檔 / 匯出 / 檔案面板 ——
-    $('#save').addEventListener('click', ()=>{ if(!($('#result')?.innerHTML||'').trim()){ alert('尚未有分析結果，請先點「一鍵分析」。'); return; } const snap = snapshot(); const list = loadAllSaved(); list.unshift(snap); saveAllSaved(list); $('#status').textContent = '💾 已存檔'; });
-    $('#export').addEventListener('click', ()=>{ if(!($('#result')?.innerHTML||'').trim()){ alert('尚未有分析結果，請先點「一鍵分析」。'); return; } const snap = snapshot(); download(`analysis_${new Date().toISOString().replace(/[:.]/g,'-')}.json`, JSON.stringify(snap,null,2)); });
-    $('#savedToggle').addEventListener('click', toggleSavedPanel);
-  });
+    document.getElementById('save').onclick = () => {
+      if(!((document.getElementById('result').innerHTML)||'').trim()){ alert('尚未有分析結果，請先點「一鍵分析」。'); return; }
+      const snap = snapshot(); const list = loadAllSaved(); list.unshift(snap); saveAllSaved(list);
+      document.getElementById('status').textContent = '💾 已存檔';
+    };
+    document.getElementById('export').onclick = () => {
+      if(!((document.getElementById('result').innerHTML)||'').trim()){ alert('尚未有分析結果，請先點「一鍵分析」。'); return; }
+      const snap = snapshot(); download(`analysis_${new Date().toISOString().replace(/[:.]/g,'-')}.json`, JSON.stringify(snap,null,2));
+    };
+    document.getElementById('savedToggle').onclick = () => { const el = document.getElementById('savedPanel'); el.classList.toggle('hidden'); if(!el.classList.contains('hidden')) renderSavedList(); };
   </script>
 </body>
 </html>

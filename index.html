@@ -1,12 +1,9 @@
-<!-- ==========================
-   文件：index.html  （加入十二地支＋雷達圖＋列印）
-   ========================== -->
 <!doctype html>
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>仙人指路神獸七十二型人格 一鍵分析</title>
+  <title>六獸 × 六親 × 地支｜單方/雙方 一鍵分析</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
@@ -19,17 +16,33 @@
     .score em{width:36px;text-align:right;color:#475569;font-style:normal}
     .tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
     .tag{background:#eef2ff;color:#3730a3;padding:4px 10px;border-radius:9999px;font-size:12px}
+    .enc{background:#f0fdf4;border:1px solid #bbf7d0;color:#065f46;padding:10px 12px;border-radius:12px;margin-top:10px;font-size:14px}
   </style>
+
+  <!-- 先行定義 setCtx（避免 onclick 找不到） -->
+  <script>
+    (function(){
+      window.setCtx = function(v){
+        var i = document.getElementById('context');
+        if(!i) return; i.value = (v||'').toString().trim();
+        try{ i.dispatchEvent(new Event('input',{bubbles:true})); }catch(e){}
+      };
+    })();
+  </script>
 </head>
 <body class="bg-slate-50 text-slate-800">
   <div class="max-w-5xl mx-auto p-6 space-y-5">
     <header class="no-print">
-      <h1 class="text-2xl font-bold">仙人指路神獸七十二型人格｜一鍵分析</h1>
-      <p class="text-slate-500 text-sm">選好我方/對方與情境 → 按「一鍵分析」。支援分數條、雷達圖、列印 / 匯出 PDF。</p>
+      <h1 class="text-2xl font-bold">六獸 × 六親 × 地支｜單方/雙方 一鍵分析</h1>
+      <p class="text-slate-500 text-sm">支援「單方分析」（只填我方）與「雙方分析」。含雷達圖、列印帶圖、LocalStorage 存檔、Responses API 解析、每日一句鼓勵。</p>
     </header>
 
+    <div class="no-print flex items-center gap-4">
+      <label class="flex items-center gap-2 text-sm text-slate-700"><input id="singleMode" type="checkbox" class="w-4 h-4"> 單方分析（不選對方）</label>
+      <label class="flex items-center gap-2 text-sm text-slate-700"><input id="deepMode" type="checkbox" class="w-4 h-4"> 進階深入分析</label>
+    </div>
+
     <div class="grid md:grid-cols-2 gap-4 no-print">
-      <!-- 我方 -->
       <section class="bg-white p-4 rounded-2xl shadow-sm">
         <h2 class="font-semibold mb-3">我方</h2>
         <select id="aBeast" class="w-full mb-2 border rounded-lg p-2">
@@ -50,9 +63,8 @@
         </select>
       </section>
 
-      <!-- 對方 -->
-      <section class="bg-white p-4 rounded-2xl shadow-sm">
-        <h2 class="font-semibold mb-3">對方</h2>
+      <section id="bPanel" class="bg-white p-4 rounded-2xl shadow-sm">
+        <h2 class="font-semibold mb-3">對方（雙方分析時才需）</h2>
         <select id="bBeast" class="w-full mb-2 border rounded-lg p-2">
           <option value="">六獸</option>
           <option>青龍</option><option>朱雀</option><option>勾陳</option>
@@ -72,244 +84,218 @@
       </section>
     </div>
 
-    <!-- 情境 preset + 自由輸入 -->
     <section class="bg-white p-4 rounded-2xl shadow-sm space-y-2 no-print">
       <h2 class="font-semibold">情境</h2>
       <div class="flex gap-2 flex-wrap mb-2">
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">年度目標協調</button>
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">績效回饋會議</button>
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">跨部門協作</button>
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">壓期交付專案</button>
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">人際關係協調</button>
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">愛情</button>
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">性愛</button>
+        <button class="preset px-3 py-1.5 rounded-full bg-slate-100" onclick="setCtx('年度目標協調')">年度目標協調</button>
+        <button class="preset px-3 py-1.5 rounded-full bg-slate-100" onclick="setCtx('績效回饋會議')">績效回饋會議</button>
+        <button class="preset px-3 py-1.5 rounded-full bg-slate-100" onclick="setCtx('跨部門協作')">跨部門協作</button>
+        <button class="preset px-3 py-1.5 rounded-full bg-slate-100" onclick="setCtx('壓期交付專案')">壓期交付專案</button>
+        <button class="preset px-3 py-1.5 rounded-full bg-slate-100" onclick="setCtx('人際關係協調')">人際關係協調</button>
+        <button class="preset px-3 py-1.5 rounded-full bg-slate-100" onclick="setCtx('愛情')">愛情</button>
+        <button class="preset px-3 py-1.5 rounded-full bg-slate-100" onclick="setCtx('性愛')">性愛</button>
       </div>
-      <input id="context" class="w-full border rounded-lg p-2" placeholder="輸入情境…" />
+      <div class="flex flex-col gap-2 md:flex-row md:items-center">
+        <input id="context" class="w-full border rounded-lg p-2" placeholder="輸入情境…（例：升遷準備、與 A 同事協作、親密關係）" />
+        <select id="contextSelect" class="md:w-64 w-full border rounded-lg p-2 bg-white">
+          <option value="">— 快速選擇情境 —</option>
+          <option>年度目標協調</option>
+          <option>績效回饋會議</option>
+          <option>跨部門協作</option>
+          <option>壓期交付專案</option>
+          <option>人際關係協調</option>
+          <option>愛情</option>
+          <option>性愛</option>
+        </select>
+      </div>
     </section>
 
-    <!-- 動作列 -->
     <div class="flex flex-wrap items-center gap-3 no-print">
       <button id="go" class="px-4 py-2 rounded-xl bg-indigo-600 text-white">一鍵分析</button>
       <button id="print" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-800">列印 / 匯出 PDF</button>
+      <input id="saveName" class="border rounded-lg px-3 py-2 text-sm" placeholder="檔名（可自訂）" style="min-width:200px">
+      <button id="save" class="px-4 py-2 rounded-xl bg-emerald-600 text-white">存檔</button>
+      <button id="export" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-800">匯出 JSON</button>
+      <button id="savedToggle" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-800">我的檔案</button>
       <span id="status" class="text-sm text-slate-600"></span>
     </div>
 
-    <!-- 結果區 -->
     <section class="bg-white p-5 rounded-2xl shadow-sm print-card">
       <div class="flex flex-wrap gap-2 text-sm text-slate-600 mb-3">
         <span class="px-3 py-1 bg-slate-100 rounded-full">我方：<strong id="chipA">—</strong></span>
-        <span class="px-3 py-1 bg-slate-100 rounded-full">對方：<strong id="chipB">—</strong></span>
+        <span id="chipBWrap" class="px-3 py-1 bg-slate-100 rounded-full hidden">對方：<strong id="chipB">—</strong></span>
         <span class="px-3 py-1 bg-slate-100 rounded-full">情境：<strong id="chipC">—</strong></span>
       </div>
       <div id="result" class="prose max-w-none text-[15px]"></div>
+      <div id="encourageBox" class="enc hidden"></div>
       <div id="chart" class="mt-4"></div>
+    </section>
+
+    <section id="savedPanel" class="no-print bg-white p-4 rounded-2xl shadow-sm hidden">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="font-semibold">我的檔案</h2>
+        <div class="text-sm text-slate-500">（保存在這台裝置的瀏覽器 LocalStorage）</div>
+      </div>
+      <div id="savedList" class="divide-y divide-slate-100"></div>
     </section>
   </div>
 
   <script>
     const $ = s => document.querySelector(s);
-    document.querySelectorAll('.preset').forEach(b=>b.onclick=()=>$('#context').value=b.textContent);
+    const STORAGE_KEY = 'lx_saved_v1';
+    let lastPlain = '';
+    let lastFormatted = null;
+    let radarChart = null;
+
+    // 下拉選單 → 帶入情境
+    document.addEventListener('DOMContentLoaded', () => {
+      const sel = document.getElementById('contextSelect');
+      if(sel){ sel.addEventListener('change', function(){ if(this.value) setCtx(this.value); }); }
+    });
+
+    // 切換單方/雙方顯示
+    $('#singleMode').addEventListener('change', () => {
+      const on = $('#singleMode').checked;
+      $('#bPanel').classList.toggle('hidden', on);
+      $('#chipBWrap').classList.toggle('hidden', on);
+    });
+
+    // 代理備援（若 inline 被 CSP 擋住）
+    document.addEventListener('click', (e) => {
+      const btn = e.target.closest('.preset');
+      if (!btn) return;
+      e.preventDefault();
+      setCtx(btn.textContent.trim());
+    });
+
+    function getMode(){ return $('#singleMode').checked ? 'single' : 'pair'; }
 
     function getSelections(){
-      return {
+      const mode = getMode();
+      const base = {
         aBeast: $('#aBeast').value, aKin: $('#aKin').value, aBranch: $('#aBranch').value,
-        bBeast: $('#bBeast').value, bKin: $('#bKin').value, bBranch: $('#bBranch').value,
-        context: $('#context').value.trim()
+        context: $('#context').value.trim(), depth: $('#deepMode').checked ? 'deep' : 'basic', mode
       };
+      if(mode === 'pair'){
+        base.bBeast = $('#bBeast').value; base.bKin = $('#bKin').value; base.bBranch = $('#bBranch').value;
+      } else {
+        base.bBeast = ''; base.bKin = ''; base.bBranch = '';
+      }
+      return base;
     }
 
-    function updateChips({aBeast,aKin,aBranch,bBeast,bKin,bBranch,context}){
-      $('#chipA').textContent = [aBeast,aKin,aBranch].filter(Boolean).join(' × ') || '—';
-      $('#chipB').textContent = [bBeast,bKin,bBranch].filter(Boolean).join(' × ') || '—';
-      $('#chipC').textContent = context || '—';
+    function updateChips(sel){
+      $('#chipA').textContent = [sel.aBeast,sel.aKin,sel.aBranch].filter(Boolean).join(' × ') || '—';
+      const bOn = sel.mode === 'pair';
+      $('#chipBWrap').classList.toggle('hidden', !bOn);
+      $('#chipB').textContent = bOn ? [sel.bBeast,sel.bKin,sel.bBranch].filter(Boolean).join(' × ') || '—' : '';
+      $('#chipC').textContent = sel.context || '—';
     }
 
-    // 文字→HTML排版＋JSON解析（含分數條/標籤）
+    function extractTextFromResponse(data, raw){
+      try{
+        if (typeof data?.text === 'string' && data.text.trim()) return data.text;
+        if (Array.isArray(data?.output)){
+          const chunks = [];
+          for (const msg of data.output){ for (const c of (msg?.content||[])){ if(c?.text) chunks.push(c.text); } }
+          if (chunks.length) return chunks.join('\n');
+        }
+        if (typeof data?.result === 'string' && data.result.trim()) return data.result;
+        const guess = data?.choices?.[0]?.message?.content || data?.message || '';
+        if (typeof guess === 'string' && guess.trim()) return guess;
+      }catch(_){ }
+      return raw || '';
+    }
+
     function formatOutputWithJson(text){
-      if(!text) return { html: '', scores: null, tags: [] };
-
-      // 取出 ```json 區塊
+      if (text == null) text = '';
+      if (typeof text !== 'string') { try { text = JSON.stringify(text); } catch(_) { text = String(text); } }
+      if(!text) return { html: '', scores: null, tags: [], encourage: '' };
       const jsonBlock = text.match(/```json([\s\S]*?)```/i);
       let json = null;
-      if(jsonBlock){
-        try{ json = JSON.parse(jsonBlock[1]); }catch(_){ json = null; }
-        text = text.replace(jsonBlock[0], '').trim();
-      }
-
-      // 嘗試取得分數：優先 JSON，否則從純文字行中解析
+      if(jsonBlock){ try{ json = JSON.parse(jsonBlock[1]); }catch(_){ json = null; } text = text.replace(jsonBlock[0], '').trim(); }
       let scores = json && json.scores ? json.scores : null;
-      if(!scores){
-        const map = { fit:null, comm:null, pace:null, account:null, trust:null, innov:null };
-        const rx = /(fit|comm|pace|account|trust|innov)\s*(\d{1,3})/ig;
-        let m; while((m = rx.exec(text))){ map[m[1].toLowerCase()] = Number(m[2]); }
-        const filled = Object.values(map).filter(v=>typeof v==='number' && !isNaN(v));
-        if(filled.length>=2) scores = map;
-      }
-
-      // 標題與列點
-      let html = text
-        .replace(/\n\s*\n/g, '\n')
-        .replace(/^\s*\d+\)\s*(.+)$/gm, '<h3 class="text-lg font-semibold mt-4">$1<\/h3>')
-        .replace(/^\s*[-–]\s*(.+)$/gm, '<li>$1<\/li>');
-      html = html.replace(/(?:<li>[^<]*<\/li>\n?)+/g, m => `<ul class="list-disc pl-5 space-y-1">${m}<\/ul>`);
-
-      // 若有 JSON 分數與標籤
-      if(scores){
-        const s = scores; const clamp = v => Math.max(0, Math.min(100, Number(v)||0));
-        const row = (label, key, color) => `<div class=\"score\"><b>${label}<\/b><div class=\"bar\"><i style=\"width:${clamp(s[key])}%;background:${color}\"><\/i><\/div><em>${clamp(s[key])}<\/em><\/div>`;
-        const scoreHTML = `
-          <h3 class=\"text-lg font-semibold mt-4\">六維度分數<\/h3>
-          <div class=\"scores\">
-            ${row('契合 fit','fit','#22c55e')}
-            ${row('溝通 comm','comm','#06b6d4')}
-            ${row('節奏 pace','pace','#f59e0b')}
-            ${row('權責 account','account','#8b5cf6')}
-            ${row('信任 trust','trust','#ef4444')}
-            ${row('創新 innov','innov','#6366f1')}
-          <\/div>`;
-        const tagsHTML = json && Array.isArray(json.tags) && json.tags.length ? `<div class=\"tags\">${json.tags.map(t=>`<span class=\\\"tag\\\">${t}<\/span>`).join('')}<\/div>` : '';
-        html = `${html}${scoreHTML}${tagsHTML}`;
-      }
-
-      return { html, scores, tags: (json && json.tags) ? json.tags : [] };
+      if(!scores){ const map = { fit:null, comm:null, pace:null, account:null, trust:null, innov:null }; const rx=/(fit|comm|pace|account|trust|innov)\s*(\d{1,3})/ig; let m; while((m=rx.exec(text))){ map[m[1].toLowerCase()] = Number(m[2]); } if(Object.values(map).filter(v=>typeof v==='number'&&!isNaN(v)).length>=2) scores=map; }
+      let html = text.replace(/\n\s*\n/g,'\n').replace(/^\s*\d+\)\s*(.+)$/gm,'<h3 class="text-lg font-semibold mt-4'>$1<\/h3>').replace(/^\s*[-–]\s*(.+)$/gm,'<li>$1<\/li>');
+      html = html.replace(/(?:<li>[^<]*<\/li>\n?)+/g, m=>`<ul class="list-disc pl-5 space-y-1">${m}<\/ul>`);
+      return { html, scores, tags: (json && json.tags)||[], encourage: (json && json.encourage)||'' };
     }
 
-    // Radar 圖
-    let radarChart = null;
     function renderRadar(scores){
-      const wrap = document.getElementById('chart');
-      wrap.innerHTML = '';
-      if(!scores){ return; }
+      const wrap = document.getElementById('chart'); wrap.innerHTML = '';
+      if(!scores) return;
       const clamp = v => Math.max(0, Math.min(100, Number(v)||0));
       const labels = ['契合 fit','溝通 comm','節奏 pace','權責 account','信任 trust','創新 innov'];
       const data = [clamp(scores.fit),clamp(scores.comm),clamp(scores.pace),clamp(scores.account),clamp(scores.trust),clamp(scores.innov)];
       const canvas = document.createElement('canvas'); canvas.id = 'radar'; wrap.appendChild(canvas);
       if(radarChart){ radarChart.destroy(); }
-      radarChart = new Chart(canvas.getContext('2d'), {
-        type: 'radar', data: { labels, datasets: [{ label: '六維度雷達圖', data, fill: true, backgroundColor: 'rgba(99,102,241,0.15)', borderColor: 'rgba(99,102,241,1)', pointBackgroundColor: 'rgba(99,102,241,1)'}] },
-        options: { scales: { r: { suggestedMin: 0, suggestedMax: 100, ticks: { stepSize: 20 } } }, plugins: { legend: { display: false } } }
-      });
+      radarChart = new Chart(canvas.getContext('2d'), { type:'radar', data:{ labels, datasets:[{ label:'六維度雷達圖', data, fill:true, backgroundColor:'rgba(99,102,241,0.15)', borderColor:'rgba(99,102,241,1)', pointBackgroundColor:'rgba(99,102,241,1)'}] }, options:{ scales:{ r:{ suggestedMin:0, suggestedMax:100, ticks:{ stepSize:20 }, pointLabels:{ font:{ size:16 }, color:'#0f172a' } } }, plugins:{ legend:{ display:false } } } });
+      window.radarChart = radarChart;
     }
 
-    // 一鍵分析
-    $('#go').onclick = async () => {
-      const payload = getSelections(); updateChips(payload);
-      if (!(payload.aBeast && payload.aKin && payload.aBranch && payload.bBeast && payload.bKin && payload.bBranch && payload.context)) {
-        alert('請先選滿：我方/對方「六獸、六親、地支」與情境'); return;
-      }
-      $('#status').textContent = '分析中…'; $('#result').innerHTML = ''; document.getElementById('chart').innerHTML='';
-      try {
-        const res = await fetch('/api/analyze', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-        const data = await res.json();
-        // 乾淨字串（後端已只回傳 text；仍保留退路）
-        let plain = data.text || data.result;
-        if(!plain && Array.isArray(data.output)){
-          plain = data.output.map(o=> (o.content||[]).map(c=>c.text||'').join('\n')).join('\n');
-        }
-        if(!plain) plain = JSON.stringify(data, null, 2);
+    function download(filename, content, type='application/json'){ const blob = new Blob([content], {type}); const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; a.click(); setTimeout(()=>URL.revokeObjectURL(url),500); }
+    const loadAllSaved = ()=>{ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]'); }catch(_){ return []; } };
+    const saveAllSaved = (list)=> localStorage.setItem(STORAGE_KEY, JSON.stringify(list.slice(0,100)));
 
+    function snapshot(){ const sel=getSelections(); const nameInput=($('#saveName').value||'').trim(); const autoName=`${(sel.aBeast||'—')}×${(sel.aKin||'—')}×${(sel.aBranch||'—')}${sel.mode==='pair'?(' vs '+[(sel.bBeast||'—'),(sel.bKin||'—'),(sel.bBranch||'—')].join('×')):''}｜${sel.context||'未命名'}`; return { id: Date.now().toString(36)+Math.random().toString(36).slice(2,8), time:new Date().toISOString(), name:nameInput||autoName, selections:sel, text:lastPlain||'', html:document.getElementById('result').innerHTML||'', scores:lastFormatted?.scores||null, tags:lastFormatted?.tags||[], encourage:lastFormatted?.encourage||'' }; }
+
+    function renderSavedList(){ const list=loadAllSaved(); const wrap=document.getElementById('savedList'); if(!list.length){ wrap.innerHTML='<div class="text-sm text-slate-500">尚無存檔，先產生一次分析後按「存檔」。</div>'; return; } wrap.innerHTML=list.map(item=>{ const t=new Date(item.time).toLocaleString(); const s=item.selections||{}; const title=item.name || `${(s.aBeast||'—')}×${(s.aKin||'—')}×${(s.aBranch||'—')}`; return `<div class=\"py-3 flex items-start justify-between gap-3\">\n<div>\n<div class=\"font-medium\">${title}</div>\n<div class=\"text-xs text-slate-500\">${t} ｜ 模式：${s.mode||'pair'} ｜ 情境：${s.context||'—'}</div>\n</div>\n<div class=\"shrink-0 flex gap-2\">\n<button data-act=\"load\" data-id=\"${item.id}\" class=\"px-2 py-1 text-xs rounded bg-indigo-50 text-indigo-700\">載入</button>\n<button data-act=\"export\" data-id=\"${item.id}\" class=\"px-2 py-1 text-xs rounded bg-slate-100\">匯出JSON</button>\n<button data-act=\"del\" data-id=\"${item.id}\" class=\"px-2 py-1 text-xs rounded bg-rose-50 text-rose-700\">刪除</button>\n</div>\n</div>`; }).join(''); wrap.querySelectorAll('button').forEach(btn=>{ btn.onclick=()=>{ const id=btn.getAttribute('data-id'); const act=btn.getAttribute('data-act'); const list2=loadAllSaved(); const idx=list2.findIndex(x=>x.id===id); if(idx<0) return; const item=list2[idx]; if(act==='del'){ list2.splice(idx,1); saveAllSaved(list2); renderSavedList(); } else if(act==='export'){ download(`analysis_${id}.json`, JSON.stringify(item,null,2)); } else if(act==='load'){ $('#singleMode').checked = (item.selections.mode === 'single'); $('#singleMode').dispatchEvent(new Event('change')); document.getElementById('aBeast').value=item.selections.aBeast||''; document.getElementById('aKin').value=item.selections.aKin||''; document.getElementById('aBranch').value=item.selections.aBranch||''; document.getElementById('bBeast').value=item.selections.bBeast||''; document.getElementById('bKin').value=item.selections.bKin||''; document.getElementById('bBranch').value=item.selections.bBranch||''; document.getElementById('context').value=item.selections.context||''; updateChips(item.selections); document.getElementById('result').innerHTML=item.html||''; document.getElementById('encourageBox').textContent = item.encourage||''; document.getElementById('encourageBox').classList.toggle('hidden', !(item.encourage)); if(item.scores){ renderRadar(item.scores); } lastPlain=item.text||''; lastFormatted={ html:item.html, scores:item.scores, tags:item.tags, encourage:item.encourage }; window.scrollTo({top:0,behavior:'smooth'}); } }; }); }
+
+    function toggleSavedPanel(){ const el=document.getElementById('savedPanel'); el.classList.toggle('hidden'); if(!el.classList.contains('hidden')) renderSavedList(); }
+
+    document.getElementById('go').onclick = async () => {
+      const sel = getSelections(); updateChips(sel);
+      const needB = sel.mode === 'pair';
+      if (!(sel.aBeast && sel.aKin && sel.aBranch && sel.context)) { alert('請先選滿：我方「六獸、六親、地支」與情境'); return; }
+      if (needB && !(sel.bBeast && sel.bKin && sel.bBranch)) { alert('雙方分析請把「對方」也選滿'); return; }
+      $('#status').textContent = '分析中…';
+      $('#result').innerHTML = '';
+      $('#chart').innerHTML = '';
+      $('#encourageBox').classList.add('hidden');
+      try {
+        const res = await fetch('/api/analyze', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(sel) });
+        const raw = await res.text();
+        let data; try { data = JSON.parse(raw); } catch(_) { data = { raw }; }
+        if(!res.ok){ throw new Error((data && data.error && data.error.message) || data.raw || ('HTTP '+res.status)); }
+        const plain = extractTextFromResponse(data, raw);
         const formatted = formatOutputWithJson(plain);
+        lastPlain = plain; lastFormatted = formatted;
         $('#result').innerHTML = formatted.html;
+        if(formatted.encourage){ const box=$('#encourageBox'); box.textContent = '每天一句鼓勵：' + formatted.encourage; box.classList.remove('hidden'); }
         renderRadar(formatted.scores);
         $('#status').textContent = '✅ 完成';
       } catch (e) {
-        $('#status').textContent = '❌ 失敗';
-        $('#result').textContent = String(e);
+        $('#status').textContent = '❌ ' + ((e && e.message) ? e.message : String(e));
+        $('#result').textContent = (e && e.message) ? e.message : String(e);
       }
     };
 
-    // 列印 / 匯出 PDF（附上雷達圖快照）
-    $('#print').onclick = () => {
+    document.getElementById('print').onclick = () => {
       const sel = getSelections(); updateChips(sel);
       const chartImg = (window.radarChart && window.radarChart.canvas) ? window.radarChart.canvas.toDataURL('image/png') : '';
+      const encText = ($('#encourageBox').classList.contains('hidden') ? '' : $('#encourageBox').textContent);
       const html = `<!doctype html><html lang=\"zh-Hant\"><head><meta charset=\"utf-8\"><title>列印</title>
-      <style>
-        body{font-family:ui-sans-serif,system-ui,-apple-system,\"Noto Sans TC\";color:#0f172a;margin:18px;}
-        h1{font-size:20px;margin:0 0 6px;}
-        .meta{color:#64748b;font-size:12px;margin-bottom:10px}
-        .chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 14px}
-        .chip{background:#eef2f7;border-radius:9999px;padding:6px 10px;font-size:12px;color:#0f172a}
-        .box{border:1px solid #e5e7eb;border-radius:12px;padding:14px}
-        .result{font-size:14px;line-height:1.6}
-        ul{margin:6px 0 6px 18px}
-        h3{margin:10px 0 4px}
-        .chart{margin-top:12px;text-align:center}
-        .chart img{max-width:520px;width:100%;}
-        @page{margin:14mm}
-      </style></head><body>
-      <h1>仙人指路神獸七十二型人格</h1>
+      <style>body{font-family:ui-sans-serif,system-ui,-apple-system,\"Noto Sans TC\";color:#0f172a;margin:18px;}h1{font-size:20px;margin:0 0 6px;}.meta{color:#64748b;font-size:12px;margin-bottom:10px}.chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 14px}.chip{background:#eef2f7;border-radius:999px;padding:6px 10px;font-size:12px;color:#0f172a}.box{border:1px solid #e5e7eb;border-radius:12px;padding:14px}.result{font-size:14px;line-height:1.6}ul{margin:6px 0 6px 18px}h3{margin:10px 0 4px}.chart{margin-top:12px;text-align:center}.chart img{max-width:520px;width:100%;}.enc{background:#f0fdf4;border:1px solid #bbf7d0;color:#065f46;padding:10px 12px;border-radius:12px;margin-top:10px;font-size:14px}@page{margin:14mm}</style></head><body>
+      <h1>六獸六親×地支 分析（列印版）</h1>
       <div class=meta>產生時間：${new Date().toLocaleString()}</div>
       <div class=chips>
         <span class=chip>我方：${[sel.aBeast||'—', sel.aKin||'—', sel.aBranch||'—'].join(' × ')}</span>
-        <span class=chip>對方：${[sel.bBeast||'—', sel.bKin||'—', sel.bBranch||'—'].join(' × ')}</span>
+        ${sel.mode==='pair'?`<span class=chip>對方：${[sel.bBeast||'—', sel.bKin||'—', sel.bBranch||'—'].join(' × ')}</span>`:''}
         <span class=chip>情境：${sel.context||'—'}</span>
+        <span class=chip>模式：${sel.mode}</span>
       </div>
-      <div class=box><div class=result>${$('#result').innerHTML || '<em>尚未產生結果</em>'}</div>
+      <div class=box>
+        <div class=result>${document.getElementById('result').innerHTML || '<em>尚未產生結果</em>'}</div>
+        ${encText?`<div class=enc>${encText}</div>`:''}
         ${chartImg ? `<div class=\"chart\"><img src=\"${chartImg}\" alt=\"雷達圖\"></div>` : ''}
       </div>
       <script>window.onload=()=>window.print()<\/script></body></html>`;
       const w = window.open('', '_blank'); w.document.write(html); w.document.close();
     };
+
+    document.getElementById('save').onclick = () => { if(!((document.getElementById('result').innerHTML)||'').trim()){ alert('尚未有分析結果，請先點「一鍵分析」。'); return; } const snap=snapshot(); const list=loadAllSaved(); list.unshift(snap); saveAllSaved(list); document.getElementById('status').textContent='💾 已存檔'; };
+    document.getElementById('export').onclick = () => { if(!((document.getElementById('result').innerHTML)||'').trim()){ alert('尚未有分析結果，請先點「一鍵分析」。'); return; } const snap=snapshot(); download(`analysis_${new Date().toISOString().replace(/[:.]/g,'-')}.json`, JSON.stringify(snap,null,2)); };
+    document.getElementById('savedToggle').onclick = () => { const el=document.getElementById('savedPanel'); el.classList.toggle('hidden'); if(!el.classList.contains('hidden')) renderSavedList(); };
   </script>
 </body>
 </html>
-
-
-<!-- ==========================
-   文件：api/analyze.js  （加入十二地支；只回傳 text）
-   ========================== -->
-<script type="text/plain" data-filename="api/analyze.js">export default async function handler(req, res) {
-  try {
-    if (req.method !== "POST") {
-      return res.status(405).json({ error: "Method not allowed" });
-    }
-
-    if (!process.env.OPENAI_API_KEY) {
-      return res.status(500).json({ error: "missing_env", detail: "OPENAI_API_KEY not set" });
-    }
-
-    const { aBeast, aKin, aBranch, bBeast, bKin, bBranch, context } = req.body ?? {};
-    if (!aBeast || !aKin || !aBranch || !bBeast || !bKin || !bBranch || !context) {
-      return res.status(400).json({
-        error: "missing_fields",
-        need: ["aBeast", "aKin", "aBranch", "bBeast", "bKin", "bBranch", "context"],
-      });
-    }
-
-    const system = `你是「六獸六親×地支分析器」。語氣務實、中立、具體。六獸：青龍/朱雀/勾陳/螣蛇/白虎/玄武；六親：父母/兄弟/子孫/妻財/官鬼；十二地支：子丑寅卯辰巳午未申酉戌亥。\n六維分數鍵：fit, comm, pace, account, trust, innov（0–100）。輸出最後一定附上有效的\\`\\`\\`json 區塊（只含 scores 與 tags）。`;
-
-    const user = `我方：${aBeast}×${aKin}×${aBranch}\n對方：${bBeast}×${bKin}×${bBranch}\n情境：${context}\n\n請依下列格式輸出（保留段落編號與小標）：\n1) 個性描述（各2–3句）\n2) 衝突熱點（≤3 點）\n3) 協調策略：短期3條／長期3條（具體可操作）\n4) 六維度分數解讀（fit, comm, pace, account, trust, innov；每維一句）\n5) JSON：\n\`\`\`json\n{\n  \"scores\": {\n    \"fit\": 0, \"comm\": 0, \"pace\": 0, \"account\": 0, \"trust\": 0, \"innov\": 0\n  },\n  \"tags\": [\"三到五個重點標籤\"]\n}\n\`\`\`\n請務必提供有效 JSON（鍵名/範圍正確），且不要在 JSON 外多加註解。`;
-
-    const r = await fetch("https://api.openai.com/v1/responses", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "gpt-4.1-mini",
-        temperature: 0.9,
-        input: [ { role: "system", content: system }, { role: "user", content: user } ],
-      }),
-    });
-
-    if (!r.ok) {
-      const errText = await r.text();
-      return res.status(500).json({ error: "openai_failed", detail: errText });
-    }
-
-    const data = await r.json();
-    let text = data.output_text;
-    if (!text && Array.isArray(data.output)) {
-      text = data.output.map(o => Array.isArray(o.content) ? o.content.map(c => c.text || '').join('\n') : '').join('\n').trim();
-    }
-    if (!text) text = JSON.stringify(data, null, 2);
-
-    return res.status(200).json({ text });
-  } catch (e) {
-    return res.status(500).json({ error: "server_error", detail: String(e) });
-  }
-}
-</script>
-
-

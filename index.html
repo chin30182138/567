@@ -1,325 +1,203 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>六獸 × 六親 × 地支｜單方/雙方 一鍵分析</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <meta charset="UTF-8">
+  <title>六獸六親×地支 分析器</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
-    @media print { @page { margin: 14mm; } .no-print { display:none !important; } body { background:#fff !important; } .print-card { box-shadow:none !important; border:1px solid #e5e7eb; } }
-    .scores{display:grid;grid-template-columns:1fr;gap:8px;margin-top:6px}
-    .score{display:flex;align-items:center;gap:10px;font-size:13px;color:#334155}
-    .bar{flex:1;height:10px;background:#e2e8f0;border-radius:9999px;overflow:hidden}
-    .bar>i{display:block;height:100%;background:#6366f1}
-    .score b{width:92px;display:inline-block;color:#0f172a}
-    .score em{width:36px;text-align:right;color:#475569;font-style:normal}
-    .tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-    .tag{background:#eef2ff;color:#3730a3;padding:4px 10px;border-radius:9999px;font-size:12px}
-    .enc{background:#f0fdf4;border:1px solid #bbf7d0;color:#065f46;padding:10px 12px;border-radius:12px;margin-top:10px;font-size:14px}
+    body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
+    select, input, button { margin: 5px; padding: 5px; }
+    #result { white-space: pre-line; margin-top: 20px; }
+    #encourageBox {
+      margin-top: 10px; padding: 10px;
+      border: 1px solid #bbf7d0; background: #f0fdf4;
+      color: #065f46; font-size: 16px; border-radius: 8px;
+    }
+    canvas { margin-top: 20px; max-width: 500px; }
   </style>
-
-  <!-- 先行定義 setCtx（避免 onclick 找不到） -->
-  <script>
-    (function(){
-      window.setCtx = function(v){
-        var i = document.getElementById('context');
-        if(!i) return; i.value = (v||'').toString().trim();
-        try{ i.dispatchEvent(new Event('input',{bubbles:true})); }catch(e){}
-      };
-    })();
-  </script>
 </head>
-<body class="bg-slate-50 text-slate-800">
-  <div class="max-w-5xl mx-auto p-6 space-y-5">
-    <header class="no-print">
-      <h1 class="text-2xl font-bold">六獸 × 六親 × 地支｜單方/雙方 一鍵分析</h1>
-      <p class="text-slate-500 text-sm">直接覆蓋即可用。支援「單方分析」（只填我方）與「雙方分析」。含雷達圖、列印帶圖、LocalStorage 存檔、Responses API 解析、每日一句鼓勵。</p>
-    </header>
+<body>
+  <h1>六獸六親×地支 分析器</h1>
 
-    <!-- 模式與 API 設定 -->
-    <div class="no-print bg-white p-4 rounded-2xl shadow-sm flex flex-wrap items-center gap-4">
-      <label class="flex items-center gap-2 text-sm text-slate-700"><input id="singleMode" type="checkbox" class="w-4 h-4"> 單方分析（不選對方）</label>
-      <label class="flex items-center gap-2 text-sm text-slate-700"><input id="deepMode" type="checkbox" class="w-4 h-4"> 進階深入分析</label>
-      <label class="flex items-center gap-2 text-sm text-slate-700"><input id="dryMode" type="checkbox" class="w-4 h-4"> 測試模式（dry，不耗額度）</label>
-      <div class="flex items-center gap-2 text-sm text-slate-700 w-full md:w-auto">
-        <span class="shrink-0">API：</span>
-        <input id="apiBase" class="border rounded-lg px-3 py-2 text-sm w-full md:w-[380px]" placeholder="留空＝同網域 /api/analyze；或填 https://xxx.vercel.app/api/analyze" />
-      </div>
-      <span id="status" class="text-sm text-slate-600"></span>
-    </div>
+  <label><input type="checkbox" id="singleMode" checked> 單方分析</label>
+  <label><input type="checkbox" id="dryMode" checked> 測試模式 (dry)</label>
+  <br>
 
-    <div class="grid md:grid-cols-2 gap-4 no-print">
-      <section class="bg-white p-4 rounded-2xl shadow-sm">
-        <h2 class="font-semibold mb-3">我方</h2>
-        <select id="aBeast" class="w-full mb-2 border rounded-lg p-2">
-          <option value="">六獸</option>
-          <option>青龍</option><option>朱雀</option><option>勾陳</option>
-          <option>螣蛇</option><option>白虎</option><option>玄武</option>
-        </select>
-        <select id="aKin" class="w-full mb-2 border rounded-lg p-2">
-          <option value="">六親</option>
-          <option>父母</option><option>兄弟</option><option>子孫</option>
-          <option>妻財</option><option>官鬼</option>
-        </select>
-        <select id="aBranch" class="w-full border rounded-lg p-2">
-          <option value="">地支</option>
-          <option>子</option><option>丑</option><option>寅</option><option>卯</option>
-          <option>辰</option><option>巳</option><option>午</option><option>未</option>
-          <option>申</option><option>酉</option><option>戌</option><option>亥</option>
-        </select>
-      </section>
+  <h3>我方</h3>
+  六獸:
+  <select id="aBeast">
+    <option>青龍</option><option>朱雀</option><option>白虎</option>
+    <option>玄武</option><option>勾陳</option><option>騰蛇</option>
+  </select>
+  六親:
+  <select id="aKin">
+    <option>父母</option><option>兄弟</option><option>妻財</option>
+    <option>官鬼</option><option>子孫</option>
+  </select>
+  地支:
+  <select id="aBranch">
+    <option>子</option><option>丑</option><option>寅</option><option>卯</option>
+    <option>辰</option><option>巳</option><option>午</option><option>未</option>
+    <option>申</option><option>酉</option><option>戌</option><option>亥</option>
+  </select>
 
-      <section id="bPanel" class="bg-white p-4 rounded-2xl shadow-sm">
-        <h2 class="font-semibold mb-3">對方（雙方分析時才需）</h2>
-        <select id="bBeast" class="w-full mb-2 border rounded-lg p-2">
-          <option value="">六獸</option>
-          <option>青龍</option><option>朱雀</option><option>勾陳</option>
-          <option>螣蛇</option><option>白虎</option><option>玄武</option>
-        </select>
-        <select id="bKin" class="w-full mb-2 border rounded-lg p-2">
-          <option value="">六親</option>
-          <option>父母</option><option>兄弟</option><option>子孫</option>
-          <option>妻財</option><option>官鬼</option>
-        </select>
-        <select id="bBranch" class="w-full border rounded-lg p-2">
-          <option value="">地支</option>
-          <option>子</option><option>丑</option><option>寅</option><option>卯</option>
-          <option>辰</option><option>巳</option><option>午</option><option>未</option>
-          <option>申</option><option>酉</option><option>戌</option><option>亥</option>
-        </select>
-      </section>
-    </div>
-
-    <section class="bg-white p-4 rounded-2xl shadow-sm space-y-2 no-print">
-      <h2 class="font-semibold">情境</h2>
-      <div class="flex gap-2 flex-wrap mb-2">
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100" onclick="setCtx('年度目標協調')">年度目標協調</button>
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100" onclick="setCtx('績效回饋會議')">績效回饋會議</button>
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100" onclick="setCtx('跨部門協作')">跨部門協作</button>
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100" onclick="setCtx('壓期交付專案')">壓期交付專案</button>
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100" onclick="setCtx('人際關係協調')">人際關係協調</button>
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100" onclick="setCtx('愛情')">愛情</button>
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100" onclick="setCtx('性愛')">性愛</button>
-      </div>
-      <div class="flex flex-col gap-2 md:flex-row md:items-center">
-        <input id="context" class="w-full border rounded-lg p-2" placeholder="輸入情境…（例：升遷準備、與 A 同事協作、親密關係）" />
-      </div>
-    </section>
-
-    <div class="flex flex-wrap items-center gap-3 no-print">
-      <button id="go" class="px-4 py-2 rounded-xl bg-indigo-600 text-white">一鍵分析</button>
-      <button id="print" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-800">列印 / 匯出 PDF</button>
-      <input id="saveName" class="border rounded-lg px-3 py-2 text-sm" placeholder="檔名（可自訂）" style="min-width:200px">
-      <button id="save" class="px-4 py-2 rounded-xl bg-emerald-600 text-white">存檔</button>
-      <button id="export" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-800">匯出 JSON</button>
-      <button id="savedToggle" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-800">我的檔案</button>
-      <span id="status2" class="text-sm text-slate-600"></span>
-    </div>
-
-    <section class="bg-white p-5 rounded-2xl shadow-sm print-card">
-      <div class="flex flex-wrap gap-2 text-sm text-slate-600 mb-3">
-        <span class="px-3 py-1 bg-slate-100 rounded-full">我方：<strong id="chipA">—</strong></span>
-        <span id="chipBWrap" class="px-3 py-1 bg-slate-100 rounded-full hidden">對方：<strong id="chipB">—</strong></span>
-        <span class="px-3 py-1 bg-slate-100 rounded-full">情境：<strong id="chipC">—</strong></span>
-      </div>
-      <div id="result" class="prose max-w-none text-[15px]"></div>
-      <div id="encourageBox" class="enc hidden"></div>
-      <div id="chart" class="mt-4"></div>
-    </section>
-
-    <section id="savedPanel" class="no-print bg-white p-4 rounded-2xl shadow-sm hidden">
-      <div class="flex items-center justify-between mb-3">
-        <h2 class="font-semibold">我的檔案</h2>
-        <div class="text-sm text-slate-500">（保存在這台裝置的瀏覽器 LocalStorage）</div>
-      </div>
-      <div id="savedList" class="divide-y divide-slate-100"></div>
-    </section>
+  <div id="pairInputs">
+    <h3>對方</h3>
+    六獸:
+    <select id="bBeast">
+      <option>青龍</option><option>朱雀</option><option>白虎</option>
+      <option>玄武</option><option>勾陳</option><option>騰蛇</option>
+    </select>
+    六親:
+    <select id="bKin">
+      <option>父母</option><option>兄弟</option><option>妻財</option>
+      <option>官鬼</option><option>子孫</option>
+    </select>
+    地支:
+    <select id="bBranch">
+      <option>子</option><option>丑</option><option>寅</option><option>卯</option>
+      <option>辰</option><option>巳</option><option>午</option><option>未</option>
+      <option>申</option><option>酉</option><option>戌</option><option>亥</option>
+    </select>
   </div>
 
+  <h3>情境</h3>
+  <input type="text" id="context" placeholder="例如：愛情 / 職場 / 家庭">
+  <br><br>
+
+  <button id="go">一鍵分析</button>
+  <button id="print">列印 / 匯出 PDF</button>
+  <button id="save">存檔</button>
+  <button id="export">匯出 JSON</button>
+
+  <div id="result"></div>
+  <div id="encourageBox" class="hidden"></div>
+  <canvas id="radarChart"></canvas>
+
   <script>
-    const $ = s => document.querySelector(s);
-    const STORAGE_KEY = 'lx_saved_v1';
-    let lastPlain = '';
-    let lastFormatted = null;
-    let radarChart = null;
-
-    // 模式切換：單方時隱藏對方欄位
-    $('#singleMode').addEventListener('change', () => {
-      const on = $('#singleMode').checked;
-      $('#bPanel').classList.toggle('hidden', on);
-      $('#chipBWrap').classList.toggle('hidden', on);
-    });
-
-    // 快速帶入情境（備援）
-    document.addEventListener('click', (e) => {
-      const btn = e.target.closest('.preset');
-      if (!btn) return; e.preventDefault(); setCtx(btn.textContent.trim());
-    });
-
+    // 🔹 工具
     function getApiUrl() {
-      const base = ($('#apiBase').value || '').trim();
-      return base || '/api/analyze';
+      return '/api/analyze'; // 如果你要固定 domain，可改成 https://xxx.vercel.app/api/analyze
     }
-
-    function getMode(){ return $('#singleMode').checked ? 'single' : 'pair'; }
-
-    function getSelections(){
-      const mode = getMode();
-      const base = {
-        aBeast: $('#aBeast').value, aKin: $('#aKin').value, aBranch: $('#aBranch').value,
-        context: $('#context').value.trim(), depth: $('#deepMode').checked ? 'deep' : 'basic', mode
+    function getSelections() {
+      return {
+        aBeast: document.getElementById('aBeast').value,
+        aKin: document.getElementById('aKin').value,
+        aBranch: document.getElementById('aBranch').value,
+        bBeast: document.getElementById('bBeast').value,
+        bKin: document.getElementById('bKin').value,
+        bBranch: document.getElementById('bBranch').value,
+        context: document.getElementById('context').value,
+        mode: document.getElementById('singleMode').checked ? 'single' : 'pair',
+        dry: document.getElementById('dryMode').checked
       };
-      if(mode === 'pair'){
-        base.bBeast = $('#bBeast').value; base.bKin = $('#bKin').value; base.bBranch = $('#bBranch').value;
-      } else { base.bBeast = base.bKin = base.bBranch = ''; }
-      return base;
     }
 
-    function updateChips(sel){
-      $('#chipA').textContent = [sel.aBeast,sel.aKin,sel.aBranch].filter(Boolean).join(' × ') || '—';
-      const bOn = sel.mode === 'pair';
-      $('#chipBWrap').classList.toggle('hidden', !bOn);
-      $('#chipB').textContent = bOn ? [sel.bBeast,sel.bKin,sel.bBranch].filter(Boolean).join(' × ') || '—' : '';
-      $('#chipC').textContent = sel.context || '—';
-    }
-
-    // 從 Responses 結構抽字
-    function extractTextFromResponse(data, raw){
-      try{
-        if (typeof data?.text === 'string' && data.text.trim()) return data.text;
-        if (Array.isArray(data?.output)){
-          const chunks = [];
-          for (const msg of data.output){ for (const c of (msg?.content||[])){ if(c?.text) chunks.push(c.text); } }
-          if (chunks.length) return chunks.join('\n');
-        }
-        if (typeof data?.result === 'string' && data.result.trim()) return data.result;
-        const guess = data?.choices?.[0]?.message?.content || data?.message || '';
-        if (typeof guess === 'string' && guess.trim()) return guess;
-      }catch(_){ }
-      return raw || '';
-    }
-
-    // 文字→HTML排版＋JSON解析（含分數條/標籤/每日一句）
-    function formatOutputWithJson(text){
-      if (text == null) text = '';
-      if (typeof text !== 'string') { try { text = JSON.stringify(text); } catch(_) { text = String(text); } }
-      if(!text) return { html: '', scores: null, tags: [], encourage: '' };
-      const jsonBlock = text.match(/```json([\s\S]*?)```/i);
-      let json = null;
-      if(jsonBlock){ try{ json = JSON.parse(jsonBlock[1]); }catch(_){ json = null; } text = text.replace(jsonBlock[0], '').trim(); }
-      let scores = json && json.scores ? json.scores : null;
-      if(!scores){ const map = { fit:null, comm:null, pace:null, account:null, trust:null, innov:null }; const rx=/(fit|comm|pace|account|trust|innov)\s*(\d{1,3})/ig; let m; while((m=rx.exec(text))){ map[m[1].toLowerCase()] = Number(m[2]); } if(Object.values(map).filter(v=>typeof v==='number'&&!isNaN(v)).length>=2) scores=map; }
-      let html = text.replace(/\n\s*\n/g,'\n').replace(/^\s*\d+\)\s*(.+)$/gm,'<h3 class="text-lg font-semibold mt-4'>$1<\/h3>').replace(/^\s*[-–]\s*(.+)$/gm,'<li>$1<\/li>');
-      html = html.replace(/(?:<li>[^<]*<\/li>\n?)+/g, m=>`<ul class="list-disc pl-5 space-y-1">${m}<\/ul>`);
-      return { html, scores, tags: (json && json.tags)||[], encourage: (json && json.encourage)||'' };
-    }
-
-    function renderRadar(scores){
-      const wrap = document.getElementById('chart'); wrap.innerHTML = '';
-      if(!scores) return;
-      const clamp = v => Math.max(0, Math.min(100, Number(v)||0));
-      const labels = ['契合 fit','溝通 comm','節奏 pace','權責 account','信任 trust','創新 innov'];
-      const data = [clamp(scores.fit),clamp(scores.comm),clamp(scores.pace),clamp(scores.account),clamp(scores.trust),clamp(scores.innov)];
-      const canvas = document.createElement('canvas'); canvas.id = 'radar'; wrap.appendChild(canvas);
-      if(radarChart){ radarChart.destroy(); }
-      radarChart = new Chart(canvas.getContext('2d'), { type:'radar', data:{ labels, datasets:[{ label:'六維度雷達圖', data, fill:true, backgroundColor:'rgba(99,102,241,0.15)', borderColor:'rgba(99,102,241,1)', pointBackgroundColor:'rgba(99,102,241,1)'}] }, options:{ scales:{ r:{ suggestedMin:0, suggestedMax:100, ticks:{ stepSize:20 }, pointLabels:{ font:{ size:16 }, color:'#0f172a' } } }, plugins:{ legend:{ display:false } } } });
-      window.radarChart = radarChart;
-    }
-
-    function download(filename, content, type='application/json'){ const blob = new Blob([content], {type}); const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=filename; a.click(); setTimeout(()=>URL.revokeObjectURL(url),500); }
-    const loadAllSaved = ()=>{ try{ return JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]'); }catch(_){ return []; } };
-    const saveAllSaved = (list)=> localStorage.setItem(STORAGE_KEY, JSON.stringify(list.slice(0,100)));
-
-    function snapshot(){ const sel=getSelections(); const nameInput=($('#saveName').value||'').trim(); const autoName=`${(sel.aBeast||'—')}×${(sel.aKin||'—')}×${(sel.aBranch||'—')}${sel.mode==='pair'?(' vs '+[(sel.bBeast||'—'),(sel.bKin||'—'),(sel.bBranch||'—')].join('×')):''}｜${sel.context||'未命名'}`; return { id: Date.now().toString(36)+Math.random().toString(36).slice(2,8), time:new Date().toISOString(), name:nameInput||autoName, selections:sel, text:lastPlain||'', html:document.getElementById('result').innerHTML||'', scores:lastFormatted?.scores||null, tags:lastFormatted?.tags||[], encourage:lastFormatted?.encourage||'' }; }
-
-    function renderSavedList(){ const list=loadAllSaved(); const wrap=document.getElementById('savedList'); if(!list.length){ wrap.innerHTML='<div class="text-sm text-slate-500">尚無存檔，先產生一次分析後按「存檔」。</div>'; return; } wrap.innerHTML=list.map(item=>{ const t=new Date(item.time).toLocaleString(); const s=item.selections||{}; const title=item.name || `${(s.aBeast||'—')}×${(s.aKin||'—')}×${(s.aBranch||'—')}`; return `<div class=\"py-3 flex items-start justify-between gap-3\">\n<div>\n<div class=\"font-medium\">${title}</div>\n<div class=\"text-xs text-slate-500\">${t} ｜ 模式：${s.mode||'pair'} ｜ 情境：${s.context||'—'}</div>\n</div>\n<div class=\"shrink-0 flex gap-2\">\n<button data-act=\"load\" data-id=\"${item.id}\" class=\"px-2 py-1 text-xs rounded bg-indigo-50 text-indigo-700\">載入</button>\n<button data-act=\"export\" data-id=\"${item.id}\" class=\"px-2 py-1 text-xs rounded bg-slate-100\">匯出JSON</button>\n<button data-act=\"del\" data-id=\"${item.id}\" class=\"px-2 py-1 text-xs rounded bg-rose-50 text-rose-700\">刪除</button>\n</div>\n</div>`; }).join(''); wrap.querySelectorAll('button').forEach(btn=>{ btn.onclick=()=>{ const id=btn.getAttribute('data-id'); const act=btn.getAttribute('data-act'); const list2=loadAllSaved(); const idx=list2.findIndex(x=>x.id===id); if(idx<0) return; const item=list2[idx]; if(act==='del'){ list2.splice(idx,1); saveAllSaved(list2); renderSavedList(); } else if(act==='export'){ download(`analysis_${id}.json`, JSON.stringify(item,null,2)); } else if(act==='load'){ $('#singleMode').checked = (item.selections.mode === 'single'); $('#singleMode').dispatchEvent(new Event('change')); document.getElementById('aBeast').value=item.selections.aBeast||''; document.getElementById('aKin').value=item.selections.aKin||''; document.getElementById('aBranch').value=item.selections.aBranch||''; document.getElementById('bBeast').value=item.selections.bBeast||''; document.getElementById('bKin').value=item.selections.bKin||''; document.getElementById('bBranch').value=item.selections.bBranch||''; document.getElementById('context').value=item.selections.context||''; updateChips(item.selections); document.getElementById('result').innerHTML=item.html||''; const box=$('#encourageBox'); box.textContent = item.encourage||''; box.classList.toggle('hidden', !(item.encourage)); if(item.scores){ renderRadar(item.scores); } lastPlain=item.text||''; lastFormatted={ html:item.html, scores:item.scores, tags:item.tags, encourage:item.encourage }; window.scrollTo({top:0,behavior:'smooth'}); } }; }); }
-
-    function toggleSavedPanel(){ const el=document.getElementById('savedPanel'); el.classList.toggle('hidden'); if(!el.classList.contains('hidden')) renderSavedList(); }
-
-    async function runAnalyze(){
-      const sel = getSelections(); updateChips(sel);
-      const needB = sel.mode === 'pair';
-      if (!(sel.aBeast && sel.aKin && sel.aBranch && sel.context)) { alert('請先選滿：我方「六獸、六親、地支」與情境'); return; }
-      if (needB && !(sel.bBeast && sel.bKin && sel.bBranch)) { alert('雙方分析請把「對方」也選滿'); return; }
-
-      $('#status').textContent = $('#dryMode').checked ? '分析中（dry）…' : '分析中…';
-      $('#status2').textContent = '';
-      $('#result').innerHTML = '';
-      $('#chart').innerHTML = '';
-      $('#encourageBox').classList.add('hidden');
-
-      try {
-        let data, raw;
-        if($('#dryMode').checked){
-          const base = getApiUrl();
-          const url = base.includes('?') ? base + `&dry=1&mode=${sel.mode}` : base + `?dry=1&mode=${sel.mode}`;
-          const r = await fetch(url);
-          raw = await r.text();
-          try{ data = JSON.parse(raw); }catch{ data = { raw }; }
-          if(!r.ok){ throw new Error((data && data.error && data.error.message) || data.raw || ('HTTP '+r.status)); }
-        } else {
-          const r = await fetch(getApiUrl(), { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(sel) });
-          raw = await r.text();
-          try{ data = JSON.parse(raw); }catch{ data = { raw }; }
-          if(!r.ok){ throw new Error((data && data.error && data.error.message) || data.raw || ('HTTP '+r.status)); }
-        }
-
-        const plain = extractTextFromResponse(data, raw);
-        const formatted = formatOutputWithJson(plain);
-        lastPlain = plain; lastFormatted = formatted;
-        $('#result').innerHTML = formatted.html;
-        if(formatted.encourage){ const box=$('#encourageBox'); box.textContent = '每天一句鼓勵：' + formatted.encourage; box.classList.remove('hidden'); }
-        renderRadar(formatted.scores);
-        $('#status').textContent = '✅ 完成';
-      } catch (e) {
-        $('#status').textContent = '❌ ' + ((e && e.message) ? e.message : String(e));
-        $('#result').textContent = (e && e.message) ? e.message : String(e);
+    // 🔹 格式化輸出
+    function formatOutputWithJson(text) {
+      let scores = null, encourage = "", html = text;
+      const match = text.match(/```json([\\s\\S]*?)```/);
+      if (match) {
+        try {
+          const obj = JSON.parse(match[1]);
+          scores = obj.scores || null;
+          encourage = obj.encourage || "";
+        } catch(e) {}
       }
+      return { html, scores, encourage };
     }
 
-    document.addEventListener('DOMContentLoaded', () => {
-      const goBtn = document.getElementById('go');
-      const savedBtn = document.getElementById('savedToggle');
-      const single = document.getElementById('singleMode');
-      const dry = document.getElementById('dryMode');
-      // 預設：單方 + 乾測 開啟，避免一開始無 API 導致誤以為沒反應
-      if (single) single.checked = true;
-      if (dry) dry.checked = true;
-      if (goBtn) goBtn.addEventListener('click', runAnalyze);
-      if (savedBtn) savedBtn.addEventListener('click', toggleSavedPanel);
-      // 顯示目前模式狀態
-      const s = document.getElementById('status');
-      if (s) s.textContent = '單方模式・乾測 ON';
+    // 🔹 畫雷達圖
+    function drawRadar(scores) {
+      const ctx = document.getElementById('radarChart');
+      if (window.radarChart) window.radarChart.destroy();
+      window.radarChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: ['fit','comm','pace','account','trust','innov'],
+          datasets: [{
+            label: '六維度',
+            data: [scores.fit, scores.comm, scores.pace, scores.account, scores.trust, scores.innov],
+            backgroundColor: 'rgba(34,197,94,0.2)',
+            borderColor: 'rgba(34,197,94,1)'
+          }]
+        },
+        options: { scales: { r: { suggestedMin: 0, suggestedMax: 100 } } }
+      });
+    }
+
+    // 🔹 一鍵分析
+    async function runAnalyze() {
+      const sel = getSelections();
+      const url = sel.dry ? getApiUrl() + '?dry=1&mode=' + sel.mode : getApiUrl();
+      const payload = sel.dry ? null : JSON.stringify(sel);
+
+      const res = await fetch(url, {
+        method: sel.dry ? 'GET' : 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: payload
+      });
+      const data = await res.json();
+      const formatted = formatOutputWithJson(data.text);
+
+      document.getElementById('result').innerText = formatted.html;
+      if (formatted.encourage) {
+        document.getElementById('encourageBox').classList.remove('hidden');
+        document.getElementById('encourageBox').innerText = formatted.encourage;
+      }
+      if (formatted.scores) drawRadar(formatted.scores);
+    }
+
+    // 🔹 列印 / 存檔 / 匯出
+    document.getElementById('print').addEventListener('click', function() {
+      const sel = getSelections();
+      const chartImg = (window.radarChart && window.radarChart.canvas)
+        ? window.radarChart.canvas.toDataURL('image/png')
+        : '';
+      const encText = document.getElementById('encourageBox').innerText;
+
+      const html = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>列印</title>
+</head>
+<body>
+  <h1>六獸六親×地支 分析（列印版）</h1>
+  <p>產生時間：${new Date().toLocaleString()}</p>
+  <div>${document.getElementById('result').innerHTML}</div>
+  ${encText ? `<div style="color:green">${encText}</div>` : ""}
+  ${chartImg ? `<div><img src="${chartImg}" style="max-width:500px"></div>` : ""}
+</body>
+</html>
+`;
+
+      const blob = new Blob([html], { type: 'text/html' });
+      const url = URL.createObjectURL(blob);
+      const w = window.open(url, '_blank');
+      if (!w) return;
+      setTimeout(() => { w.print(); URL.revokeObjectURL(url); }, 500);
     });
 
-    // 列印 / 匯出 PDF（附上雷達圖快照與每日一句）
-    document.getElementById('print').onclick = () => {
-      const sel = getSelections(); updateChips(sel);
-      const chartImg = (window.radarChart && window.radarChart.canvas) ? window.radarChart.canvas.toDataURL('image/png') : '';
-      const encText = ($('#encourageBox').classList.contains('hidden') ? '' : $('#encourageBox').textContent);
-      const html = `<!doctype html><html lang=\"zh-Hant\"><head><meta charset=\"utf-8\"><title>列印</title>
-      <style>body{font-family:ui-sans-serif,system-ui,-apple-system,\"Noto Sans TC\";color:#0f172a;margin:18px;}h1{font-size:20px;margin:0 0 6px;}.meta{color:#64748b;font-size:12px;margin-bottom:10px}.chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 14px}.chip{background:#eef2f7;border-radius:999px;padding:6px 10px;font-size:12px;color:#0f172a}.box{border:1px solid #e5e7eb;border-radius:12px;padding:14px}.result{font-size:14px;line-height:1.6}ul{margin:6px 0 6px 18px}h3{margin:10px 0 4px}.chart{margin-top:12px;text-align:center}.chart img{max-width:520px;width:100%;}.enc{background:#f0fdf4;border:1px solid #bbf7d0;color:#065f46;padding:10px 12px;border-radius:12px;margin-top:10px;font-size:14px}@page{margin:14mm}</style></head><body>
-      <h1>六獸六親×地支 分析（列印版）</h1>
-      <div class=meta>產生時間：${new Date().toLocaleString()}</div>
-      <div class=chips>
-        <span class=chip>我方：${[sel.aBeast||'—', sel.aKin||'—', sel.aBranch||'—'].join(' × ')}</span>
-        ${sel.mode==='pair'?`<span class=chip>對方：${[sel.bBeast||'—', sel.bKin||'—', sel.bBranch||'—'].join(' × ')}</span>`:''}
-        <span class=chip>情境：${sel.context||'—'}</span>
-        <span class=chip>模式：${sel.mode}</span>
-      </div>
-      <div class=box>
-        <div class=result>${document.getElementById('result').innerHTML || '<em>尚未產生結果</em>'}</div>
-        ${encText?`<div class=enc>${encText}</div>`:''}
-        ${chartImg ? `<div class=\"chart\"><img src=\"${chartImg}\" alt=\"雷達圖\"></div>` : ''}
-      </div>
-      <script>window.onload=()=>window.print()<\/script></body></html>`;
-      const w = window.open('', '_blank'); w.document.write(html); w.document.close();
-    };
+    document.getElementById('save').addEventListener('click', function() {
+      const snap = { ts: Date.now(), result: document.getElementById('result').innerHTML };
+      localStorage.setItem('analysis', JSON.stringify(snap));
+      alert("已存檔");
+    });
 
-    // 存檔 / 匯出
-    document.getElementById('save').onclick = () => { if(!((document.getElementById('result').innerHTML)||'').trim()){ alert('尚未有分析結果，請先點「一鍵分析」。'); return; } const snap=snapshot(); const list=loadAllSaved(); list.unshift(snap); saveAllSaved(list); document.getElementById('status2').textContent='💾 已存檔'; };
-    document.getElementById('export').onclick = () => { if(!((document.getElementById('result').innerHTML)||'').trim()){ alert('尚未有分析結果，請先點「一鍵分析」。'); return; } const snap=snapshot(); const blob = new Blob([JSON.stringify(snap,null,2)], {type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`analysis_${new Date().toISOString().replace(/[:.]/g,'-')}.json`; a.click(); setTimeout(()=>URL.revokeObjectURL(url),500); };
+    document.getElementById('export').addEventListener('click', function() {
+      const snap = { ts: Date.now(), result: document.getElementById('result').innerHTML };
+      const blob = new Blob([JSON.stringify(snap, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'analysis.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    document.getElementById('go').addEventListener('click', runAnalyze);
   </script>
 </body>
 </html>

@@ -107,7 +107,7 @@
   function renderReportText(text) {
     document.getElementById('report').textContent = text || "(無內容)";
 
-    // ✅ 抓「最後一個」 JSON 區塊，避免前面出現雜訊
+    // ✅ 抓「最後一個」JSON 區塊（避免前面有干擾）
     const matches = [...text.matchAll(/```json\s*([\s\S]*?)\s*```/gi)];
     if (!matches.length) {
       destroyRadar();
@@ -119,10 +119,11 @@
     try {
       parsed = JSON.parse(jsonBlock);
     } catch (e) {
-      console.error("JSON.parse 失敗，原始：", jsonBlock);
+      console.error("⚠️ JSON.parse 失敗，原始內容：", jsonBlock);
       destroyRadar();
       return;
     }
+
     drawRadar(parsed?.scores || {});
   }
 
@@ -151,17 +152,27 @@
         datasets: [{
           label: '六維度評分 (0~100)',
           data: dataVals,
-          fill: true
+          fill: true,
+          backgroundColor: "rgba(54, 162, 235, 0.2)",
+          borderColor: "rgba(54, 162, 235, 1)"
         }]
       },
       options: {
         responsive: true,
-        scales: { r: { min: 0, max: 100, ticks: { stepSize: 20 } } }
+        scales: {
+          r: {
+            min: 0,
+            max: 100,
+            ticks: { stepSize: 20 }
+          }
+        }
       }
     });
   }
 </script>
 
+
 </body>
 </html>
+
 

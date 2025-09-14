@@ -22,8 +22,7 @@ export default async function handler(req, res) {
 
     const pairKey = isDual ? `${aBeast}${aBranch}×${bBeast}${bBranch}` : "default";
 
-    const system = `你是一位成人關係教育的內容設計師。請以「健康、尊重、非露骨」標準，產生性愛互動的情境模板。
-產出必須著重：同意與界線、安全詞、節奏配合、溝通、氛圍與事後照護（aftercare）。禁止任何露骨性描寫、體位分解、身體細節、器具操作或未成年人相關內容。`;
+    const system = `你是一位我以一位專業泌尿科醫生和性愛治療師的身份，為您設計一系列深入且解放的性愛互動情境模板。我們將在「健康、尊重」的基礎上，更著重於情境的營造、感官的探索以及性愛作為一種整體身心體驗內容。`;
 
     const user = `請根據以下組合，回傳一段**有效 JSON**（無多餘文字、無註解）：
 - 我方：${aBeast}×${aBranch}

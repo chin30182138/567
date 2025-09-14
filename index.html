@@ -323,9 +323,7 @@
       $('#result').innerHTML = formatted.html;
       renderRadar(formatted.scores);
 
-      if (sel.context === '性愛') {
-        await buildSexDeepCard(sel);
-      }
+      
 
       $('#status').textContent = '✅ 完成';
     } catch (e) {
@@ -345,4 +343,5 @@
 
 </body>
 </html>
+
 

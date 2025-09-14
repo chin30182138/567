@@ -7,12 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
-    @media print {
-      @page { margin: 14mm; }
-      .no-print { display:none !important; }
-      body { background:#fff !important; }
-      .print-card { box-shadow:none !important; border:1px solid #e5e7eb; }
-    }
+    @media print { @page { margin: 14mm; } .no-print{display:none!important} body{background:#fff!important} .print-card{box-shadow:none!important;border:1px solid #e5e7eb} }
     .scores{display:grid;grid-template-columns:1fr;gap:8px;margin-top:6px}
     .score{display:flex;align-items:center;gap:10px;font-size:13px;color:#334155}
     .bar{flex:1;height:10px;background:#e2e8f0;border-radius:9999px;overflow:hidden}
@@ -32,10 +27,8 @@
       <p class="text-slate-500 text-sm">選擇分析對象、情境 → 按「一鍵分析」。支援分數條、雷達圖、列印 / 匯出 PDF。</p>
     </header>
 
-    <!-- 自動判斷單/雙人（無對方＝單人；有對方＝雙人；選「個性分析」亦視為單人） -->
     <div class="no-print">
       <div class="grid md:grid-cols-2 gap-4">
-        <!-- 我方 -->
         <section class="bg-white p-4 rounded-2xl shadow-sm">
           <h2 class="font-semibold mb-3">我方 <span id="labelA" class="text-sm text-slate-500">(分析主體)</span></h2>
           <select id="aBeast" class="w-full mb-2 border rounded-lg p-2">
@@ -56,7 +49,6 @@
           </select>
         </section>
 
-        <!-- 對方（若留白＝單人） -->
         <section id="sectionB" class="bg-white p-4 rounded-2xl shadow-sm">
           <h2 class="font-semibold mb-3">對方（若留白＝單人）</h2>
           <select id="bBeast" class="w-full mb-2 border rounded-lg p-2">
@@ -79,7 +71,6 @@
       </div>
     </div>
 
-    <!-- 情境 preset + 自由輸入 -->
     <section class="bg-white p-4 rounded-2xl shadow-sm space-y-2 no-print">
       <h2 class="font-semibold">情境</h2>
       <div class="flex gap-2 flex-wrap mb-2">
@@ -94,14 +85,12 @@
       </div>
       <input id="context" class="w-full border rounded-lg p-2" placeholder="輸入情境…" />
 
-      <!-- 性愛深入分析（勾選；非露骨版） -->
+      <!-- 性愛深入分析（勾選；非露骨版；只把偏好字串傳到後端，不再自行渲染卡片） -->
       <div id="sexOptions" class="hidden mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
         <div class="flex items-center justify-between">
           <p class="font-semibold text-red-700">性愛情境深入分析（非露骨版）</p>
           <span class="text-xs text-red-700/80">※ 著重溝通、同意、節奏與照護</span>
         </div>
-
-        <!-- 勾選群組 -->
         <div class="grid md:grid-cols-2 gap-3 mt-2">
           <fieldset class="border border-red-200 rounded-lg p-3">
             <legend class="text-sm font-semibold text-red-700">想要著重的面向</legend>
@@ -111,7 +100,6 @@
             <label class="block mt-2"><input type="checkbox" class="sex-check" value="邊界、同意與安全詞"> 邊界、同意與安全詞</label>
             <label class="block mt-2"><input type="checkbox" class="sex-check" value="事後照護（aftercare）"> 事後照護（aftercare）</label>
           </fieldset>
-
           <fieldset class="border border-red-200 rounded-lg p-3">
             <legend class="text-sm font-semibold text-red-700">偏好風格</legend>
             <label class="block mt-2"><input type="checkbox" class="sex-check" value="遊戲感挑逗"> 遊戲感挑逗</label>
@@ -121,19 +109,16 @@
             <label class="block mt-2"><input type="checkbox" class="sex-check" value="節奏變化"> 節奏變化</label>
           </fieldset>
         </div>
-
         <textarea id="sexDetailInput" class="w-full mt-3 border rounded-lg p-2 text-sm" rows="3" placeholder="補充你想納入的情境或界線（例：音樂燈光、可接受／不可接受、溝通方式…）"></textarea>
       </div>
     </section>
 
-    <!-- 動作列 -->
     <div class="flex flex-wrap items-center gap-3 no-print">
       <button id="go" class="px-4 py-2 rounded-xl bg-indigo-600 text-white">一鍵分析</button>
       <button id="print" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-800">列印 / 匯出 PDF</button>
       <span id="status" class="text-sm text-slate-600"></span>
     </div>
 
-    <!-- 結果區 -->
     <section class="bg-white p-5 rounded-2xl shadow-sm print-card">
       <div class="flex flex-wrap gap-2 text-sm text-slate-600 mb-3">
         <span class="px-3 py-1 bg-slate-100 rounded-full">模式：<strong id="chipMode">—</strong></span>
@@ -143,16 +128,7 @@
         <span id="chipSexDetail_wrapper" class="px-3 py-1 bg-slate-100 rounded-full hidden">深入：<strong id="chipSexDetail">—</strong></span>
       </div>
 
-      <!-- AI 分析文字 -->
       <div id="result" class="prose max-w-none text-[15px]"></div>
-
-      <!-- 性愛深入分析（載入外部 JSON 模板，非露骨） -->
-      <div id="sexDeep" class="mt-6 hidden">
-        <h3 class="text-lg font-semibold">性愛深入分析（非露骨）</h3>
-        <div id="sexDeepBody" class="text-[15px] leading-7 mt-1"></div>
-      </div>
-
-      <!-- 雷達圖 -->
       <div id="chart" class="mt-4"></div>
     </section>
   </div>
@@ -161,21 +137,18 @@
   const $ = s => document.querySelector(s);
   const $$ = s => document.querySelectorAll(s);
 
-  // —— 自動判斷單/雙人（無對方＝single；有對方＝dual；選「個性分析」亦視為 single）
   function determineMode() {
     const hasB = ($('#bBeast').value && $('#bKin').value && $('#bBranch').value);
     const ctx = $('#context').value.trim();
     return (!hasB || ctx === '個性分析') ? 'single' : 'dual';
   }
 
-  // 情境 presets
   $$('.preset').forEach(b => b.onclick = () => {
     $('#context').value = b.textContent.trim();
     toggleSexOptions();
     updateChips(getSelections());
   });
 
-  // 性愛選項顯示
   $('#context').oninput = toggleSexOptions;
   function toggleSexOptions() {
     const isSex = $('#context').value.trim() === '性愛';
@@ -184,8 +157,6 @@
       $$('.sex-check').forEach(c => c.checked = false);
       $('#sexDetailInput').value = '';
       $('#chipSexDetail_wrapper').classList.add('hidden');
-      $('#sexDeep').classList.add('hidden');
-      $('#sexDeepBody').innerHTML = '';
     }
   }
 
@@ -233,7 +204,6 @@
   function formatOutputWithJson(text){
     if(!text) return { html: '', scores: null, tags: [] };
 
-    // ✅ 抓最後一個 JSON 區塊，避免前面出現干擾
     const matches = [...text.matchAll(/```json\s*([\s\S]*?)\s*```/gi)];
     let json = null;
     if(matches.length){
@@ -269,7 +239,7 @@
     return { html, scores, tags: (json && json.tags) ? json.tags : [] };
   }
 
-  // Radar 圖
+  // Radar
   let radarChart = null;
   function renderRadar(scores){
     const wrap = document.getElementById('chart');
@@ -288,7 +258,7 @@
     window.radarChart = radarChart;
   }
 
-  // 一鍵分析
+  // 一鍵分析（已移除任何 buildSexDeepCard 呼叫）
   $('#go').onclick = async () => {
     const sel = getSelections();
     updateChips(sel);
@@ -304,7 +274,6 @@
     $('#status').textContent = '分析中…';
     $('#result').innerHTML = '';
     $('#chart').innerHTML = '';
-    $('#sexDeep').classList.add('hidden');
 
     try {
       const res = await fetch('/api/analyze', {
@@ -323,25 +292,18 @@
       $('#result').innerHTML = formatted.html;
       renderRadar(formatted.scores);
 
-      
-
       $('#status').textContent = '✅ 完成';
     } catch (e) {
       $('#status').textContent = '❌ 失敗';
       $('#result').textContent = String(e);
-      $('#sexDeep').classList.add('hidden');
-      $('#sexDeepBody').innerHTML = '';
     }
   };
 
-  // 列印功能保持不變（略）
+  // 列印 / 匯出 PDF（簡化：直接用視窗列印）
+  $('#print').onclick = () => window.print();
 
-  // 初始化
   toggleSexOptions();
   updateChips(getSelections());
 </script>
-
 </body>
 </html>
-
-

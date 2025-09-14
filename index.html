@@ -49,7 +49,6 @@
   <canvas id="radarChart" width="420" height="420"></canvas>
 
 <script>
-  // —— 1) 收集核心欄位（示例：依你實際 UI 替換）——
   function collectCoreFields() {
     const $ = (id) => document.getElementById(id)?.value?.trim();
     return {
@@ -64,7 +63,6 @@
     };
   }
 
-  // —— 2) 收集性愛勾選 —— 
   function collectSexDetail() {
     const sexDetail = !!document.querySelector('#sex-toggle')?.checked;
     const sexTags = Array.from(document.querySelectorAll('input[name="sexTags"]:checked'))
@@ -72,12 +70,10 @@
     return { sexDetail, sexTags };
   }
 
-  // —— 3) 呼叫 API 並渲染 —— 
   async function runAnalyze() {
     const { mode, aBeast, aKin, aBranch, bBeast, bKin, bBranch, context } = collectCoreFields();
     const { sexDetail, sexTags } = collectSexDetail();
 
-    // 基本驗證
     if (!aBeast || !aKin || !aBranch) {
       alert("請先填好我方：六獸／六親／地支");
       return;
@@ -87,10 +83,7 @@
       return;
     }
 
-    const body = {
-      mode, aBeast, aKin, aBranch, bBeast, bKin, bBranch, context,
-      sexDetail, sexTags
-    };
+    const body = { mode, aBeast, aKin, aBranch, bBeast, bKin, bBranch, context, sexDetail, sexTags };
 
     const res = await fetch("/api/analyze", {
       method: "POST",
@@ -98,46 +91,39 @@
       body: JSON.stringify(body)
     });
 
-    // 防止 500 回 HTML 時直接 json() 爆 "<"
     if (!res.ok) {
       const errText = await res.text();
       console.error("Server error:", errText);
-      alert("後端錯誤，請開啟 F12 → Console 查看訊息");
+      alert("後端錯誤，請開 F12 → Console 查看訊息");
       return;
     }
 
-    const data = await res.json(); // { text }
+    const data = await res.json();
     renderReportText(data?.text ?? "");
   }
 
-  // —— 4) 顯示全文 & 解析 JSON 畫雷達 —— 
   let radarChartInstance = null;
 
   function renderReportText(text) {
-    // (a) 先把完整文字塞進 <pre>
-    const pre = document.getElementById('report');
-    pre.textContent = text || "(無內容)";
+    document.getElementById('report').textContent = text || "(無內容)";
 
-    // (b) 從文末擷取 ```json 區塊
-    // 允許多行、前後空白；不貪心匹配第一個區塊
-    const m = text.match(/```json\s*([\s\S]*?)\s*```/i);
-    if (!m) {
-      // 沒抓到 JSON：清空圖表
+    // ✅ 抓「最後一個」 JSON 區塊，避免前面出現雜訊
+    const matches = [...text.matchAll(/```json\s*([\s\S]*?)\s*```/gi)];
+    if (!matches.length) {
       destroyRadar();
       return;
     }
+    const jsonBlock = matches[matches.length - 1][1];
 
     let parsed;
     try {
-      parsed = JSON.parse(m[1]);
+      parsed = JSON.parse(jsonBlock);
     } catch (e) {
-      console.warn("JSON 區塊解析失敗：", e);
+      console.error("JSON.parse 失敗，原始：", jsonBlock);
       destroyRadar();
       return;
     }
-
-    const scores = parsed?.scores || {};
-    drawRadar(scores);
+    drawRadar(parsed?.scores || {});
   }
 
   function destroyRadar() {
@@ -156,9 +142,7 @@
       return isFinite(v) ? Math.max(0, Math.min(100, v)) : 0;
     });
 
-    // 每次重畫前先銷毀舊圖，避免報錯
     destroyRadar();
-
     const ctx = document.getElementById('radarChart').getContext('2d');
     radarChartInstance = new Chart(ctx, {
       type: 'radar',
@@ -171,21 +155,13 @@
         }]
       },
       options: {
-        responsive: false, // 這裡用固定寬高；若要自適應可改 true 並拿掉 canvas width/height
-        scales: {
-          r: {
-            suggestedMin: 0,
-            suggestedMax: 100,
-            ticks: { stepSize: 20, showLabelBackdrop: false }
-          }
-        },
-        plugins: {
-          legend: { display: true },
-          tooltip: { enabled: true }
-        }
+        responsive: true,
+        scales: { r: { min: 0, max: 100, ticks: { stepSize: 20 } } }
       }
     });
   }
 </script>
+
 </body>
 </html>
+

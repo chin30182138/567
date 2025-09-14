@@ -1,6 +1,3 @@
-<!-- ==========================
-   文件：index.html （完整版｜情境含「個性分析」；性愛深入分析＝勾選＋外部 JSON 模板載入）
-   ========================== -->
 <!doctype html>
 <html lang="zh-Hant">
 <head>
@@ -313,23 +310,24 @@
         return;
       }
 
-      // --- START: 修改的部分 ---
+      console.log('--- buildSexDeepCard 函數被呼叫 ---');
+      console.log('當前選中的情境 (sel):', sel);
+
       let templateData = null; // 用來儲存從 API 獲取的模板數據
       try {
-        // 構建請求體，將我方/對方獸支傳遞給後端 API
         const requestBody = {
           aBeast: sel.aBeast,
           aBranch: sel.aBranch,
           bBeast: sel.bBeast,
-          bBranch: sel.bBranch // 如果是單人模式，這些會是空字符串，後端會自行判斷
+          bBranch: sel.bBranch
         };
+        console.log('發送給 API 的請求體:', requestBody);
 
-        // 呼叫你的 /api/sex-template API
-        const r = await fetch('/api/sex-template', { // <--- 這裡修改為你的 API 路徑
+        const r = await fetch('/api/sex-template', {
           method: 'POST',
           headers: {'Content-Type':'application/json'},
           body: JSON.stringify(requestBody),
-          cache: 'no-store' // 確保每次都發新請求
+          cache: 'no-store'
         });
 
         if (!r.ok) {
@@ -337,21 +335,37 @@
         }
 
         const data = await r.json();
-        templateData = data.template; // <--- 根據 /api/sex-template.js 的響應結構，模板數據在 `template` 鍵中
+        console.log('API 原始響應數據:', data); // <-- 新增的 console.log
+
+        // =========================================================================
+        // !!! 重點 !!!
+        // 這裡需要根據你的後端 API (/api/sex-template.js) 的實際響應結構來調整
+        //
+        // 假設後端返回的 JSON 是 { "template": { ... 模板內容 ... } }
+        // 那麼 templateData = data.template; 就是正確的。
+        //
+        // 但如果後端直接返回 { ... 模板內容 ... } 而沒有 "template" 這個 key，
+        // 那麼你需要將其改為： templateData = data;
+        //
+        // 請根據你後端 API 的實際輸出，選擇正確的賦值方式。
+        // =========================================================================
+        templateData = data.template; // 假設後端返回 { template: { ... } }
+        // templateData = data;       // 如果後端直接返回 { ... }
+
+        console.log('從 API 解析出的 templateData (用於渲染):', templateData); // <-- 新增的 console.log
 
         if (!templateData) {
-          throw new Error('API 回傳的模板數據為空');
+          throw new Error('API 回傳的模板數據為空或無效。請檢查 API 響應結構是否符合預期。');
         }
 
       } catch(e){
         console.error("載入性愛深入分析模板失敗", e);
-        box.classList.add('hidden'); // 如果失敗，確保隱藏整個區塊
-        body.innerHTML = `<p class="text-red-500">無法載入性愛深入分析：${e.message || e}</p>`; // 顯示錯誤訊息
+        box.classList.add('hidden');
+        body.innerHTML = `<p class="text-red-500">無法載入性愛深入分析：${e.message || e}</p>`;
         return;
       }
-      // --- END: 修改的部分 ---
 
-      // 從這裡開始，使用 templateData 來渲染，而不是 templates[key]
+      // 從這裡開始，使用 templateData 來渲染
       const tpl = templateData; // 現在 tpl 就是從 API 獲取的單個模板數據
 
       const titleA = [sel.aBeast||'', sel.aBranch||''].join('');

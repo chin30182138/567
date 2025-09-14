@@ -157,341 +157,192 @@
     </section>
   </div>
 
- <script>
-    const $ = s => document.querySelector(s);
-    const $$ = s => document.querySelectorAll(s);
+<script>
+  const $ = s => document.querySelector(s);
+  const $$ = s => document.querySelectorAll(s);
 
-    // —— 自動判斷單/雙人（無對方＝single；有對方＝dual；選「個性分析」亦視為 single）
-    function determineMode() {
-      const hasB = ($('#bBeast').value && $('#bKin').value && $('#bBranch').value);
-      const ctx = $('#context').value.trim();
-      return (!hasB || ctx === '個性分析') ? 'single' : 'dual';
-    }
+  // —— 自動判斷單/雙人（無對方＝single；有對方＝dual；選「個性分析」亦視為 single）
+  function determineMode() {
+    const hasB = ($('#bBeast').value && $('#bKin').value && $('#bBranch').value);
+    const ctx = $('#context').value.trim();
+    return (!hasB || ctx === '個性分析') ? 'single' : 'dual';
+  }
 
-    // 情境 presets
-    $$('.preset').forEach(b => b.onclick = () => {
-      $('#context').value = b.textContent.trim();
-      toggleSexOptions();
-      updateChips(getSelections());
-    });
-
-    // 性愛選項顯示
-    $('#context').oninput = toggleSexOptions;
-    function toggleSexOptions() {
-      const isSex = $('#context').value.trim() === '性愛';
-      $('#sexOptions').classList.toggle('hidden', !isSex);
-      if (!isSex) {
-        $$('.sex-check').forEach(c => c.checked = false);
-        $('#sexDetailInput').value = '';
-        $('#chipSexDetail_wrapper').classList.add('hidden');
-        $('#sexDeep').classList.add('hidden');
-        $('#sexDeepBody').innerHTML = '';
-      }
-    }
-
-    function getSelections(){
-      const mode = determineMode();
-      return {
-        mode,
-        aBeast: $('#aBeast').value, aKin: $('#aKin').value, aBranch: $('#aBranch').value,
-        bBeast: $('#bBeast').value, bKin: $('#bKin').value, bBranch: $('#bBranch').value,
-        context: $('#context').value.trim(),
-        sexDetail: collectSexDetail() // 勾選＋文字摘要
-      };
-    }
-
-    function collectSexDetail() {
-      if ($('#context').value.trim() !== '性愛') return '';
-      const picks = Array.from($$('.sex-check:checked')).map(c => c.value);
-      const extra = $('#sexDetailInput').value.trim();
-      const parts = [];
-      if (picks.length) parts.push('重點：' + picks.join('、'));
-      if (extra) parts.push('補充：' + extra);
-      return parts.join('；');
-    }
-
-    function updateChips({mode, aBeast,aKin,aBranch,bBeast,bKin,bBranch,context, sexDetail}){
-      $('#chipMode').textContent = mode === 'single' ? '單人' : '雙人';
-      $('#chipA').textContent = [aBeast,aKin,aBranch].filter(Boolean).join(' × ') || '—';
-      if (mode === 'dual') {
-        $('#chipB').textContent = [bBeast,bKin,bBranch].filter(Boolean).join(' × ') || '—';
-        $('#chipB_wrapper').style.display = 'block';
-      } else {
-        $('#chipB_wrapper').style.display = 'none';
-      }
-      $('#chipC').textContent = context || '—';
-
-      if (context === '性愛' && sexDetail) {
-        $('#chipSexDetail').textContent = sexDetail;
-        $('#chipSexDetail_wrapper').classList.remove('hidden');
-      } else {
-        $('#chipSexDetail_wrapper').classList.add('hidden');
-      }
-    }
-
-    // 文字→HTML＋JSON（分數條/標籤）
-    function formatOutputWithJson(text){
-      if(!text) return { html: '', scores: null, tags: [] };
-
-      const jsonBlock = text.match(/```json([\s\S]*?)```/i);
-      let json = null;
-      if(jsonBlock){
-        try{ json = JSON.parse(jsonBlock[1]); }catch(_){ json = null; }
-        text = text.replace(jsonBlock[0], '').trim();
-      }
-
-      let scores = null;
-      if (json && json.scores) {
-        scores = json.scores;
-      } else {
-        const map = { fit:null, comm:null, pace:null, account:null, trust:null, innov:null };
-        const rx = /(fit|comm|pace|account|trust|innov)\s*[:：]?\s*(\d{1,3})/ig;
-        let m; while((m = rx.exec(text))){ map[m[1].toLowerCase()] = Number(m[2]); }
-        const filled = Object.values(map).filter(v=>typeof v==='number' && !isNaN(v));
-        if(filled.length>=2) scores = map;
-      }
-
-      let html = text
-        .replace(/\n\s*\n/g, '\n')
-        .replace(/^\s*\d+\)\s*(.+)$/gm, '<h3 class="text-lg font-semibold mt-4">$1<\/h3>')
-        .replace(/^\s*[-–]\s*(.+)$/gm, '<li>$1<\/li>');
-      html = html.replace(/(?:<li>[^<]*<\/li>\n?)+/g, m => `<ul class="list-disc pl-5 space-y-1">${m}<\/ul>`);
-
-      if(scores && Object.values(scores).some(v => v !== null && !isNaN(v))){
-        const s = scores; const clamp = v => Math.max(0, Math.min(100, Number(v)||0));
-        const row = (label, key, color) => `<div class=\"score\"><b>${label}<\/b><div class=\"bar\"><i style=\"width:${clamp(s[key])}%;background:${color}\"><\/i><\/div><em>${clamp(s[key])}<\/em><\/div>`;
-        const scoreHTML = `
-          <h3 class=\"text-lg font-semibold mt-4\">六維度分數<\/h3>
-          <div class=\"scores\">
-            ${row('契合 fit','fit','#22c55e')}
-            ${row('溝通 comm','comm','#06b6d4')}
-            ${row('節奏 pace','pace','#f59e0b')}
-            ${row('權責 account','account','#8b5cf6')}
-            ${row('信任 trust','trust','#ef4444')}
-            ${row('創新 innov','innov','#6366f1')}
-          <\/div>`;
-        const tagsHTML = json && Array.isArray(json.tags) && json.tags.length ? `<div class=\"tags\">${json.tags.map(t=>`<span class=\\\"tag\\\">${t}<\/span>`).join('')}<\/div>` : '';
-        html = `${html}${scoreHTML}${tagsHTML}`;
-      } else if (json && Array.isArray(json.tags) && json.tags.length) {
-        const tagsHTML = `<div class=\"tags\">${json.tags.map(t=>`<span class=\\\"tag\\\">${t}<\/span>`).join('')}<\/div>`;
-        html = `${html}${tagsHTML}`;
-      }
-
-      return { html, scores, tags: (json && json.tags) ? json.tags : [] };
-    }
-
-    // Radar 圖
-    let radarChart = null;
-    function renderRadar(scores){
-      const wrap = document.getElementById('chart');
-      wrap.innerHTML = '';
-      if(!scores || Object.values(scores).every(v => v === null || isNaN(v))){ return; }
-      const clamp = v => Math.max(0, Math.min(100, Number(v)||0));
-      const labels = ['契合 fit','溝通 comm','節奏 pace','權責 account','信任 trust','創新 innov'];
-      const data = [clamp(scores.fit),clamp(scores.comm),clamp(scores.pace),clamp(scores.account),clamp(scores.trust),clamp(scores.innov)];
-      const canvas = document.createElement('canvas'); canvas.id = 'radar'; wrap.appendChild(canvas);
-      if(radarChart){ radarChart.destroy(); }
-      radarChart = new Chart(canvas.getContext('2d'), {
-        type: 'radar',
-        data: { labels, datasets: [{ label: '六維度雷達圖', data, fill: true, backgroundColor: 'rgba(99,102,241,0.15)', borderColor: 'rgba(99,102,241,1)', pointBackgroundColor: 'rgba(99,102,241,1)'}] },
-        options: { scales: { r: { suggestedMin: 0, suggestedMax: 100, ticks: { stepSize: 20 } } }, plugins: { legend: { display: false } } }
-      });
-      window.radarChart = radarChart; // 供列印用
-    }
-
-    // —— 性愛深入分析：載入外部 JSON 模板（非露骨版；現在改成呼叫 API）
-    async function buildSexDeepCard(sel){
-      const isSex = sel.context === '性愛';
-      const box = $('#sexDeep');
-      const body = $('#sexDeepBody');
-      if(!isSex){
-        box.classList.add('hidden');
-        body.innerHTML='';
-        return;
-      }
-
-      console.log('--- buildSexDeepCard 函數被呼叫 ---');
-      console.log('當前選中的情境 (sel):', sel);
-
-      let templateData = null; // 用來儲存從 API 獲取的模板數據
-      try {
-        const requestBody = {
-          aBeast: sel.aBeast,
-          aBranch: sel.aBranch,
-          bBeast: sel.bBeast,
-          bBranch: sel.bBranch
-        };
-        console.log('發送給 API 的請求體:', requestBody);
-
-        const r = await fetch('/api/sex-template', {
-          method: 'POST',
-          headers: {'Content-Type':'application/json'},
-          body: JSON.stringify(requestBody),
-          cache: 'no-store'
-        });
-
-        if (!r.ok) {
-          throw new Error(`API 請求失敗: ${r.status} ${r.statusText}`);
-        }
-
-        const data = await r.json();
-        console.log('API 原始響應數據:', data); // <-- 新增的 console.log
-
-        // =========================================================================
-        // !!! 重點 !!!
-        // 這裡需要根據你的後端 API (/api/sex-template.js) 的實際響應結構來調整
-        //
-        // 假設後端返回的 JSON 是 { "template": { ... 模板內容 ... } }
-        // 那麼 templateData = data.template; 就是正確的。
-        //
-        // 但如果後端直接返回 { ... 模板內容 ... } 而沒有 "template" 這個 key，
-        // 那麼你需要將其改為： templateData = data;
-        //
-        // 請根據你後端 API 的實際輸出，選擇正確的賦值方式。
-        // =========================================================================
-        templateData = data.template; // 假設後端返回 { template: { ... } }
-        // templateData = data;       // 如果後端直接返回 { ... }
-
-        console.log('從 API 解析出的 templateData (用於渲染):', templateData); // <-- 新增的 console.log
-
-        if (!templateData) {
-          throw new Error('API 回傳的模板數據為空或無效。請檢查 API 響應結構是否符合預期。');
-        }
-
-      } catch(e){
-        console.error("載入性愛深入分析模板失敗", e);
-        box.classList.add('hidden');
-        body.innerHTML = `<p class="text-red-500">無法載入性愛深入分析：${e.message || e}</p>`;
-        return;
-      }
-
-      // 從這裡開始，使用 templateData 來渲染
-      const tpl = templateData; // 現在 tpl 就是從 API 獲取的單個模板數據
-
-      const titleA = [sel.aBeast||'', sel.aBranch||''].join('');
-      const titleB = sel.mode==='dual' ? [sel.bBeast||'', sel.bBranch||''].join('') : '';
-      const picks = (sel.sexDetail || '').replace(/^重點：/,'').split('；')[0] || '';
-
-      const html = `
-        <div class="pill">組合：<b>${titleA}</b> ${titleB?`× <b>${titleB}</b>`:''}</div>
-        ${tpl.index ? `<div class="mt-2 text-[14px]"><span class="pill">${tpl.index}</span></div>` : ''}
-        ${picks ? `<div class="mt-2 text-[14px]"><span class="pill">偏好重點：${picks}</span></div>` : ''}
-
-        ${tpl.title ? `<h4 class="section-title">${tpl.title}</h4>` : ''}
-
-        <h4 class="section-title">互動模式</h4>
-        <ul class="list-disc pl-5 space-y-1">${(tpl.modes||[]).map(m=>`<li>${m}</li>`).join('')}</ul>
-
-        <h4 class="section-title">潛在雷點</h4>
-        <ul class="list-disc pl-5 space-y-1">${(tpl.hotspots||[]).map(h=>`<li>${h}</li>`).join('')}</ul>
-
-        <h4 class="section-title">劇本風格推薦</h4>
-        <ul class="list-disc pl-5 space-y-1">${(tpl.scripts||[]).map(s=>`<li>${s}</li>`).join('')}</ul>
-
-        <h4 class="section-title">溝通與照護</h4>
-        <ul class="list-disc pl-5 space-y-1">${(tpl.care||[]).map(c=>`<li>${c}</li>`).join('')}</ul>
-      `;
-
-      body.innerHTML = html;
-      box.classList.remove('hidden');
-    }
-
-    // 一鍵分析
-    $('#go').onclick = async () => {
-      const sel = getSelections();
-      updateChips(sel);
-
-      // 驗證：我方必填；若為雙人需填對方；情境必填
-      const needA = sel.aBeast && sel.aKin && sel.aBranch;
-      const needB = sel.mode === 'dual' ? (sel.bBeast && sel.bKin && sel.bBranch) : true;
-      const needC = !!sel.context;
-      if(!needA || !needB || !needC){
-        alert(sel.mode==='dual' ? '雙人分析：請先選滿我方/對方「六獸、六親、地支」與情境' : '單人分析：請先選滿我方「六獸、六親、地支」與情境');
-        return;
-      }
-
-      $('#status').textContent = '分析中…';
-      $('#result').innerHTML = '';
-      $('#chart').innerHTML = '';
-      $('#sexDeep').classList.add('hidden'); // 在每次分析開始時隱藏
-
-      try {
-        const res = await fetch('/api/analyze', {
-          method: 'POST',
-          headers: {'Content-Type':'application/json'},
-          body: JSON.stringify(sel)
-        });
-        const data = await res.json();
-        let plain = data.text || data.result;
-        if(!plain && Array.isArray(data.output)){
-          plain = data.output.map(o=> (o.content||[]).map(c=>c.text||'').join('\n')).join('\n');
-        }
-        if(!plain) plain = JSON.stringify(data, null, 2);
-
-        const formatted = formatOutputWithJson(plain);
-        $('#result').innerHTML = formatted.html;
-        renderRadar(formatted.scores);
-
-        // --- START: 確保只有在選擇了「性愛」情境時才呼叫 buildSexDeepCard ---
-        if (sel.context === '性愛') {
-          await buildSexDeepCard(sel); // 依勾選＋組合載入模板
-        }
-        // --- END: 確保只有在選擇了「性愛」情境時才呼叫 buildSexDeepCard ---
-
-
-        $('#status').textContent = '✅ 完成';
-      } catch (e) {
-        $('#status').textContent = '❌ 失敗';
-        $('#result').textContent = String(e);
-        // 如果主分析失敗，性愛深入分析也應該被清空或隱藏
-        $('#sexDeep').classList.add('hidden');
-        $('#sexDeepBody').innerHTML = '';
-      }
-    };
-
-    // 列印 / 匯出 PDF（帶入雷達圖快照與性愛卡）
-    $('#print').onclick = () => {
-      const sel = getSelections();
-      updateChips(sel);
-
-      const chartImg = (window.radarChart && window.radarChart.canvas) ? window.radarChart.canvas.toDataURL('image/png') : '';
-      const html = `<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><title>列印</title>
-      <style>
-        body{font-family:ui-sans-serif,system-ui,-apple-system,"Noto Sans TC";color:#0f172a;margin:18px;}
-        h1{font-size:20px;margin:0 0 6px;}
-        .meta{color:#64748b;font-size:12px;margin-bottom:10px}
-        .chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 14px}
-        .chip{background:#eef2f7;border-radius:9999px;padding:6px 10px;font-size:12px;color:#0f172a}
-        .box{border:1px solid #e5e7eb;border-radius:12px;padding:14px}
-        .result{font-size:14px;line-height:1.6}
-        ul{margin:6px 0 6px 18px}
-        h3{margin:10px 0 4px}
-        .chart{margin-top:12px;text-align:center}
-        .chart img{max-width:520px;width:100%;}
-        @page{margin:14mm}
-      </style></head><body>
-      <h1>仙人指路神獸七十二型人格</h1>
-      <div class="meta">產生時間：${new Date().toLocaleString()}</div>
-      <div class="chips">
-        <span class="chip">模式：${sel.mode === 'single' ? '單人' : '雙人'}</span>
-        <span class="chip">我方：${[sel.aBeast||'—', sel.aKin||'—', sel.aBranch||'—'].filter(Boolean).join(' × ')}</span>
-        ${sel.mode === 'dual' ? `<span class="chip">對方：${[sel.bBeast||'—', sel.bKin||'—', sel.bBranch||'—'].filter(Boolean).join(' × ')}</span>` : ''}
-        <span class="chip">情境：${sel.context||'—'}</span>
-        ${sel.context === '性愛' && sel.sexDetail ? `<span class="chip">深入：${sel.sexDetail}</span>` : ''}
-      </div>
-      <div class="box">
-        <div class="result">${$('#result').innerHTML || '<em>尚未產生結果</em>'}</div>
-        ${ (sel.context==='性愛' && $('#sexDeep').classList.contains('hidden')===false) ? `<hr style="margin:12px 0;border:none;border-top:1px solid #e5e7eb" />
-          <div class="result">${$('#sexDeep').innerHTML}</div>` : '' }
-        ${chartImg ? `<div class="chart"><img src="${chartImg}" alt="雷達圖"></div>` : ''}
-      </div>
-      <script>window.onload=()=>window.print()<\/script></body></html>`;
-      const w = window.open('', '_blank'); w.document.write(html); w.document.close();
-    };
-
-    // 頁面初始化
+  // 情境 presets
+  $$('.preset').forEach(b => b.onclick = () => {
+    $('#context').value = b.textContent.trim();
     toggleSexOptions();
     updateChips(getSelections());
+  });
+
+  // 性愛選項顯示
+  $('#context').oninput = toggleSexOptions;
+  function toggleSexOptions() {
+    const isSex = $('#context').value.trim() === '性愛';
+    $('#sexOptions').classList.toggle('hidden', !isSex);
+    if (!isSex) {
+      $$('.sex-check').forEach(c => c.checked = false);
+      $('#sexDetailInput').value = '';
+      $('#chipSexDetail_wrapper').classList.add('hidden');
+      $('#sexDeep').classList.add('hidden');
+      $('#sexDeepBody').innerHTML = '';
+    }
+  }
+
+  function getSelections(){
+    const mode = determineMode();
+    return {
+      mode,
+      aBeast: $('#aBeast').value, aKin: $('#aKin').value, aBranch: $('#aBranch').value,
+      bBeast: $('#bBeast').value, bKin: $('#bKin').value, bBranch: $('#bBranch').value,
+      context: $('#context').value.trim(),
+      sexDetail: collectSexDetail()
+    };
+  }
+
+  function collectSexDetail() {
+    if ($('#context').value.trim() !== '性愛') return '';
+    const picks = Array.from($$('.sex-check:checked')).map(c => c.value);
+    const extra = $('#sexDetailInput').value.trim();
+    const parts = [];
+    if (picks.length) parts.push('重點：' + picks.join('、'));
+    if (extra) parts.push('補充：' + extra);
+    return parts.join('；');
+  }
+
+  function updateChips({mode, aBeast,aKin,aBranch,bBeast,bKin,bBranch,context, sexDetail}){
+    $('#chipMode').textContent = mode === 'single' ? '單人' : '雙人';
+    $('#chipA').textContent = [aBeast,aKin,aBranch].filter(Boolean).join(' × ') || '—';
+    if (mode === 'dual') {
+      $('#chipB').textContent = [bBeast,bKin,bBranch].filter(Boolean).join(' × ') || '—';
+      $('#chipB_wrapper').style.display = 'block';
+    } else {
+      $('#chipB_wrapper').style.display = 'none';
+    }
+    $('#chipC').textContent = context || '—';
+
+    if (context === '性愛' && sexDetail) {
+      $('#chipSexDetail').textContent = sexDetail;
+      $('#chipSexDetail_wrapper').classList.remove('hidden');
+    } else {
+      $('#chipSexDetail_wrapper').classList.add('hidden');
+    }
+  }
+
+  // 文字→HTML＋JSON（分數條/標籤）
+  function formatOutputWithJson(text){
+    if(!text) return { html: '', scores: null, tags: [] };
+
+    // ✅ 抓最後一個 JSON 區塊，避免前面出現干擾
+    const matches = [...text.matchAll(/```json\s*([\s\S]*?)\s*```/gi)];
+    let json = null;
+    if(matches.length){
+      try{ json = JSON.parse(matches[matches.length-1][1]); }catch(_){}
+      text = text.replace(matches[matches.length-1][0], '').trim();
+    }
+
+    let scores = json && json.scores ? json.scores : null;
+
+    let html = text
+      .replace(/\n\s*\n/g, '\n')
+      .replace(/^\s*\d+\)\s*(.+)$/gm, '<h3 class="text-lg font-semibold mt-4">$1<\/h3>')
+      .replace(/^\s*[-–]\s*(.+)$/gm, '<li>$1<\/li>');
+    html = html.replace(/(?:<li>[^<]*<\/li>\n?)+/g, m => `<ul class="list-disc pl-5 space-y-1">${m}<\/ul>`);
+
+    if(scores){
+      const s = scores; const clamp = v => Math.max(0, Math.min(100, Number(v)||0));
+      const row = (label, key, color) => `<div class="score"><b>${label}<\/b><div class="bar"><i style="width:${clamp(s[key])}%;background:${color}\"><\/i><\/div><em>${clamp(s[key])}<\/em><\/div>`;
+      const scoreHTML = `
+        <h3 class="text-lg font-semibold mt-4">六維度分數<\/h3>
+        <div class="scores">
+          ${row('契合 fit','fit','#22c55e')}
+          ${row('溝通 comm','comm','#06b6d4')}
+          ${row('節奏 pace','pace','#f59e0b')}
+          ${row('權責 account','account','#8b5cf6')}
+          ${row('信任 trust','trust','#ef4444')}
+          ${row('創新 innov','innov','#6366f1')}
+        <\/div>`;
+      const tagsHTML = json && Array.isArray(json.tags) && json.tags.length ? `<div class="tags">${json.tags.map(t=>`<span class="tag">${t}</span>`).join('')}<\/div>` : '';
+      html = `${html}${scoreHTML}${tagsHTML}`;
+    }
+
+    return { html, scores, tags: (json && json.tags) ? json.tags : [] };
+  }
+
+  // Radar 圖
+  let radarChart = null;
+  function renderRadar(scores){
+    const wrap = document.getElementById('chart');
+    wrap.innerHTML = '';
+    if(!scores){ return; }
+    const clamp = v => Math.max(0, Math.min(100, Number(v)||0));
+    const labels = ['契合 fit','溝通 comm','節奏 pace','權責 account','信任 trust','創新 innov'];
+    const data = [clamp(scores.fit),clamp(scores.comm),clamp(scores.pace),clamp(scores.account),clamp(scores.trust),clamp(scores.innov)];
+    const canvas = document.createElement('canvas'); wrap.appendChild(canvas);
+    if(radarChart){ radarChart.destroy(); }
+    radarChart = new Chart(canvas.getContext('2d'), {
+      type: 'radar',
+      data: { labels, datasets: [{ label: '六維度雷達圖', data, fill: true, backgroundColor: 'rgba(99,102,241,0.15)', borderColor: 'rgba(99,102,241,1)', pointBackgroundColor: 'rgba(99,102,241,1)'}] },
+      options: { scales: { r: { suggestedMin: 0, suggestedMax: 100, ticks: { stepSize: 20 } } }, plugins: { legend: { display: false } } }
+    });
+    window.radarChart = radarChart;
+  }
+
+  // 一鍵分析
+  $('#go').onclick = async () => {
+    const sel = getSelections();
+    updateChips(sel);
+
+    const needA = sel.aBeast && sel.aKin && sel.aBranch;
+    const needB = sel.mode === 'dual' ? (sel.bBeast && sel.bKin && sel.bBranch) : true;
+    const needC = !!sel.context;
+    if(!needA || !needB || !needC){
+      alert(sel.mode==='dual' ? '雙人分析：請選滿我方/對方與情境' : '單人分析：請選滿我方與情境');
+      return;
+    }
+
+    $('#status').textContent = '分析中…';
+    $('#result').innerHTML = '';
+    $('#chart').innerHTML = '';
+    $('#sexDeep').classList.add('hidden');
+
+    try {
+      const res = await fetch('/api/analyze', {
+        method: 'POST',
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(sel)
+      });
+      const data = await res.json();
+      let plain = data.text || data.result;
+      if(!plain && Array.isArray(data.output)){
+        plain = data.output.map(o=> (o.content||[]).map(c=>c.text||'').join('\n')).join('\n');
+      }
+      if(!plain) plain = JSON.stringify(data, null, 2);
+
+      const formatted = formatOutputWithJson(plain);
+      $('#result').innerHTML = formatted.html;
+      renderRadar(formatted.scores);
+
+      if (sel.context === '性愛') {
+        await buildSexDeepCard(sel);
+      }
+
+      $('#status').textContent = '✅ 完成';
+    } catch (e) {
+      $('#status').textContent = '❌ 失敗';
+      $('#result').textContent = String(e);
+      $('#sexDeep').classList.add('hidden');
+      $('#sexDeepBody').innerHTML = '';
+    }
+  };
+
+  // 列印功能保持不變（略）
+
+  // 初始化
+  toggleSexOptions();
+  updateChips(getSelections());
 </script>
+
 </body>
 </html>
+

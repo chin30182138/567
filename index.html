@@ -13,336 +13,351 @@
       body { background:#fff !important; }
       .print-card { box-shadow:none !important; border:1px solid #e5e7eb; }
     }
-    .scores{display:grid;grid-template-columns:1fr;gap:8px;margin-top:6px}
-    .score{display:flex;align-items:center;gap:10px;font-size:13px;color:#334155}
-    .bar{flex:1;height:10px;background:#e2e8f0;border-radius:9999px;overflow:hidden}
-    .bar>i{display:block;height:100%;background:#6366f1}
-    .score b{width:92px;display:inline-block;color:#0f172a}
-    .score em{width:36px;text-align:right;color:#475569;font-style:normal}
-    .tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-    .tag{background:#eef2ff;color:#3730a3;padding:4px 10px;border-radius:9999px;font-size:12px}
-    .pill{background:#f1f5f9;border:1px solid #e5e7eb;border-radius:9999px;padding:6px 10px;font-size:12px}
-    .section-title{font-weight:700;margin-top:10px}
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800">
-  <div class="max-w-5xl mx-auto p-6 space-y-5">
+<body class="bg-gray-50 text-gray-800">
+  <div class="max-w-3xl mx-auto p-4 md:p-6 space-y-6">
     <header class="no-print">
-      <h1 class="text-2xl font-bold">仙人指路神獸七十二型人格｜一鍵分析</h1>
-      <p class="text-slate-500 text-sm">選擇分析對象、情境 → 按「一鍵分析」。支援分數條、雷達圖、列印 / 匯出 PDF。</p>
+      <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 一鍵分析</h1>
+      <p class="text-sm text-gray-600">（乾淨版介面｜含性愛深度分析卡）</p>
     </header>
 
-    <!-- 自動判斷單/雙人（無對方＝單人；有對方＝雙人；選「個性分析」亦視為單人） -->
-    <div class="no-print">
-      <div class="grid md:grid-cols-2 gap-4">
-        <!-- 我方 -->
-        <section class="bg-white p-4 rounded-2xl shadow-sm">
-          <h2 class="font-semibold mb-3">我方 <span id="labelA" class="text-sm text-slate-500">(分析主體)</span></h2>
-          <select id="aBeast" class="w-full mb-2 border rounded-lg p-2">
-            <option value="">六獸</option>
-            <option>青龍</option><option>朱雀</option><option>勾陳</option>
-            <option>螣蛇</option><option>白虎</option><option>玄武</option>
-          </select>
-          <select id="aKin" class="w-full mb-2 border rounded-lg p-2">
-            <option value="">六親</option>
-            <option>父母</option><option>兄弟</option><option>子孫</option>
-            <option>妻財</option><option>官鬼</option>
-          </select>
-          <select id="aBranch" class="w-full border rounded-lg p-2">
-            <option value="">地支</option>
-            <option>子</option><option>丑</option><option>寅</option><option>卯</option>
-            <option>辰</option><option>巳</option><option>午</option><option>未</option>
-            <option>申</option><option>酉</option><option>戌</option><option>亥</option>
-          </select>
-        </section>
-
-        <!-- 對方（若留白＝單人） -->
-        <section id="sectionB" class="bg-white p-4 rounded-2xl shadow-sm">
-          <h2 class="font-semibold mb-3">對方（若留白＝單人）</h2>
-          <select id="bBeast" class="w-full mb-2 border rounded-lg p-2">
-            <option value="">六獸</option>
-            <option>青龍</option><option>朱雀</option><option>勾陳</option>
-            <option>螣蛇</option><option>白虎</option><option>玄武</option>
-          </select>
-          <select id="bKin" class="w-full mb-2 border rounded-lg p-2">
-            <option value="">六親</option>
-            <option>父母</option><option>兄弟</option><option>子孫</option>
-            <option>妻財</option><option>官鬼</option>
-          </select>
-          <select id="bBranch" class="w-full border rounded-lg p-2">
-            <option value="">地支</option>
-            <option>子</option><option>丑</option><option>寅</option><option>卯</option>
-            <option>辰</option><option>巳</option><option>午</option><option>未</option>
-            <option>申</option><option>酉</option><option>戌</option><option>亥</option>
-          </select>
-        </section>
-      </div>
-    </div>
-
-    <!-- 情境 preset + 自由輸入 -->
-    <section class="bg-white p-4 rounded-2xl shadow-sm space-y-2 no-print">
-      <h2 class="font-semibold">情境</h2>
-      <div class="flex gap-2 flex-wrap mb-2">
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">個性分析</button>
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">年度目標協調</button>
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">績效回饋會議</button>
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">跨部門協作</button>
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">壓期交付專案</button>
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">人際關係協調</button>
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">愛情</button>
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">性愛</button>
-      </div>
-      <input id="context" class="w-full border rounded-lg p-2" placeholder="輸入情境…" />
-
-      <!-- 性愛深入分析（勾選；非露骨版） -->
-      <div id="sexOptions" class="hidden mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-        <div class="flex items-center justify-between">
-          <p class="font-semibold text-red-700">性愛情境深入分析（非露骨版）</p>
-          <span class="text-xs text-red-700/80">※ 著重溝通、同意、節奏與照護</span>
-        </div>
-
-        <!-- 勾選群組 -->
-        <div class="grid md:grid-cols-2 gap-3 mt-2">
-          <fieldset class="border border-red-200 rounded-lg p-3">
-            <legend class="text-sm font-semibold text-red-700">想要著重的面向</legend>
-            <label class="block mt-2"><input type="checkbox" class="sex-check" value="互動節奏與默契"> 互動節奏與默契</label>
-            <label class="block mt-2"><input type="checkbox" class="sex-check" value="情境鋪陳與氛圍"> 情境鋪陳與氛圍</label>
-            <label class="block mt-2"><input type="checkbox" class="sex-check" value="彼此主導與協商"> 彼此主導與協商</label>
-            <label class="block mt-2"><input type="checkbox" class="sex-check" value="邊界、同意與安全詞"> 邊界、同意與安全詞</label>
-            <label class="block mt-2"><input type="checkbox" class="sex-check" value="事後照護（aftercare）"> 事後照護（aftercare）</label>
-          </fieldset>
-
-          <fieldset class="border border-red-200 rounded-lg p-3">
-            <legend class="text-sm font-semibold text-red-700">偏好風格</legend>
-            <label class="block mt-2"><input type="checkbox" class="sex-check" value="遊戲感挑逗"> 遊戲感挑逗</label>
-            <label class="block mt-2"><input type="checkbox" class="sex-check" value="浪漫深情"> 浪漫深情</label>
-            <label class="block mt-2"><input type="checkbox" class="sex-check" value="溫柔引導"> 溫柔引導</label>
-            <label class="block mt-2"><input type="checkbox" class="sex-check" value="智性調情"> 智性調情</label>
-            <label class="block mt-2"><input type="checkbox" class="sex-check" value="節奏變化"> 節奏變化</label>
-          </fieldset>
-        </div>
-
-        <textarea id="sexDetailInput" class="w-full mt-3 border rounded-lg p-2 text-sm" rows="3" placeholder="補充你想納入的情境或界線（例：音樂燈光、可接受／不可接受、溝通方式…）"></textarea>
+    <!-- ===== 控制列 ===== -->
+    <section class="no-print grid grid-cols-1 md:grid-cols-3 gap-3">
+      <button id="btnAnalyze" class="px-4 py-3 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700">一鍵分析</button>
+      <button id="btnPrint" class="px-4 py-3 rounded-lg bg-gray-800 text-white font-semibold hover:bg-black">列印 / 匯出 PDF</button>
+      <div class="flex items-center gap-2">
+        <span class="text-sm text-gray-600">狀態：</span>
+        <span id="status" class="text-sm font-semibold text-gray-800">待命</span>
       </div>
     </section>
 
-    <!-- 動作列 -->
-    <div class="flex flex-wrap items-center gap-3 no-print">
-      <button id="go" class="px-4 py-2 rounded-xl bg-indigo-600 text-white">一鍵分析</button>
-      <button id="print" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-800">列印 / 匯出 PDF</button>
-      <span id="status" class="text-sm text-slate-600"></span>
-    </div>
+    <!-- ===== 參數設定 ===== -->
+    <section class="bg-white rounded-xl shadow print-card">
+      <div class="p-4 border-b">
+        <div class="flex flex-wrap items-center gap-3">
+          <label class="font-semibold">模式：</label>
+          <select id="mode" class="border rounded px-3 py-2">
+            <option value="single">單人</option>
+            <option value="double" selected>雙人</option>
+          </select>
 
-    <!-- 結果區 -->
-    <section class="bg-white p-5 rounded-2xl shadow-sm print-card">
-      <div class="flex flex-wrap gap-2 text-sm text-slate-600 mb-3">
-        <span class="px-3 py-1 bg-slate-100 rounded-full">模式：<strong id="chipMode">—</strong></span>
-        <span class="px-3 py-1 bg-slate-100 rounded-full">我方：<strong id="chipA">—</strong></span>
-        <span id="chipB_wrapper" class="px-3 py-1 bg-slate-100 rounded-full">對方：<strong id="chipB">—</strong></span>
-        <span class="px-3 py-1 bg-slate-100 rounded-full">情境：<strong id="chipC">—</strong></span>
-        <span id="chipSexDetail_wrapper" class="px-3 py-1 bg-slate-100 rounded-full hidden">深入：<strong id="chipSexDetail">—</strong></span>
+          <label class="font-semibold">情境：</label>
+          <select id="scene" class="border rounded px-3 py-2">
+            <option value="general">一般</option>
+            <option value="sex" selected>性愛</option>
+            <option value="relationship">關係/溝通</option>
+            <option value="team">職場/合作</option>
+          </select>
+
+          <label class="inline-flex items-center gap-2 ml-auto">
+            <input id="ckPace" type="checkbox" class="w-4 h-4">
+            <span class="text-sm">節奏變化</span>
+          </label>
+        </div>
       </div>
 
-      <!-- AI 分析文字 -->
-      <div id="result" class="prose max-w-none text-[15px]"></div>
-
-      <!-- 性愛深入分析（載入外部 JSON 模板，非露骨） -->
-      <div id="sexDeep" class="mt-6 hidden">
-        <h3 class="text-lg font-semibold">性愛深入分析（非露骨）</h3>
-        <div id="sexDeepBody" class="text-[15px] leading-7 mt-1"></div>
+      <!-- 我方 -->
+      <div class="p-4 grid grid-cols-1 md:grid-cols-3 gap-3 border-b">
+        <div class="md:col-span-3 font-semibold text-indigo-700">我方設定</div>
+        <div>
+          <label class="text-sm block mb-1">六獸</label>
+          <select id="aBeast" class="w-full border rounded px-3 py-2">
+            <option>青龍</option><option selected>朱雀</option><option>勾陳</option><option>螣蛇</option><option>白虎</option><option>玄武</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-sm block mb-1">六親</label>
+          <select id="aKin" class="w-full border rounded px-3 py-2">
+            <option>父母</option><option selected>兄弟</option><option>子孫</option><option>妻財</option><option>官鬼</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-sm block mb-1">地支</label>
+          <select id="aBranch" class="w-full border rounded px-3 py-2">
+            <option>子</option><option>丑</option><option>寅</option><option>卯</option><option>辰</option><option>巳</option>
+            <option>午</option><option selected>未</option><option>申</option><option>酉</option><option>戌</option><option>亥</option>
+          </select>
+        </div>
       </div>
 
-      <!-- 雷達圖 -->
-      <div id="chart" class="mt-4"></div>
+      <!-- 對方（雙人時可見） -->
+      <div id="bPanel" class="p-4 grid grid-cols-1 md:grid-cols-3 gap-3 border-b">
+        <div class="md:col-span-3 font-semibold text-rose-700">對方設定</div>
+        <div>
+          <label class="text-sm block mb-1">六獸</label>
+          <select id="bBeast" class="w-full border rounded px-3 py-2">
+            <option>青龍</option><option>朱雀</option><option>勾陳</option><option>螣蛇</option><option>白虎</option><option selected>玄武</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-sm block mb-1">六親</label>
+          <select id="bKin" class="w-full border rounded px-3 py-2">
+            <option>父母</option><option>兄弟</option><option>子孫</option><option>妻財</option><option selected>官鬼</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-sm block mb-1">地支</label>
+          <select id="bBranch" class="w-full border rounded px-3 py-2">
+            <option>子</option><option>丑</option><option>寅</option><option>卯</option><option>辰</option><option>巳</option>
+            <option>午</option><option>未</option><option>申</option><option selected>酉</option><option>戌</option><option>亥</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 其他補充 -->
+      <div class="p-4 space-y-2">
+        <label class="block text-sm">補充你想納入的情境或界線（例：音樂燈光、可接受/不可接受、溝通方式…）</label>
+        <textarea id="context" rows="3" class="w-full border rounded px-3 py-2" placeholder="可空白"></textarea>
+      </div>
     </section>
+
+    <!-- ===== 結果區 ===== -->
+    <section id="result" class="bg-white rounded-xl shadow p-4 print-card space-y-4">
+      <div id="summary" class="text-sm text-gray-700"></div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- 雷達圖 -->
+        <div class="p-4 border rounded-lg">
+          <h3 class="font-semibold mb-3">互動雷達圖</h3>
+          <canvas id="radar" height="260"></canvas>
+        </div>
+
+        <!-- 深度分析卡 -->
+        <div id="deepCard" class="p-4 border rounded-lg bg-pink-50"></div>
+      </div>
+    </section>
+
+    <footer class="no-print text-center text-xs text-gray-500 pb-10">
+      © 仙人指路｜介面淨化版
+    </footer>
   </div>
 
-<script>
-  const $ = s => document.querySelector(s);
-  const $$ = s => document.querySelectorAll(s);
-
-  // —— 自動判斷單/雙人（無對方＝single；有對方＝dual；選「個性分析」亦視為 single）
-  function determineMode() {
-    const hasB = ($('#bBeast').value && $('#bKin').value && $('#bBranch').value);
-    const ctx = $('#context').value.trim();
-    return (!hasB || ctx === '個性分析') ? 'single' : 'dual';
-  }
-
-  // 情境 presets
-  $$('.preset').forEach(b => b.onclick = () => {
-    $('#context').value = b.textContent.trim();
-    toggleSexOptions();
-    updateChips(getSelections());
-  });
-
-  // 性愛選項顯示
-  $('#context').oninput = toggleSexOptions;
-  function toggleSexOptions() {
-    const isSex = $('#context').value.trim() === '性愛';
-    $('#sexOptions').classList.toggle('hidden', !isSex);
-    if (!isSex) {
-      $$('.sex-check').forEach(c => c.checked = false);
-      $('#sexDetailInput').value = '';
-      $('#chipSexDetail_wrapper').classList.add('hidden');
-      $('#sexDeep').classList.add('hidden');
-      $('#sexDeepBody').innerHTML = '';
+  <script>
+    // ------- 小工具：將選項組合轉為穩定數值（非亂數，依選擇改變） -------
+    function hashTo01(str) {
+      let h = 2166136261 >>> 0; // FNV-1a
+      for (let i = 0; i < str.length; i++) {
+        h ^= str.charCodeAt(i);
+        h = Math.imul(h, 16777619);
+      }
+      return (h >>> 0) / 0xffffffff; // 0~1
     }
-  }
+    function scoreByKey(key, bias = 0.5, spread = 0.35, min=25, max=90) {
+      const v = bias + (hashTo01(key) - 0.5) * 2 * spread; // 約 0~1
+      const clamped = Math.max(0, Math.min(1, v));
+      return Math.round(min + clamped * (max - min));
+    }
 
-  function getSelections(){
-    const mode = determineMode();
-    return {
-      mode,
-      aBeast: $('#aBeast').value, aKin: $('#aKin').value, aBranch: $('#aBranch').value,
-      bBeast: $('#bBeast').value, bKin: $('#bKin').value, bBranch: $('#bBranch').value,
-      context: $('#context').value.trim(),
-      sexDetail: collectSexDetail()
+    // ------- 依六獸/五行做些微偏置（讓圖更像話） -------
+    const beastBias = {
+      "青龍": {comm:+0.06, innov:+0.05},
+      "朱雀": {comm:+0.10, trust:-0.02},
+      "勾陳": {account:+0.08, pace:-0.03},
+      "螣蛇": {innov:+0.08, trust:-0.03},
+      "白虎": {account:+0.10, comm:-0.04},
+      "玄武": {trust:+0.08, innov:-0.03}
     };
-  }
 
-  function collectSexDetail() {
-    if ($('#context').value.trim() !== '性愛') return '';
-    const picks = Array.from($$('.sex-check:checked')).map(c => c.value);
-    const extra = $('#sexDetailInput').value.trim();
-    const parts = [];
-    if (picks.length) parts.push('重點：' + picks.join('、'));
-    if (extra) parts.push('補充：' + extra);
-    return parts.join('；');
-  }
-
-  function updateChips({mode, aBeast,aKin,aBranch,bBeast,bKin,bBranch,context, sexDetail}){
-    $('#chipMode').textContent = mode === 'single' ? '單人' : '雙人';
-    $('#chipA').textContent = [aBeast,aKin,aBranch].filter(Boolean).join(' × ') || '—';
-    if (mode === 'dual') {
-      $('#chipB').textContent = [bBeast,bKin,bBranch].filter(Boolean).join(' × ') || '—';
-      $('#chipB_wrapper').style.display = 'block';
-    } else {
-      $('#chipB_wrapper').style.display = 'none';
-    }
-    $('#chipC').textContent = context || '—';
-
-    if (context === '性愛' && sexDetail) {
-      $('#chipSexDetail').textContent = sexDetail;
-      $('#chipSexDetail_wrapper').classList.remove('hidden');
-    } else {
-      $('#chipSexDetail_wrapper').classList.add('hidden');
-    }
-  }
-
-  // 文字→HTML＋JSON（分數條/標籤）
-  function formatOutputWithJson(text){
-    if(!text) return { html: '', scores: null, tags: [] };
-
-    // ✅ 抓最後一個 JSON 區塊，避免前面出現干擾
-    const matches = [...text.matchAll(/```json\s*([\s\S]*?)\s*```/gi)];
-    let json = null;
-    if(matches.length){
-      try{ json = JSON.parse(matches[matches.length-1][1]); }catch(_){}
-      text = text.replace(matches[matches.length-1][0], '').trim();
+    function applyBias(val, bias=0) {
+      const v = val + Math.round(bias*100)/1; // bias 是 -1~1 的小量
+      return Math.max(10, Math.min(95, v));
     }
 
-    let scores = json && json.scores ? json.scores : null;
-
-    let html = text
-      .replace(/\n\s*\n/g, '\n')
-      .replace(/^\s*\d+\)\s*(.+)$/gm, '<h3 class="text-lg font-semibold mt-4">$1<\/h3>')
-      .replace(/^\s*[-–]\s*(.+)$/gm, '<li>$1<\/li>');
-    html = html.replace(/(?:<li>[^<]*<\/li>\n?)+/g, m => `<ul class="list-disc pl-5 space-y-1">${m}<\/ul>`);
-
-    if(scores){
-      const s = scores; const clamp = v => Math.max(0, Math.min(100, Number(v)||0));
-      const row = (label, key, color) => `<div class="score"><b>${label}<\/b><div class="bar"><i style="width:${clamp(s[key])}%;background:${color}\"><\/i><\/div><em>${clamp(s[key])}<\/em><\/div>`;
-      const scoreHTML = `
-        <h3 class="text-lg font-semibold mt-4">六維度分數<\/h3>
-        <div class="scores">
-          ${row('契合 fit','fit','#22c55e')}
-          ${row('溝通 comm','comm','#06b6d4')}
-          ${row('節奏 pace','pace','#f59e0b')}
-          ${row('權責 account','account','#8b5cf6')}
-          ${row('信任 trust','trust','#ef4444')}
-          ${row('創新 innov','innov','#6366f1')}
-        <\/div>`;
-      const tagsHTML = json && Array.isArray(json.tags) && json.tags.length ? `<div class="tags">${json.tags.map(t=>`<span class="tag">${t}</span>`).join('')}<\/div>` : '';
-      html = `${html}${scoreHTML}${tagsHTML}`;
-    }
-
-    return { html, scores, tags: (json && json.tags) ? json.tags : [] };
-  }
-
-  // Radar 圖
-  let radarChart = null;
-  function renderRadar(scores){
-    const wrap = document.getElementById('chart');
-    wrap.innerHTML = '';
-    if(!scores){ return; }
-    const clamp = v => Math.max(0, Math.min(100, Number(v)||0));
-    const labels = ['契合 fit','溝通 comm','節奏 pace','權責 account','信任 trust','創新 innov'];
-    const data = [clamp(scores.fit),clamp(scores.comm),clamp(scores.pace),clamp(scores.account),clamp(scores.trust),clamp(scores.innov)];
-    const canvas = document.createElement('canvas'); wrap.appendChild(canvas);
-    if(radarChart){ radarChart.destroy(); }
-    radarChart = new Chart(canvas.getContext('2d'), {
+    // ------- Radar 初始化 -------
+    const radarCtx = document.getElementById('radar').getContext('2d');
+    let radarChart = new Chart(radarCtx, {
       type: 'radar',
-      data: { labels, datasets: [{ label: '六維度雷達圖', data, fill: true, backgroundColor: 'rgba(99,102,241,0.15)', borderColor: 'rgba(99,102,241,1)', pointBackgroundColor: 'rgba(99,102,241,1)'}] },
-      options: { scales: { r: { suggestedMin: 0, suggestedMax: 100, ticks: { stepSize: 20 } } }, plugins: { legend: { display: false } } }
+      data: {
+        labels: ['溝通 comm','節奏 pace','權責 account','信任 trust','創新 innov','契合 fit'],
+        datasets: [{
+          label: '互動分佈',
+          data: [50,50,50,50,50,50],
+          fill: true
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          r: {
+            min: 0, max: 100, ticks: { stepSize: 20 }
+          }
+        },
+        plugins: { legend: { display:false } }
+      }
     });
-    window.radarChart = radarChart;
-  }
 
-  // 一鍵分析
-  $('#go').onclick = async () => {
-    const sel = getSelections();
-    updateChips(sel);
+    // ------- 深度分析卡（重點：這就是缺的函式！） -------
+    function buildSexDeepCard(model) {
+      const {
+        mode, aBeast, aKin, aBranch, bBeast, bKin, bBranch,
+        scene, paceOn, contextText, scores
+      } = model;
 
-    const needA = sel.aBeast && sel.aKin && sel.aBranch;
-    const needB = sel.mode === 'dual' ? (sel.bBeast && sel.bKin && sel.bBranch) : true;
-    const needC = !!sel.context;
-    if(!needA || !needB || !needC){
-      alert(sel.mode==='dual' ? '雙人分析：請選滿我方/對方與情境' : '單人分析：請選滿我方與情境');
-      return;
-    }
+      const title =
+        scene === 'sex'
+          ? '性愛深度分析'
+          : (scene === 'relationship' ? '關係深度分析' : '互動深度分析');
 
-    $('#status').textContent = '分析中…';
-    $('#result').innerHTML = '';
-    $('#chart').innerHTML = '';
-    $('#sexDeep').classList.add('hidden');
+      // 情愛指數：取契合與信任平均
+      const loveIdx = Math.round((scores.fit + scores.trust) / 2);
 
-    try {
-      const res = await fetch('/api/analyze', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify(sel)
-      });
-      const data = await res.json();
-      let plain = data.text || data.result;
-      if(!plain && Array.isArray(data.output)){
-        plain = data.output.map(o=> (o.content||[]).map(c=>c.text||'').join('\n')).join('\n');
-      }
-      if(!plain) plain = JSON.stringify(data, null, 2);
-
-      const formatted = formatOutputWithJson(plain);
-      $('#result').innerHTML = formatted.html;
-      renderRadar(formatted.scores);
-
-      if (sel.context === '性愛') {
-        await buildSexDeepCard(sel);
+      // 互動模式（依六獸粗略生成一些語感）
+      function flavor(beast) {
+        switch (beast) {
+          case '青龍': return '靈活主動、愛挑逗與即興遊戲';
+          case '朱雀': return '語言刺激、熱情高張與舞台感';
+          case '勾陳': return '步驟派、講規則與安全感鋪陳';
+          case '螣蛇': return '神秘慢熱、張弛之間的拉扯';
+          case '白虎': return '直接強勢、掌控節點與節律';
+          case '玄武': return '安靜專注、以信任與包覆為本';
+          default: return '中性互動';
+        }
       }
 
-      $('#status').textContent = '✅ 完成';
-    } catch (e) {
-      $('#status').textContent = '❌ 失敗';
-      $('#result').textContent = String(e);
-      $('#sexDeep').classList.add('hidden');
-      $('#sexDeepBody').innerHTML = '';
+      const pairText =
+        mode === 'single'
+          ? `我方：${aBeast} × ${aKin} × ${aBranch}`
+          : `我方：${aBeast} × ${aKin} × ${aBranch}｜對方：${bBeast} × ${bKin} × ${bBranch}`;
+
+      const tips = [];
+      if (scores.comm < 55) tips.push('建立「提早講、講清楚」的暗號或安全詞。');
+      if (scores.pace < 55) tips.push('先慢後快，用3段式節奏（暖身→高峰→收束）。');
+      if (scores.account < 55) tips.push('把界線、責任與後續照顧說在前面。');
+      if (scores.trust < 55) tips.push('先做非性向的親密任務以累積信任值。');
+      if (scores.innov < 55) tips.push('不要一次嘗新太多，以「一新一熟」原則前進。');
+
+      const div = document.createElement('div');
+      div.className = "space-y-3";
+      div.innerHTML = `
+        <h3 class="font-bold text-pink-600">${title}</h3>
+        <p class="text-sm text-gray-600">${pairText}</p>
+
+        <ul class="text-sm list-disc pl-5 space-y-1">
+          <li><b>情愛指數：</b>${loveIdx}/100（以契合×信任推估）</li>
+          <li><b>互動模式：</b>${aBeast}：${flavor(aBeast)}${mode==='double' ? `；${bBeast}：${flavor(bBeast)}`:''}</li>
+          <li><b>優勢面：</b>${Object.entries(scores).filter(([k,v])=>v>=70).map(([k])=>labelMap[k]).join('、') || '尚待養成'}</li>
+          <li><b>風險面：</b>${Object.entries(scores).filter(([k,v])=>v<50).map(([k])=>labelMap[k]).join('、') || '風險低'}</li>
+        </ul>
+
+        ${paceOn ? `
+        <div class="p-3 rounded border border-pink-200 bg-white">
+          <div class="font-semibold text-pink-700 mb-1">節奏建議（已開啟）</div>
+          <ol class="list-decimal pl-5 text-sm leading-6">
+            <li>暖身：3~5分鐘，專注呼吸與觸覺，緩慢同步。</li>
+            <li>主段：依彼此訊號調整力度與頻率，維持可對話狀態。</li>
+            <li>收束：回到擁抱與撫觸，評估舒適度與下次想嘗試的1件新元素。</li>
+          </ol>
+        </div>` : ''}
+
+        ${contextText ? `
+        <div class="p-3 rounded border bg-white">
+          <div class="font-semibold text-gray-700 mb-1">你的補充/界線</div>
+          <p class="text-sm whitespace-pre-wrap">${escapeHTML(contextText)}</p>
+        </div>` : ''}
+
+        ${tips.length ? `
+        <div class="p-3 rounded border border-pink-200 bg-white">
+          <div class="font-semibold text-pink-700 mb-1">精準調整建議</div>
+          <ul class="text-sm list-disc pl-5 space-y-1">
+            ${tips.map(t=>`<li>${t}</li>`).join('')}
+          </ul>
+        </div>` : ''}
+      `;
+      return div;
     }
-  };
 
-  // 列印功能保持不變（略）
+    const labelMap = {
+      comm: '溝通', pace:'節奏', account:'權責', trust:'信任', innov:'創新', fit:'契合'
+    };
 
-  // 初始化
-  toggleSexOptions();
-  updateChips(getSelections());
-</script>
+    function escapeHTML(s){
+      return s.replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[m]));
+    }
 
+    // ------- 主流程：分析並更新畫面 -------
+    function analyze() {
+      const mode     = document.getElementById('mode').value;
+      const scene    = document.getElementById('scene').value;
+      const aBeast   = document.getElementById('aBeast').value;
+      const aKin     = document.getElementById('aKin').value;
+      const aBranch  = document.getElementById('aBranch').value;
+      const bBeast   = document.getElementById('bBeast').value;
+      const bKin     = document.getElementById('bKin').value;
+      const bBranch  = document.getElementById('bBranch').value;
+      const paceOn   = document.getElementById('ckPace').checked;
+      const contextText = document.getElementById('context').value.trim();
+
+      const keyBase = `${mode}|${scene}|${aBeast}-${aKin}-${aBranch}|${mode==='double' ? (bBeast+'-'+bKin+'-'+bBranch):''}`;
+
+      // 先給基礎分
+      let comm   = scoreByKey(keyBase+'comm');
+      let pace   = scoreByKey(keyBase+'pace',  0.45);
+      let account= scoreByKey(keyBase+'acc',   0.48);
+      let trust  = scoreByKey(keyBase+'trust', 0.50);
+      let innov  = scoreByKey(keyBase+'innov', 0.50);
+      let fit    = scoreByKey(keyBase+'fit',   0.52);
+
+      // 套用六獸偏置（我方為主，雙人再混合一點點）
+      const ab = beastBias[aBeast] || {};
+      comm  = applyBias(comm,  ab.comm  ?? 0);
+      pace  = applyBias(pace,  ab.pace  ?? 0);
+      account=applyBias(account,ab.account?? 0);
+      trust = applyBias(trust, ab.trust ?? 0);
+      innov = applyBias(innov, ab.innov ?? 0);
+
+      if (mode==='double') {
+        const bb = beastBias[bBeast] || {};
+        comm  = applyBias(comm,  (bb.comm  ?? 0)*0.6);
+        pace  = applyBias(pace,  (bb.pace  ?? 0)*0.6);
+        account=applyBias(account,(bb.account?? 0)*0.6);
+        trust = applyBias(trust, (bb.trust ?? 0)*0.6);
+        innov = applyBias(innov, (bb.innov ?? 0)*0.6);
+
+        // 情境為性愛時，契合與信任更受影響
+        if (scene==='sex') {
+          fit = Math.round((fit*0.7) + (comm*0.1) + (trust*0.2));
+        } else {
+          fit = Math.round((fit*0.8) + (comm*0.2));
+        }
+      }
+
+      const scores = {comm, pace, account, trust, innov, fit};
+
+      // 更新摘要
+      const sum = document.getElementById('summary');
+      sum.innerHTML = `
+        <div class="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <span class="px-2 py-1 rounded bg-indigo-50">模式：<b>${mode==='double'?'雙人':'單人'}</b></span>
+          <span class="px-2 py-1 rounded bg-rose-50">我方：<b>${aBeast} × ${aKin} × ${aBranch}</b></span>
+          ${mode==='double' ? `<span class="px-2 py-1 rounded bg-emerald-50">對方：<b>${bBeast} × ${bKin} × ${bBranch}</b></span>`:''}
+          <span class="px-2 py-1 rounded bg-gray-100">情境：<b>${scene==='sex'?'性愛':scene==='relationship'?'關係/潤滑':'一般'}</b></span>
+        </div>
+      `;
+
+      // 更新雷達
+      radarChart.data.datasets[0].data = [comm, pace, account, trust, innov, fit];
+      radarChart.update();
+
+      // 更新深度卡
+      const cardHost = document.getElementById('deepCard');
+      cardHost.innerHTML = '';
+      cardHost.appendChild(buildSexDeepCard({
+        mode, aBeast, aKin, aBranch, bBeast, bKin, bBranch,
+        scene, paceOn, contextText, scores
+      }));
+
+      document.getElementById('status').textContent = '分析完成';
+    }
+
+    // ------- 事件 -------
+    document.getElementById('btnAnalyze').addEventListener('click', analyze);
+    document.getElementById('btnPrint').addEventListener('click', ()=>window.print());
+    document.getElementById('mode').addEventListener('change', (e)=>{
+      document.getElementById('bPanel').style.display = e.target.value==='double' ? '' : 'none';
+    });
+    // 初始化顯示
+    document.getElementById('bPanel').style.display = document.getElementById('mode').value==='double' ? '' : 'none';
+  </script>
 </body>
 </html>
-

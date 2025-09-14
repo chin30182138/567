@@ -1,5 +1,5 @@
 <!-- ==========================
-   文件：index.html （完整版｜情境含「個性分析」；性愛深入分析＝勾選式、非露骨版）
+   文件：index.html （完整版｜情境含「個性分析」；性愛深入分析＝勾選＋外部 JSON 模板載入）
    ========================== -->
 <!doctype html>
 <html lang="zh-Hant">
@@ -35,8 +35,7 @@
       <p class="text-slate-500 text-sm">選擇分析對象、情境 → 按「一鍵分析」。支援分數條、雷達圖、列印 / 匯出 PDF。</p>
     </header>
 
-    <!-- 🔻 移除原本上方模式按鈕；自動判斷單/雙人 -->
-
+    <!-- 自動判斷單/雙人（無對方＝單人；有對方＝雙人；選「個性分析」亦視為單人） -->
     <div class="no-print">
       <div class="grid md:grid-cols-2 gap-4">
         <!-- 我方 -->
@@ -98,11 +97,11 @@
       </div>
       <input id="context" class="w-full border rounded-lg p-2" placeholder="輸入情境…" />
 
-      <!-- 性愛深入分析（勾選式，非露骨） -->
+      <!-- 性愛深入分析（勾選；非露骨版） -->
       <div id="sexOptions" class="hidden mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
         <div class="flex items-center justify-between">
           <p class="font-semibold text-red-700">性愛情境深入分析（非露骨版）</p>
-          <span class="text-xs text-red-700/80">※ 僅提供健康、尊重、非露骨的互動建議</span>
+          <span class="text-xs text-red-700/80">※ 著重溝通、同意、節奏與照護</span>
         </div>
 
         <!-- 勾選群組 -->
@@ -150,7 +149,7 @@
       <!-- AI 分析文字 -->
       <div id="result" class="prose max-w-none text-[15px]"></div>
 
-      <!-- 性愛深入分析（非露骨生成區塊：根據勾選與組合，前端組裝） -->
+      <!-- 性愛深入分析（載入外部 JSON 模板，非露骨） -->
       <div id="sexDeep" class="mt-6 hidden">
         <h3 class="text-lg font-semibold">性愛深入分析（非露骨）</h3>
         <div id="sexDeepBody" class="text-[15px] leading-7 mt-1"></div>
@@ -185,7 +184,6 @@
       const isSex = $('#context').value.trim() === '性愛';
       $('#sexOptions').classList.toggle('hidden', !isSex);
       if (!isSex) {
-        // 清空
         $$('.sex-check').forEach(c => c.checked = false);
         $('#sexDetailInput').value = '';
         $('#chipSexDetail_wrapper').classList.add('hidden');
@@ -201,7 +199,7 @@
         aBeast: $('#aBeast').value, aKin: $('#aKin').value, aBranch: $('#aBranch').value,
         bBeast: $('#bBeast').value, bKin: $('#bKin').value, bBranch: $('#bBranch').value,
         context: $('#context').value.trim(),
-        sexDetail: collectSexDetail() // 勾選＋文字
+        sexDetail: collectSexDetail() // 勾選＋文字摘要
       };
     }
 
@@ -301,58 +299,51 @@
         data: { labels, datasets: [{ label: '六維度雷達圖', data, fill: true, backgroundColor: 'rgba(99,102,241,0.15)', borderColor: 'rgba(99,102,241,1)', pointBackgroundColor: 'rgba(99,102,241,1)'}] },
         options: { scales: { r: { suggestedMin: 0, suggestedMax: 100, ticks: { stepSize: 20 } } }, plugins: { legend: { display: false } } }
       });
-      // 讓列印能抓到快照
-      window.radarChart = radarChart;
+      window.radarChart = radarChart; // 供列印用
     }
 
-    // ✅ 性愛深入分析（非露骨）：根據勾選＋組合，前端組裝示意（可自行改成更進階內容）
-    function buildSexDeepCard(sel){
+    // —— 性愛深入分析：載入外部 JSON 模板（非露骨版；之後可由你自行替換）
+    async function buildSexDeepCard(sel){
       const isSex = sel.context === '性愛';
       const box = $('#sexDeep');
       const body = $('#sexDeepBody');
       if(!isSex){ box.classList.add('hidden'); body.innerHTML=''; return; }
 
-      // 組合標題（例：青龍申 × 青龍子）
-      const titleA = [sel.aBeast||'—', sel.aBranch||'—'].join('');
-      const titleB = sel.mode==='dual' ? [sel.bBeast||'—', sel.bBranch||'—'].join('') : '（單人自我探索）';
-      const header = `<div class="pill">組合：<b>${titleA}</b> × <b>${titleB}</b></div>`;
+      const titleA = [sel.aBeast||'', sel.aBranch||''].join('');
+      const titleB = sel.mode==='dual' ? [sel.bBeast||'', sel.bBranch||''].join('') : '';
+      const key = titleB ? `${titleA}×${titleB}` : "default";
 
-      // 指數（非露骨版固定模板，可依日後策略動態調整）
-      const stars = '★★★★★'.slice(0,4) + '☆'; // 4/5 示意
-      const rating = `<div class="mt-2 text-[14px]"><span class="pill">互動指數：4.5/5 ${stars}</span></div>`;
+      // 載入模板
+      let templates = {};
+      try {
+        const r = await fetch('/sex-templates.json', { cache: 'no-store' });
+        templates = await r.json();
+      } catch(e){ console.error("載入 sex-templates.json 失敗", e); }
 
-      // 勾選摘要
+      const tpl = templates[key] || templates["default"] || {};
       const picks = (sel.sexDetail || '').replace(/^重點：/,'').split('；')[0] || '';
-      const picksRow = picks ? `<div class="mt-2 text-[14px]"><span class="pill">偏好重點：${picks}</span></div>` : '';
 
-      // 內容（非露骨用語，保留你過去規劃的結構款式）
-      const paragraphs = `
+      const html = `
+        <div class="pill">組合：<b>${titleA}</b> ${titleB?`× <b>${titleB}</b>`:''}</div>
+        ${tpl.index ? `<div class="mt-2 text-[14px]"><span class="pill">${tpl.index}</span></div>` : ''}
+        ${picks ? `<div class="mt-2 text-[14px]"><span class="pill">偏好重點：${picks}</span></div>` : ''}
+
+        ${tpl.title ? `<h4 class="section-title">${tpl.title}</h4>` : ''}
+
         <h4 class="section-title">互動模式</h4>
-        <ul class="list-disc pl-5 space-y-1">
-          <li>重視「節奏與默契」，在過程中以眼神、呼吸與簡短暗號彼此同步。</li>
-          <li>以「情境鋪陳」增添趣味：音樂、燈光、香味與場域動線，形成專屬的儀式感。</li>
-        </ul>
+        <ul class="list-disc pl-5 space-y-1">${(tpl.modes||[]).map(m=>`<li>${m}</li>`).join('')}</ul>
 
         <h4 class="section-title">潛在雷點</h4>
-        <ul class="list-disc pl-5 space-y-1">
-          <li>雙方都想主導時，容易拉扯；事前以「輪流主導」與安全詞機制降低摩擦。</li>
-          <li>期待差距未說清，建議先確認「可接受／不可接受」清單與當晚目標。</li>
-        </ul>
+        <ul class="list-disc pl-5 space-y-1">${(tpl.hotspots||[]).map(h=>`<li>${h}</li>`).join('')}</ul>
 
         <h4 class="section-title">劇本風格推薦</h4>
-        <ul class="list-disc pl-5 space-y-1">
-          <li>「節奏挑戰」：用音樂段落切換快慢，彼此以手勢或眼神交接主導權。</li>
-          <li>「情境調情」：以幽默或智性對話暖身，讓互動像一場小小的遊戲與合作。</li>
-        </ul>
+        <ul class="list-disc pl-5 space-y-1">${(tpl.scripts||[]).map(s=>`<li>${s}</li>`).join('')}</ul>
 
-        <h4 class="section-title">溝通與界線</h4>
-        <ul class="list-disc pl-5 space-y-1">
-          <li>建立簡潔安全詞（如「紅／黃／綠」），必要時立刻調整或暫停。</li>
-          <li>事後照護（aftercare）：擁抱、補水、確認舒適度與翌日訊息關心。</li>
-        </ul>
+        <h4 class="section-title">溝通與照護</h4>
+        <ul class="list-disc pl-5 space-y-1">${(tpl.care||[]).map(c=>`<li>${c}</li>`).join('')}</ul>
       `;
 
-      body.innerHTML = header + rating + picksRow + `<div class="mt-2 text-[15px] leading-7">${paragraphs}</div>`;
+      body.innerHTML = html;
       box.classList.remove('hidden');
     }
 
@@ -391,8 +382,7 @@
         const formatted = formatOutputWithJson(plain);
         $('#result').innerHTML = formatted.html;
         renderRadar(formatted.scores);
-        // 性愛深入分析（非露骨）卡片（依勾選與組合）
-        buildSexDeepCard(sel);
+        await buildSexDeepCard(sel); // 依勾選＋組合載入模板
 
         $('#status').textContent = '✅ 完成';
       } catch (e) {
@@ -401,12 +391,12 @@
       }
     };
 
-    // 列印 / 匯出 PDF（帶入雷達圖快照）
+    // 列印 / 匯出 PDF（帶入雷達圖快照與性愛卡）
     $('#print').onclick = () => {
       const sel = getSelections();
       updateChips(sel);
 
-      const chartImg = (radarChart && radarChart.canvas) ? radarChart.canvas.toDataURL('image/png') : '';
+      const chartImg = (window.radarChart && window.radarChart.canvas) ? window.radarChart.canvas.toDataURL('image/png') : '';
       const html = `<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><title>列印</title>
       <style>
         body{font-family:ui-sans-serif,system-ui,-apple-system,"Noto Sans TC";color:#0f172a;margin:18px;}

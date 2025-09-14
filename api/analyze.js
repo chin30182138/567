@@ -1,156 +1,77 @@
-// /api/analyze.js —— 強化版（支援單人/雙人；性愛章節完整；只回傳 text，結尾含 ```json 區塊）
-// 適用：Next.js pages/api / Vercel Serverless / Node 18+
-
+// ==========================
+//    文件：/pages/api/analyze.js
+// ==========================
 export default async function handler(req, res) {
   try {
     if (req.method !== "POST") {
       return res.status(405).json({ error: "Method not allowed" });
     }
-
-    // 1) 環境變數
     if (!process.env.OPENAI_API_KEY) {
-      return res.status(500).json({
-        error: "missing_env",
-        detail: "OPENAI_API_KEY not set in Vercel. Add it in Project → Settings → Environment Variables, then Redeploy.",
-      });
+      return res.status(500).json({ error: "missing_env", detail: "OPENAI_API_KEY not set" });
     }
 
-    // 2) 解析輸入
     const {
-      mode = "single",
-      aBeast, aKin, aBranch,
+      mode, aBeast, aKin, aBranch,
       bBeast, bKin, bBranch,
-      context = "",
-      sexDetail = false,
-      sexTags = []
+      context, sexDetail
     } = req.body ?? {};
 
-    // 基本檢查
-    const missingA = !aBeast || !aKin || !aBranch;
-    const missingB = mode === "double" && (!bBeast || !bKin || !bBranch);
-    if (missingA || missingB) {
-      return res.status(400).json({
-        error: "missing_fields",
-        need: mode === "double"
-          ? ["aBeast", "aKin", "aBranch", "bBeast", "bKin", "bBranch"]
-          : ["aBeast", "aKin", "aBranch"],
-      });
-    }
+    // 組 prompt
+    let prompt = `請根據以下條件進行完整分析，並且最後務必輸出一個 JSON 區塊：
+我方：${aBeast} × ${aKin} × ${aBranch}
+對方：${mode === 'dual' ? `${bBeast} × ${bKin} × ${bBranch}` : '（單人模式）'}
+情境：${context || '—'}
+性愛細節：${sexDetail || '（無）'}
 
-    // 3) Prompt
-    const system = `你是「六獸六親×地支分析器」。請用中立、務實、具體可行的語氣，輸出結構化結果。
-輸出最後必須包含有效的 \`\`\`json 區塊（只含 scores 與 tags）。`;
+分析步驟：
+1. 個性推演與衝突點
+2. 自我調整策略
+3. 六維度分數（fit, comm, pace, account, trust, innov 各 0~100）
+4. 若情境是「性愛」，請額外加入性愛場景、角色扮演、技巧建議、玩具與設置、完整劇本等豐富描述。
 
-    const head = `我方：${aBeast}×${aKin}×${aBranch}`;
-    const other = mode === "double"
-      ? `對方：${bBeast}×${bKin}×${bBranch}`
-      : `對方：無（單人模式）`;
-
-    // 性愛分析區塊
-    const sexBlock = sexDetail
-      ? `\n【性愛情境深入分析】已勾選：${
-          Array.isArray(sexTags) && sexTags.length
-            ? sexTags.join("、")
-            : "（未選細項）"
-        }
-請務必依以下章節生成：
-性愛場景與角色扮演
-- 禁忌場景（地下賭場、露天泳池、摩天大樓、試衣間）
-- 角色扮演（權力遊戲、心理掌控、懸疑驚悚情境）
-
-性愛技巧與體位推薦
-- 深度擁抱交合
-- 角色扮演與語音催眠
-- 野性攻防與極端快感
-
-性愛玩具與情境設置
-- 震動棒與束縛配件
-- 感官剝奪與心理控制工具
-
-六獸X地支全劇本合集
-- 依不同六獸與地支組合，提供完整的性愛情境與劇本
-- 包含角色扮演、場景設置、對話引導、性愛技巧
-
-🔥 最終要寫成「劇本參考指南」風格，強調：安全、尊重、界線清楚，儘量露骨與貼近真實心理狀況。`
-      : "";
-
-    // 動態章節
-    const baseSections = [
-      "1) 個性描述（各2–3句）",
-      "2) 衝突熱點（≤3 點）",
-      "3) 協調策略：短期3條／長期3條",
-      "4) 六維度分數解讀（fit, comm, pace, account, trust, innov）",
-    ];
-    const sexSection = sexDetail ? "5) 性愛情境深入分析（依章節輸出）" : "";
-    const jsonSection = sexDetail ? "6) JSON：" : "5) JSON：";
-
-    const formatLines = sexDetail
-      ? [...baseSections, sexSection, jsonSection]
-      : [...baseSections, jsonSection];
-
-    const user = `${head}
-${other}
-情境：${context || "（無）"}${sexBlock}
-
-請依下列格式輸出（保留段落編號與小標）：
-${formatLines.join("\n")}
-\`\`\`json
+⚠️ 輸出規範：
+- 先給完整文字說明（繁體中文）
+- 結尾一定要加上 \`\`\`json 區塊，內容格式如下：
 {
   "scores": {
-    "fit": 0, "comm": 0, "pace": 0, "account": 0, "trust": 0, "innov": 0
+    "fit": 整數,
+    "comm": 整數,
+    "pace": 整數,
+    "account": 整數,
+    "trust": 整數,
+    "innov": 整數
   },
-  "tags": ["三到五個重點標籤"]
-}
-\`\`\`
-`;
+  "tags": ["可選的關鍵詞","用來生成小標籤"]
+}`;
 
-    // 4) 呼叫 OpenAI Responses API
-    const r = await fetch("https://api.openai.com/v1/responses", {
+    // 呼叫 OpenAI
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
         "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`
       },
       body: JSON.stringify({
-        model: "gpt-4.1-mini",
-        temperature: 0.9,
-        input: [
-          { role: "system", content: system },
-          { role: "user", content: user },
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: "你是一位精通六爻與人格分析的專業卜卦師助手。" },
+          { role: "user", content: prompt }
         ],
-      }),
+        temperature: 0.8,
+        max_tokens: 1200
+      })
     });
 
-    if (!r.ok) {
-      const errText = await r.text();
-      return res.status(500).json({ error: "openai_failed", detail: errText });
-    }
+    const data = await response.json();
+    const text =
+      data.choices?.[0]?.message?.content ||
+      data.choices?.[0]?.text ||
+      JSON.stringify(data);
 
-    const data = await r.json();
+    res.status(200).json({ text });
 
-    // 5) 抽取純文字
-    const pickText = (payload) => {
-      if (!payload) return "";
-      if (typeof payload.output_text === "string" && payload.output_text.trim()) {
-        return payload.output_text.trim();
-      }
-      if (Array.isArray(payload.output)) {
-        const parts = payload.output.flatMap((o) =>
-          Array.isArray(o.content)
-            ? o.content.map((c) => (c && typeof c.text === "string" ? c.text : "")).filter(Boolean)
-            : []
-        );
-        const joined = parts.join("\n").trim();
-        if (joined) return joined;
-      }
-      return JSON.stringify(payload, null, 2);
-    };
-
-    const text = pickText(data);
-
-    // 6) 回傳
-    return res.status(200).json({ text });
-  } catch (e) {
-    return res.status(500).json({ error: "server_error", detail: String(e) });
+  } catch (err) {
+    console.error("API error:", err);
+    res.status(500).json({ error: "server_error", detail: String(err) });
   }
 }

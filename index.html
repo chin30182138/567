@@ -1,4 +1,144 @@
-// ====== 語感模板庫（六獸 × 六親 × 地支）======
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>仙人指路神獸七十二型人格 一鍵分析</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    @media print {
+      @page { margin: 14mm; }
+      .no-print { display:none !important; }
+      body { background:#fff !important; }
+      .print-card { box-shadow:none !important; border:1px solid #e5e7eb; }
+    }
+  </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+  <div class="max-w-3xl mx-auto p-4 md:p-6 space-y-6">
+    <header class="no-print">
+      <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 一鍵分析</h1>
+      <p class="text-sm text-gray-600">（整合版介面｜含性愛深度分析卡）</p>
+    </header>
+
+    <!-- ===== 控制列 ===== -->
+    <section class="no-print grid grid-cols-1 md:grid-cols-3 gap-3">
+      <button id="btnAnalyze" class="px-4 py-3 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700">一鍵分析</button>
+      <button id="btnPrint" class="px-4 py-3 rounded-lg bg-gray-800 text-white font-semibold hover:bg-black">列印 / 匯出 PDF</button>
+      <div class="flex items-center gap-2">
+        <span class="text-sm text-gray-600">狀態：</span>
+        <span id="status" class="text-sm font-semibold text-gray-800">待命</span>
+      </div>
+    </section>
+
+    <!-- ===== 參數設定 ===== -->
+    <section class="bg-white rounded-xl shadow print-card">
+      <div class="p-4 border-b">
+        <div class="flex flex-wrap items-center gap-3">
+          <label class="font-semibold">模式：</label>
+          <select id="mode" class="border rounded px-3 py-2">
+            <option value="single">單人</option>
+            <option value="double" selected>雙人</option>
+          </select>
+
+          <label class="font-semibold">情境：</label>
+          <select id="scene" class="border rounded px-3 py-2">
+            <option value="general">一般</option>
+            <option value="sex" selected>性愛</option>
+            <option value="relationship">關係/溝通</option>
+            <option value="team">職場/合作</option>
+          </select>
+
+          <label class="inline-flex items-center gap-2 ml-auto">
+            <input id="ckPace" type="checkbox" class="w-4 h-4">
+            <span class="text-sm">節奏變化</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- 我方 -->
+      <div class="p-4 grid grid-cols-1 md:grid-cols-3 gap-3 border-b">
+        <div class="md:col-span-3 font-semibold text-indigo-700">我方設定</div>
+        <div>
+          <label class="text-sm block mb-1">六獸</label>
+          <select id="aBeast" class="w-full border rounded px-3 py-2">
+            <option>青龍</option><option selected>朱雀</option><option>勾陳</option><option>螣蛇</option><option>白虎</option><option>玄武</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-sm block mb-1">六親</label>
+          <select id="aKin" class="w-full border rounded px-3 py-2">
+            <option>父母</option><option selected>兄弟</option><option>子孫</option><option>妻財</option><option>官鬼</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-sm block mb-1">地支</label>
+          <select id="aBranch" class="w-full border rounded px-3 py-2">
+            <option>子</option><option>丑</option><option>寅</option><option>卯</option><option>辰</option><option>巳</option>
+            <option>午</option><option selected>未</option><option>申</option><option>酉</option><option>戌</option><option>亥</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 對方 -->
+      <div id="bPanel" class="p-4 grid grid-cols-1 md:grid-cols-3 gap-3 border-b">
+        <div class="md:col-span-3 font-semibold text-rose-700">對方設定</div>
+        <div>
+          <label class="text-sm block mb-1">六獸</label>
+          <select id="bBeast" class="w-full border rounded px-3 py-2">
+            <option>青龍</option><option>朱雀</option><option>勾陳</option><option>螣蛇</option><option>白虎</option><option selected>玄武</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-sm block mb-1">六親</label>
+          <select id="bKin" class="w-full border rounded px-3 py-2">
+            <option>父母</option><option>兄弟</option><option>子孫</option><option>妻財</option><option selected>官鬼</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-sm block mb-1">地支</label>
+          <select id="bBranch" class="w-full border rounded px-3 py-2">
+            <option>子</option><option>丑</option><option>寅</option><option>卯</option><option>辰</option><option>巳</option>
+            <option>午</option><option>未</option><option>申</option><option selected>酉</option><option>戌</option><option>亥</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 補充 -->
+      <div class="p-4 space-y-2">
+        <label class="block text-sm">補充你想納入的情境或界線</label>
+        <textarea id="context" rows="3" class="w-full border rounded px-3 py-2" placeholder="可空白"></textarea>
+      </div>
+    </section>
+
+    <!-- ===== 結果區 ===== -->
+    <section id="result" class="bg-white rounded-xl shadow p-4 print-card space-y-4">
+      <div id="summary" class="text-sm text-gray-700"></div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="p-4 border rounded-lg">
+          <h3 class="font-semibold mb-3">互動雷達圖</h3>
+          <canvas id="radar" height="260"></canvas>
+        </div>
+        <div id="deepCard" class="p-4 border rounded-lg bg-pink-50"></div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // 小工具
+    function hashTo01(str){let h=2166136261>>>0;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619);}return(h>>>0)/0xffffffff;}
+    function scoreByKey(key,bias=0.5,spread=0.35,min=25,max=90){const v=bias+(hashTo01(key)-0.5)*2*spread;const c=Math.max(0,Math.min(1,v));return Math.round(min+c*(max-min));}
+    const labelMap={comm:'溝通',pace:'節奏',account:'權責',trust:'信任',innov:'創新',fit:'契合'};
+    function escapeHTML(s){return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+
+    // 雷達圖
+    const radarCtx=document.getElementById('radar').getContext('2d');
+    let radarChart=new Chart(radarCtx,{type:'radar',data:{labels:['溝通','節奏','權責','信任','創新','契合'],datasets:[{data:[50,50,50,50,50,50],fill:true}]},options:{scales:{r:{min:0,max:100}}}});
+
+    // ====== 語感模板庫（六獸 × 六親 × 地支）======
+    const SEX_BEAST_TONE={...}; // // ====== 語感模板庫（六獸 × 六親 × 地支）======
 const SEX_BEAST_TONE = {
   "青龍": { vibe: "靈活主動、擅長逗引與變速", lead: "以節奏與花樣主導", kink: "遊戲規則、角色扮演" },
   "朱雀": { vibe: "語言挑逗、火熱外放", lead: "靠聲音與眼神牽引", kink: "言語命令、舞台感" },
@@ -176,3 +316,24 @@ function buildSexDeepCard(model) {
 
   return div;
 }
+← 這裡放我剛剛給你的模板庫
+    const SEX_KIN_DYNAMICS={...};
+    const BRANCH_FLAVOR={...};
+
+    // ====== 升級版：性愛深度分析卡 ======
+    function buildSexDeepCard(model){ ... } // ← 這裡放我剛剛給你的完整版函式
+
+    // 分析流程
+    function analyze(){
+      // 讀取選項 → 計算分數 → 更新雷達與分析卡
+      ...
+    }
+
+    document.getElementById('btnAnalyze').addEventListener('click',analyze);
+    document.getElementById('btnPrint').addEventListener('click',()=>window.print());
+    document.getElementById('mode').addEventListener('change',e=>{
+      document.getElementById('bPanel').style.display=e.target.value==='double'?'':'none';
+    });
+  </script>
+</body>
+</html>

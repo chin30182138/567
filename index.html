@@ -1,3 +1,7 @@
+
+<!-- ==========================
+   文件：index.html  （加入十二地支＋雷達圖＋列印）
+   ========================== -->
 <!doctype html>
 <html lang="zh-Hant">
 <head>
@@ -7,47 +11,27 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
-    /* 基礎樣式 */
-    .scores {display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 6px;}
-    .score {display: flex; align-items: center; gap: 10px; font-size: 13px; color: #334155;}
-    .bar {flex: 1; height: 10px; background: #e2e8f0; border-radius: 9999px; overflow: hidden;}
-    .bar > i {display: block; height: 100%; background: #6366f1;}
-    .score b {width: 92px; display: inline-block; color: #0f172a;}
-    .score em {width: 36px; text-align: right; color: #475569; font-style: normal;}
-    .tags {display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px;}
-    .tag {background: #eef2ff; color: #3730a3; padding: 4px 10px; border-radius: 9999px; font-size: 12px;}
-
-    /* 列印樣式 */
     @media print {
         @page { margin: 14mm; }
         .no-print { display:none !important; }
         body { background:#fff !important; }
         .print-card { box-shadow:none !important; border:1px solid #e5e7eb; }
-        
         /* 列印時的並排佈局 */
-        .print-flex-container { 
-            display: flex; 
-            flex-wrap: wrap; 
-            gap: 20px; 
-            margin-top: 15px; 
-            align-items: flex-start; /* 頂部對齊 */
-        }
-        .print-scores-section { 
-            flex: 1; 
-            min-width: 280px; 
-            max-width: 45%; /* 調整寬度比例 */
-        } 
-        .print-chart-section { 
-            flex: 1; 
-            min-width: 280px; 
-            max-width: 50%; /* 調整寬度比例 */
-            display: flex; 
-            justify-content: center; 
-            align-items: center; 
-        } 
+        .print-flex-container { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 15px; }
+        .print-scores-section { flex: 1; min-width: 280px; } /* 分數條佔位 */
+        .print-chart-section { flex: 1; min-width: 280px; max-width: 50%; display: flex; justify-content: center; align-items: center; } /* 雷達圖佔位 */
         .print-chart-section img { max-width: 100%; height: auto; }
-        .print-scores-section h3 { margin-top: 0; } 
+        .print-scores-section .scores { grid-template-columns: 1fr; } /* 列印時確保分數條是一列 */
+        .print-scores-section h3 { margin-top: 0; } /* 調整標題間距 */
     }
+    .scores{display:grid;grid-template-columns:1fr;gap:8px;margin-top:6px}
+    .score{display:flex;align-items:center;gap:10px;font-size:13px;color:#334155}
+    .bar{flex:1;height:10px;background:#e2e8f0;border-radius:9999px;overflow:hidden}
+    .bar>i{display:block;height:100%;background:#6366f1}
+    .score b{width:92px;display:inline-block;color:#0f172a}
+    .score em{width:36px;text-align:right;color:#475569;font-style:normal}
+    .tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+    .tag{background:#eef2ff;color:#3730a3;padding:4px 10px;border-radius:9999px;font-size:12px}
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
@@ -164,27 +148,14 @@
     const $$ = s => document.querySelectorAll(s);
 
     let analysisMode = 'dual'; // 'personality', 'single', 'dual'
-    let radarChart = null; // 儲存 Chart 實例
 
     // 生成六維度分數條的 HTML
     function generateScoresHTML(scores) {
         if (!scores || Object.values(scores).every(v => v === null || isNaN(v))) {
             return '';
         }
-        
-        // 確保分數數據正確對應到標籤
-        const scoreData = {
-            fit: scores.fit || scores['契合'] || 0,
-            comm: scores.comm || scores['溝通'] || 0,
-            pace: scores.pace || scores['節奏'] || 0,
-            account: scores.account || scores['權責'] || 0,
-            trust: scores.trust || scores['信任'] || 0,
-            innov: scores.innov || scores['創新'] || 0,
-        };
-
-        // 修正: 條狀圖的寬度應該是分數值，並確保在 0-100 之間
-        const clamp = v => Math.max(0, Math.min(100, Number(v) || 0)); 
-        const row = (label, key, color) => `<div class=\"score\"><b>${label}<\/b><div class=\"bar\"><i style=\"width:${clamp(scoreData[key])}%;background:${color}\"><\/i><\/div><em>${clamp(scoreData[key])}<\/em><\/div>`;
+        const s = scores; const clamp = v => Math.max(0, Math.min(100, Number(v)||0));
+        const row = (label, key, color) => `<div class=\"score\"><b>${label}<\/b><div class=\"bar\"><i style=\"width:${clamp(s[key])}%;background:${color}\"><\/i><\/div><em>${clamp(s[key])}<\/em><\/div>`;
         return `
           <h3 class=\"text-lg font-semibold mt-4\">六維度分數<\/h3>
           <div class=\"scores\">
@@ -238,18 +209,18 @@
       updateChips(getSelections()); // 更新 chips 顯示
     }
 
+    $('#modePersonality').onclick = () => setAnalysisMode('personality');
+    $('#modeSingle').onclick = () => setAnalysisMode('single');
+    $('#modeDual').onclick = () => setAnalysisMode('dual');
+
     // 預設情境按鈕
     $$('.preset').forEach(b => b.onclick = () => {
         $('#context').value = b.textContent;
         toggleSexOptions(); // 檢查是否需要顯示性愛深入分析選項
-        updateChips(getSelections()); // 更新情境 chip
     });
 
     // 監聽情境輸入框變化，顯示/隱藏性愛深入分析選項
-    $('#context').oninput = () => {
-        toggleSexOptions();
-        updateChips(getSelections()); // 更新情境 chip
-    };
+    $('#context').oninput = toggleSexOptions;
 
     // 性愛深入分析按鈕
     $$('.sex-detail').forEach(b => b.onclick = () => {
@@ -258,13 +229,7 @@
         if (!currentText.includes(detailType)) { // 避免重複添加
             $('#sexDetailInput').value = (currentText ? currentText + '；' : '') + detailType;
         }
-        updateChips(getSelections()); // 更新深入分析 chip
     });
-
-    // 監聽性愛深入分析輸入框變化
-    $('#sexDetailInput').oninput = () => {
-        updateChips(getSelections()); // 更新深入分析 chip
-    };
 
     function toggleSexOptions() {
         if ($('#context').value.trim() === '性愛') {
@@ -272,6 +237,7 @@
         } else {
             $('#sexOptions').classList.add('hidden');
             $('#sexDetailInput').value = ''; // 清空深入分析內容
+            $('#chipSexDetail_wrapper').classList.add('hidden'); // 隱藏深入分析 chip
         }
     }
 
@@ -281,7 +247,7 @@
         aBeast: $('#aBeast').value, aKin: $('#aKin').value, aBranch: $('#aBranch').value,
         bBeast: $('#bBeast').value, bKin: $('#bKin').value, bBranch: $('#bBranch').value,
         context: analysisMode === 'personality' ? '' : $('#context').value.trim(), // 個性分析模式下情境為空
-        sexDetail: ($('#context').value.trim() === '性愛' && !$('#sexOptions').classList.contains('hidden')) ? $('#sexDetailInput').value.trim() : ''
+        sexDetail: $('#sexOptions').classList.contains('hidden') ? '' : $('#sexDetailInput').value.trim()
       };
     }
 
@@ -331,74 +297,54 @@
           scores = json.scores;
       } else {
           const map = { fit:null, comm:null, pace:null, account:null, trust:null, innov:null };
-          // 修正正則表達式，支持中文標籤和英文標籤，並捕獲數值
-          const rx = /(?:契合|fit)\s*[:：]?\s*(\d{1,3})|(?:溝通|comm)\s*[:：]?\s*(\d{1,3})|(?:節奏|pace)\s*[:：]?\s*(\d{1,3})|(?:權責|account)\s*[:：]?\s*(\d{1,3})|(?:信任|trust)\s*[:：]?\s*(\d{1,3})|(?:創新|innov)\s*[:：]?\s*(\d{1,3})/ig;
-          let m; 
-          while((m = rx.exec(text))){ 
-              if (m[1]) map['fit'] = Number(m[1]);
-              if (m[2]) map['comm'] = Number(m[2]);
-              if (m[3]) map['pace'] = Number(m[3]);
-              if (m[4]) map['account'] = Number(m[4]);
-              if (m[5]) map['trust'] = Number(m[5]);
-              if (m[6]) map['innov'] = Number(m[6]);
-          }
+          const rx = /(fit|comm|pace|account|trust|innov)\s*(\d{1,3})/ig;
+          let m; while((m = rx.exec(text))){ map[m[1].toLowerCase()] = Number(m[2]); }
           const filled = Object.values(map).filter(v=>typeof v==='number' && !isNaN(v));
           if(filled.length>=2) scores = map;
       }
 
       let html = text
-        .replace(/\n\s*\n/g, '\n') // 將多個空行替換為單個空行
-        .replace(/^\s*(?:[\d]+\)|[•\-–])\s*(.+)$/gm, '<h3 class="text-lg font-semibold mt-4">$1<\/h3>') // 項目編號或列表符號開頭的作為 H3
-        .replace(/^\s*[-•–]\s*(.+)$/gm, '<li>$1<\/li>'); // 列表符號
+        .replace(/\n\s*\n/g, '\n')
+        .replace(/^\s*\d+\)\s*(.+)$/gm, '<h3 class="text-lg font-semibold mt-4">$1<\/h3>')
+        .replace(/^\s*[-–]\s*(.+)$/gm, '<li>$1<\/li>');
       html = html.replace(/(?:<li>[^<]*<\/li>\n?)+/g, m => `<ul class="list-disc pl-5 space-y-1">${m}<\/ul>`);
-      html = html.replace(/\n/g, '<br>'); // 將剩餘的換行符轉換為 <br>
-      
+
       const tagsHTML = json && Array.isArray(json.tags) && json.tags.length ? `<div class=\"tags\">${json.tags.map(t=>`<span class=\\\"tag\\\">${t}<\/span>`).join('')}<\/div>` : '';
       
       return { html, scores, tagsHTML };
     }
 
     // Radar 圖
+    let radarChart = null;
     function renderRadar(scores){
       const chartContainer = document.getElementById('chartContainer');
       chartContainer.innerHTML = ''; // 清空容器
       
-      // 判斷是否有分數來決定是否渲染雷達圖
-      const hasValidScores = scores && Object.values(scores).some(v => v !== null && !isNaN(v));
+      const scoresHTML = generateScoresHTML(scores);
+      let chartCanvasHTML = '';
 
-      let contentHTML = '';
-      if (hasValidScores) {
+      if(scores && Object.values(scores).some(v => v !== null && isNaN(v))){ // 有有效分數才繪圖
+          chartCanvasHTML = `<div id="chart" class="w-full h-64 md:h-80"><canvas id="radar"></canvas></div>`;
+          chartContainer.innerHTML = `<div class="md:flex md:gap-8">${scoresHTML}<div class="flex-1">${chartCanvasHTML}</div></div>`;
           const clamp = v => Math.max(0, Math.min(100, Number(v)||0));
           const labels = ['契合 fit','溝通 comm','節奏 pace','權責 account','信任 trust','創新 innov'];
           const data = [clamp(scores.fit),clamp(scores.comm),clamp(scores.pace),clamp(scores.account),clamp(scores.trust),clamp(scores.innov)];
-          
-          // 如果有有效分數，並排放置分數條和雷達圖
-          contentHTML = `
-            <div class="md:flex md:gap-8 md:items-start">
-              <div class="flex-1">${generateScoresHTML(scores)}</div>
-              <div class="flex-1 w-full h-64 md:h-80"><canvas id="radar"></canvas></div>
-            </div>`;
-          chartContainer.innerHTML = contentHTML;
-
           const canvas = $('#radar');
-          if(radarChart){ radarChart.destroy(); } // 銷毀舊圖表
+          if(radarChart){ radarChart.destroy(); }
           radarChart = new Chart(canvas.getContext('2d'), {
             type: 'radar', data: { labels, datasets: [{ label: '六維度雷達圖', data, fill: true, backgroundColor: 'rgba(99,102,241,0.15)', borderColor: 'rgba(99,102,241,1)', pointBackgroundColor: 'rgba(99,102,241,1)'}] },
             options: { scales: { r: { suggestedMin: 0, suggestedMax: 100, ticks: { stepSize: 20 } } }, plugins: { legend: { display: false } } }
           });
       } else {
-          // 如果沒有有效分數，只顯示分數條 (如果有的話)
-          chartContainer.innerHTML = generateScoresHTML(scores);
-          if(radarChart){ radarChart.destroy(); radarChart = null;} // 銷毀舊圖表
+          // 沒有分數或圖表時，只顯示分數條或空著
+          chartContainer.innerHTML = scoresHTML;
       }
     }
 
 
     // 一鍵分析
-    async function performAnalysis() {
-      const payload = getSelections(); 
-      updateChips(payload);
-
+    $('#go').onclick = async () => {
+      const payload = getSelections(); updateChips(payload);
       let isValid = false;
 
       if (payload.mode === 'personality') {
@@ -414,490 +360,90 @@
 
       $('#status').textContent = '分析中…'; $('#result').innerHTML = ''; $('#chartContainer').innerHTML = ''; // 清空圖表容器
       try {
-        // 這裡需要替換成您實際的 API 端點
-        // const res = await fetch('/api/analyze', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-        // const data = await res.json();
-        
-        // 為了展示效果，這裡使用模擬數據，您需要替換成實際的 API 響應
-        const dummyData = {
-            "result_qzl_qzz_sex": `
-青龍子 X 青龍子 - 王者對決，燃燒慾望的極限較量
-
-情愛指數：10/10（勢均力敵，無法預測的激情）
-
-互動模式：當兩個青龍子相遇，性愛將是一場權力與征服的較量。雙方皆熱愛主導，充滿侵略性，彼此之間的關係就像一場永無止境的戰爭，誰能撐到最後才是贏家。
-
-雷點分析：彼此爭奪主導權，容易陷入無休止的控制爭奪戰，若無法達成平衡，可能導致緊張關係。
-
-最佳性愛劇本推薦：
-- 強制互控挑戰：雙方輪流爭奪主導權，以技巧與耐力分出勝負。
-- 極限挑逗對決：透過延遲滿足與邊緣快感測試，增強雙方的耐受度。
-- 勝者支配：制定性愛勝負條件，輸家必須完全服從對方的要求。
-
-推薦體位：
-- 站立交合（Standing Sex）：適合快速進攻與主導權更替，讓雙方都能保持強勢狀態。
-- 深度騎乘（Powerful Cowgirl）：讓一方暫時掌控，但可透過翻轉體位來重新爭奪主導權。
-- 交錯壓制（Interlocking Grip）：利用身體力量與技巧壓制對方，增加性愛中的挑戰性與競爭性。
-
-推薦玩具：
-- 震動環：增加耐力與控制感，讓雙方能夠延長戰鬥時間。
-- 皮製束縛繩：可用於限制對方行動，讓戰局更加刺激。
-- 溫感潤滑劑：透過冷熱交替的快感刺激，增強性愛的變化與層次。
-
-推薦性愛場景：
-- 鏡屋密室：四面鏡子讓彼此能夠欣賞對方的每一個動作，增加心理與視覺快感。
-- 高樓落地窗前：充滿征服感的場景，讓雙方都感受到性愛的極致刺激。
-- 健身房或擂台：帶有競技感的環境，讓性愛變成一場力量與技巧的真正對決。
-
-\`\`\`json
-{
-  "scores": {
-    "fit": 95,
-    "comm": 80,
-    "pace": 90,
-    "account": 70,
-    "trust": 85,
-    "innov": 98
-  },
-  "tags": ["激情", "主導", "征服", "競技", "權力"]
-}
-\`\`\`
-`,
-            "result_qzl_qzc_sex": `
-青龍子 X 青龍丑 - 霸氣與沉穩的對峙
-
-• 情愛指數：8.5/10（強勢與耐心的結合）
-
-• 互動模式：青龍子具有主導欲，行動迅速且喜愛挑戰，而青龍丑則較為穩重，偏好循序漸進的深層關係。當這兩者相遇時，會有主動與被動的極端拉扯，但若能找到節奏，則能達到完美的情慾平衡。
-
-• 雷點分析：青龍子的速度與強勢可能讓青龍丑感到壓力，而青龍丑的穩重與慢熱則可能讓青龍子感到不耐煩。
-
-• 最佳性愛劇本推薦：
-  o 強制慢節奏訓練：青龍子學會拉長前戲，透過按摩、輕柔挑逗來引導青龍丑進入狀態。
-  o 堅定征服：青龍子耐心挑逗，讓青龍丑無法抗拒，逐步墜入高潮的深淵。
-  o 耐力測試：透過長時間持續的刺激來突破青龍丑的理性，讓其釋放原始慾望。
-
-• 推薦體位：
-  o 騎乘位（Cowgirl）：青龍子主導，掌握節奏，青龍丑則沈浸其中。
-  o 面對面深交式（Face-to-Face Intimacy）：增強眼神交流與情感投入，讓青龍丑放下防備。
-  o 半跪後背位（Half-Kneeling Back Entry）：青龍子仍保持主導權，但讓青龍丑逐漸適應更深層的激情。
-
-• 推薦玩具：
-  o 束縛帶：讓青龍丑無法移動，完全沈浸在青龍子的掌控之下。
-  o 加熱潤滑液：配合青龍丑的慢熱特性，透過熱感加強刺激。
-  o 變頻震動器：提升青龍丑的敏感度，讓其逐步進入快感狀態。
-
-• 推薦性愛場景：
-  o 私人和室：結合溫暖的日式燈光，讓青龍丑能夠完全放鬆，接受青龍子的誘惑。
-  o 高級床鋪：柔軟床鋪搭配絲質床單，加強肢體的舒適度與情慾連結。
-  o 幽暗燭光房：適合慢速引導與深度探索的性愛過程，讓青龍子能夠充分發揮支配力。
-
-\`\`\`json
-{
-  "scores": {
-    "fit": 85,
-    "comm": 70,
-    "pace": 60,
-    "account": 90,
-    "trust": 80,
-    "innov": 75
-  },
-  "tags": ["霸氣", "沉穩", "耐心", "拉扯", "深層"]
-}
-\`\`\`
-`,
-                       "result_qzl_qzc_general": `
-青龍子 X 青龍丑 - 潛力無限的互補組合
-
-青龍子和青龍丑的組合，展現了動態與穩固的結合，充滿了互補的潛力。
-
-• 優勢：
-  - 動靜皆宜：青龍子帶來活力和開創性，青龍丑則提供穩定和深入的思考。
-  - 互相促進：青龍子可以激勵青龍丑採取行動，而青龍丑則能幫助青龍子深思熟慮。
-  - 執行力強：一旦目標確定，兩者都能有效地推動專案執行。
-
-• 挑戰：
-  - 節奏差異：青龍子快速的節奏可能讓青龍丑感到壓力，青龍丑的謹慎可能讓青龍子感到拖沓。
-  - 溝通磨合：需要時間適應彼此的溝通方式和工作步調。
-  - 決策僵局：在意見不合時，可能因各自堅持而陷入僵局。
-
-• 建議：
-  - 互相尊重：認識到彼此的優勢並給予足夠的尊重。
-  - 彈性調整：青龍子在必要時放慢速度，青龍丑則可嘗試更快地做出反應。
-  - 開放溝通：建立定期溝通機制，及時解決潛在問題。
-
-\`\`\`json
-{
-  "scores": {
-    "fit": 90,
-    "comm": 85,
-    "pace": 70,
-    "account": 88,
-    "trust": 92,
-    "innov": 80
-  },
-  "tags": ["互補", "穩定", "活力", "協作", "成長"]
-}
-\`\`\`
-`,
-            "result_personality": `
-青龍子個性分析 - 充滿活力與主導的開拓者
-
-青龍子人格類型代表著行動力、領導力和創新精神。這類人天生具有強烈的驅動力和自信，勇於開創新的局面。
-
-• 特質：
-  - 積極主動：總是充滿能量，喜歡採取行動而非被動等待。
-  - 領導能力：天生具有領導者的風範，善於帶領團隊實現目標。
-  - 創新思維：不喜歡墨守成規，樂於嘗試新方法和新技術。
-  - 挑戰者：喜歡接受挑戰，並從中獲得成就感。
-
-• 優點：
-  - 高效：能夠迅速做出決策並高效執行。
-  - 果斷：不拖泥帶水，能快速解決問題。
-  - 有遠見：對未來有清晰的願景，並能激勵他人共同前進。
-
-• 潛在挑戰：
-  - 過於強勢：有時可能過於主導，不夠傾聽他人意見。
-  - 缺乏耐心：對進度緩慢或效率低下的人事物容易感到不耐煩。
-  - 衝動：可能在未充分考慮後果的情況下做出決定。
-
-• 發展建議：
-  - 學習協作：意識到團隊合作的重要性，適度放權並傾聽他人。
-  - 培養耐心：練習在複雜情境中保持冷靜，給予他人更多時間。
-  - 反思決策：在行動前多做思考，評估潛在風險。
-
-\`\`\`json
-{
-  "scores": {
-    "fit": null,
-    "comm": 80,
-    "pace": 95,
-    "account": 90,
-    "trust": 75,
-    "innov": 90
-  },
-  "tags": ["主動", "領導", "創新", "自信", "高效"]
-}
-\`\`\`
-`,
-            "result_default": `
-請選擇有效的六獸、六親、地支組合及情境進行分析。
-
-\`\`\`json
-{
-  "scores": {
-    "fit": 50,
-    "comm": 50,
-    "pace": 50,
-    "account": 50,
-    "trust": 50,
-    "innov": 50
-  },
-  "tags": ["通用分析"]
-}
-\`\`\`
-`
-        }; // <-- 注意這裡，這是 dummyData 物件的結束標誌
-    // 一鍵分析
-    async function performAnalysis() {
-      const payload = getSelections(); 
-      updateChips(payload);
-
-      let isValid = false;
-
-      if (payload.mode === 'personality') {
-          isValid = (payload.aBeast && payload.aKin && payload.aBranch);
-          if (!isValid) { alert('個性分析：請先選滿我方「六獸、六親、地支」'); return; }
-      } else if (payload.mode === 'single') {
-        isValid = (payload.aBeast && payload.aKin && payload.aBranch && payload.context);
-        if (!isValid) { alert('單人分析：請先選滿我方「六獸、六親、地支」與情境'); return; }
-      } else { // dual
-        isValid = (payload.aBeast && payload.aKin && payload.aBranch && payload.bBeast && payload.bKin && payload.bBranch && payload.context);
-        if (!isValid) { alert('雙人分析：請先選滿我方/對方「六獸、六親、地支」與情境'); return; }
-      }
-
-      $('#status').textContent = '分析中…'; $('#result').innerHTML = ''; $('#chartContainer').innerHTML = ''; // 清空圖表容器
-      try {
-        // 這裡需要替換成您實際的 API 端點
-        // const res = await fetch('/api/analyze', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-        // const data = await res.json();
-        
-        let plain = dummyData.result_default; // 預設為通用分析
-
-        // 根據模式和選擇來決定使用哪一個模擬數據
-        if (payload.mode === 'personality') {
-            if (payload.aBeast === '青龍' && payload.aBranch === '子') {
-                plain = dummyData.result_personality;
-            }
-            // 可以根據需要添加其他六獸/地支的個性分析模擬數據
-        } else if (payload.mode === 'single') {
-            // 單人分析的模擬數據可以根據 'aBeast', 'aKin', 'aBranch', 'context' 來設計
-            if (payload.aBeast === '青龍' && payload.aBranch === '子' && payload.context === '年度目標協調') {
-                plain = `
-青龍子在「年度目標協調」情境下的分析
-
-• 特點：
-  - 強勢主導：青龍子在設定目標時會展現出強烈的個人意志，傾向於推動大膽且具挑戰性的目標。
-  - 追求創新：他們會傾向於提出創新的目標和策略，不喜歡循規蹈矩。
-  - 高效推進：一旦目標確立，會以極高的效率推進執行。
-
-• 潛在挑戰：
-  - 忽略他人意見：在協調過程中，可能過於堅持己見，較少傾聽團隊成員的意見。
-  - 目標過於激進：設定的目標可能超出團隊或資源的實際承受能力。
-  - 溝通不足：可能在目標傳達上不夠細緻，導致團隊理解不一致。
-
-• 建議：
-  - 開放式溝通：鼓勵青龍子在協調初期多聽取各方意見，納入不同視角。
-  - 分解目標：將大膽的目標分解成可實現的小步驟，增加團隊信心。
-  - 權衡風險：在追求創新時，也要充分評估潛在風險和資源需求。
-
-\`\`\`json
-{
-  "scores": {
-    "fit": null,
-    "comm": 70,
-    "pace": 90,
-    "account": 85,
-    "trust": 75,
-    "innov": 90
-  },
-  "tags": ["主導", "創新", "高效", "溝通", "協調"]
-}
-\`\`\`
-`;
-            } else if (payload.aBeast === '朱雀' && payload.aBranch === '午' && payload.context === '愛情') {
-                 plain = `
-朱雀午在「愛情」情境下的分析
-
-• 特點：
-  - 熱情奔放：朱雀午在愛情中表現出極大的熱情和活力，追求浪漫和刺激。
-  - 情感豐富：表達情感直接且真誠，渴望被愛與被關注。
-  - 充滿魅力：天生具有吸引力，容易成為眾人焦點。
-
-• 潛在挑戰：
-  - 衝動易怒：情緒來得快去得也快，可能因一時衝動而做出決定。
-  - 佔有慾強：對伴侶有較強的佔有慾，需要感受到自己是獨特的。
-  - 缺乏安全感：外表自信，內心可能需要持續的肯定與安全感。
-
-• 建議：
-  - 學會聆聽：在表達自己情感的同時，也要多聆聽伴侶的心聲。
-  - 控制情緒：在衝突時，給彼此冷靜的空間，避免言語傷害。
-  - 共同成長：尋找能一起體驗新鮮事物、共同成長的伴侶。
-
-\`\`\`json
-{
-  "scores": {
-    "fit": null,
-    "comm": 85,
-    "pace": 90,
-    "account": 65,
-    "trust": 80,
-    "innov": 88
-  },
-  "tags": ["熱情", "浪漫", "直接", "佔有", "吸引力"]
-}
-\`\`\`
-`;
-            }
-            // 可以根據需要添加其他單人分析的模擬數據
-        } else { // dual mode
-            if (payload.aBeast === '青龍' && payload.aBranch === '子' && 
-                payload.bBeast === '青龍' && payload.bBranch === '子') {
-                if (payload.context === '性愛') {
-                    plain = dummyData.result_qzl_qzz_sex;
-                } else {
-                    plain = dummyData.result_qzl_qzz_general;
-                }
-            } else if (payload.aBeast === '青龍' && payload.aBranch === '子' && 
-                       payload.bBeast === '青龍' && payload.bBranch === '丑') {
-                if (payload.context === '性愛') {
-                    plain = dummyData.result_qzl_qzc_sex;
-                } else {
-                    plain = dummyData.result_qzl_qzc_general;
-                }
-            } else if (payload.aBeast === '朱雀' && payload.aBranch === '午' && 
-                       payload.bBeast === '玄武' && payload.bBranch === '亥' && 
-                       payload.context === '愛情') {
-                plain = `
-朱雀午 X 玄武亥 - 熱情與深沉的交織
-
-• 情愛指數：9/10（互補性強，火熱與深情並存）
-
-• 互動模式：朱雀午像火，熱情奔放，渴望被看到；玄武亥像水，深沉內斂，情感豐富而隱藏。這對組合在愛情中能形成強烈互補，朱雀午能帶給玄武亥活力和刺激，玄武亥則能為朱雀午提供深度和安全感。
-
-• 雷點分析：朱雀午的直接可能讓玄武亥感到壓力，而玄武亥的內斂可能讓朱雀午覺得難以捉摸。雙方需要學習理解彼此不同的情感表達方式。
-
-• 最佳愛情劇本推薦：
-  o 浪漫冒險與溫馨港灣：朱雀午策劃刺激的約會，玄武亥提供舒適的歸屬感，動靜結合。
-  o 深度對話與情感交流：鼓勵玄武亥分享內心世界，朱雀午耐心傾聽並給予溫暖回應。
-  o 共同創造藝術：一起進行繪畫、音樂或寫作等活動，在創作中加深彼此連結。
-
-• 推薦相處模式：
-  o 互相給予空間：理解彼此在社交和獨處上的需求差異。
-  o 定期情感交流：透過寫信、約會等方式，維護情感溫度。
-  o 共同學習成長：探索新知識或技能，讓關係保持新鮮感。
-
-\`\`\`json
-{
-  "scores": {
-    "fit": 92,
-    "comm": 78,
-    "pace": 70,
-    "account": 85,
-    "trust": 90,
-    "innov": 82
-  },
-  "tags": ["熱情", "深沉", "互補", "浪漫", "理解"]
-}
-\`\`\`
-`;
-            }
-            // 可以根據需要添加其他雙人分析的模擬數據
+        const res = await fetch('/api/analyze', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
+        const data = await res.json();
+        let plain = data.text || data.result;
+        if(!plain && Array.isArray(data.output)){
+          plain = data.output.map(o=> (o.content||[]).map(c=>c.text||'').join('\n')).join('\n');
         }
+        if(!plain) plain = JSON.stringify(data, null, 2);
 
         const formatted = formatOutputWithJson(plain);
-        $('#result').innerHTML = formatted.html + formatted.tagsHTML;
+        $('#result').innerHTML = formatted.html + formatted.tagsHTML; // 標籤放在文本後面
         renderRadar(formatted.scores);
         $('#status').textContent = '✅ 完成';
       } catch (e) {
-          $('#status').textContent = '❌ 失敗';
-          $('#result').textContent = String(e);
-          console.error("Analysis failed:", e);
+        $('#status').textContent = '❌ 失敗';
+        $('#result').textContent = String(e);
       }
-    }
+    };
 
     // 列印 / 匯出 PDF（附上雷達圖快照）
     $('#print').onclick = () => {
       const sel = getSelections(); updateChips(sel);
-      
       let chartImg = '';
-      // 檢查 radarChart 是否存在且有數據
-      const hasValidScores = radarChart && radarChart.data && radarChart.data.datasets[0] && 
-                             Object.values(radarChart.data.datasets[0].data).some(v => v !== null && !isNaN(v));
-
-      if (hasValidScores && radarChart.canvas) {
+      if (window.radarChart && window.radarChart.canvas) {
           try {
-              // 為了在列印時正確顯示，我們需要一個暫時的 canvas 來確保背景是白色
-              const tempCanvas = document.createElement('canvas');
-              tempCanvas.width = radarChart.canvas.width;
-              tempCanvas.height = radarChart.canvas.height;
-              const tempCtx = tempCanvas.getContext('2d');
-              tempCtx.fillStyle = 'white'; // 設置背景
-              tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height); // 填充背景
-              tempCtx.drawImage(radarChart.canvas, 0, 0); // 繪製雷達圖
-              chartImg = `<div class="print-chart-section"><img src="${tempCanvas.toDataURL('image/png')}" style="max-width: 100%; height: auto;" alt="雷達圖"></div>`;
+              chartImg = window.radarChart.canvas.toDataURL('image/png');
           } catch (e) {
-              console.error("無法生成雷達圖圖片:", e);
-              // 如果生成圖片失敗，則不顯示圖片
+              console.error("Failed to get chart image data:", e);
               chartImg = '';
           }
       }
-
-      const originalBody = document.body.innerHTML; // 備份原始 body 內容
-      const originalBodyClass = document.body.className; // 備份原始 body class
-
-      // 準備列印內容
-      let printContent = `
-        <div class="max-w-5xl mx-auto p-6 space-y-5">
-          <header>
-            <h1 class="text-2xl font-bold">仙人指路神獸七十二型人格｜分析報告</h1>
-            <p class="text-slate-500 text-sm">${new Date().toLocaleString()}</p>
-          </header>
-          <section class="bg-white p-5 rounded-2xl shadow-sm print-card">
-            <div class="flex flex-wrap gap-2 text-sm text-slate-600 mb-3">
-              <span class="px-3 py-1 bg-slate-100 rounded-full">模式：<strong>${$('#chipMode').textContent}</strong></span>
-              <span class="px-3 py-1 bg-slate-100 rounded-full">我方：<strong>${$('#chipA').textContent}</strong></span>
-              ${sel.mode === 'dual' ? `<span class="px-3 py-1 bg-slate-100 rounded-full">對方：<strong>${$('#chipB').textContent}</strong></span>` : ''}
-              ${sel.mode !== 'personality' ? `<span class="px-3 py-1 bg-slate-100 rounded-full">情境：<strong>${$('#chipC').textContent}</strong></span>` : ''}
-              ${(sel.context === '性愛' && sel.sexDetail) ? `<span class="px-3 py-1 bg-slate-100 rounded-full">深入：<strong>${$('#chipSexDetail').textContent}</strong></span>` : ''}
-            </div>
-            <div class="prose max-w-none text-[15px]">
-              ${$('#result').innerHTML}
-            </div>
-            <div class="print-flex-container">
-              <div class="print-scores-section">
-                ${generateScoresHTML(radarChart && radarChart.data.datasets.length > 0 ? radarChart.data.datasets[0].data.reduce((acc, val, i) => {
-                    const labelKey = radarChart.data.labels[i].split(' ')[0].toLowerCase(); // 取英文key
-                    acc[labelKey] = val; 
-                    return acc;
-                }, {}) : null)}
-              </div>
-              ${chartImg}
-            </div>
-          </section>
-        </div>
-      `;
-
-      // 替換 body 內容為列印內容，然後執行列印
-      document.body.innerHTML = printContent;
-      document.body.classList.remove('bg-slate-50', 'text-slate-800'); // 移除 body 背景色和文字色，確保列印背景為白色
-      document.body.classList.add('bg-white', 'text-black'); // 設置為白色背景黑色文字以供列印
-
-      window.print();
-
-      // 列印完成後恢復原始 body 內容
-      document.body.innerHTML = originalBody;
-      document.body.className = originalBodyClass; // 恢復原始 class
       
-      // 由於innerHTML被覆蓋，需要重新初始化JS事件和Chart
-      attachEventListeners(); // 重新綁定所有事件
-      setAnalysisMode(analysisMode); // 恢復模式選擇
-      updateChips(getSelections()); // 恢復chips顯示
-      
-      // 重新渲染雷達圖，需要從當前顯示的 result 文本中解析
-      const currentResultText = $('#result').innerHTML; 
-      const formattedAfterPrint = formatOutputWithJson(currentResultText); 
-      renderRadar(formattedAfterPrint.scores);
+      // 重新生成分數條 HTML (這次用於列印)
+      const scores = formatOutputWithJson($('#result').innerHTML).scores; // 從結果區獲取分數
+      const scoresHTMLForPrint = generateScoresHTML(scores);
+
+      const html = `<!doctype html><html lang=\"zh-Hant\"><head><meta charset=\"utf-8\"><title>列印</title>
+      <style>
+        body{font-family:ui-sans-serif,system-ui,-apple-system,\"Noto Sans TC\";color:#0f172a;margin:18px;}
+        h1{font-size:20px;margin:0 0 6px;}
+        .meta{color:#64748b;font-size:12px;margin-bottom:10px}
+        .chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 14px}
+        .chip{background:#eef2f7;border-radius:9999px;padding:6px 10px;font-size:12px;color:#0f172a}
+        .box{border:1px solid #e5e7eb;border-radius:12px;padding:14px}
+        .result{font-size:14px;line-height:1.6}
+        ul{margin:6px 0 6px 18px}
+        h3{margin:10px 0 4px}
+        .print-flex-container { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 15px; }
+        .print-scores-section { flex: 1; min-width: 280px; }
+        .print-chart-section { flex: 1; min-width: 280px; max-width: 50%; display: flex; justify-content: center; align-items: center; }
+        .print-chart-section img { max-width: 100%; height: auto; }
+        .score{display:flex;align-items:center;gap:10px;font-size:13px;color:#334155}
+        .bar{flex:1;height:10px;background:#e2e8f0;border-radius:9999px;overflow:hidden}
+        .bar>i{display:block;height:100%;background:#6366f1}
+        .score b{width:92px;display:inline-block;color:#0f172a}
+        .score em{width:36px;text-align:right;color:#475569;font-style:normal}
+        .scores{display:grid;grid-template-columns:1fr;gap:8px;margin-top:6px}
+        .tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+        .tag{background:#eef2ff;color:#3730a3;padding:4px 10px;border-radius:9999px;font-size:12px}
+        @page{margin:14mm}
+      </style></head><body>
+      <h1>仙人指路神獸七十二型人格</h1>
+      <div class=meta>產生時間：${new Date().toLocaleString()}</div>
+      <div class=chips>
+        <span class=chip>模式：${{ 'personality': '個性分析', 'single': '單人分析', 'dual': '雙人分析' }[sel.mode]}</span>
+        <span class=chip>我方：${[sel.aBeast||'—', sel.aKin||'—', sel.aBranch||'—'].filter(Boolean).join(' × ')}</span>
+        ${sel.mode === 'dual' ? `<span class=chip>對方：${[sel.bBeast||'—', sel.bKin||'—', sel.bBranch||'—'].filter(Boolean).join(' × ')}</span>` : ''}
+        ${sel.mode !== 'personality' ? `<span class=chip>情境：${sel.context||'—'}</span>` : ''}
+        ${sel.context === '性愛' && sel.sexDetail ? `<span class=chip>深入：${sel.sexDetail}</span>` : ''}
+      </div>
+      <div class=box><div class=result>${$('#result').innerHTML || '<em>尚未產生結果</em>'}</div>
+        ${(scoresHTMLForPrint || chartImg) ? `
+          <div class="print-flex-container">
+            ${scoresHTMLForPrint ? `<div class="print-scores-section">${scoresHTMLForPrint}</div>` : ''}
+            ${chartImg ? `<div class="print-chart-section"><img src="${chartImg}" alt="雷達圖"></div>` : ''}
+          </div>` : ''
+        }
+      </div>
+      <script>window.onload=()=>window.print()<\/script></body></html>`;
+      const w = window.open('', '_blank'); w.document.write(html); w.document.close();
     };
 
-    function attachEventListeners() {
-        // 解綁所有事件，避免重複綁定 (特別是對於 select 和 input 元素，需要額外處理)
-        // 簡單粗暴的方式是替換 innerHTML，但對於 select 的 change 事件等，重新綁定更穩健
-        
-        $('#modePersonality').onclick = () => setAnalysisMode('personality');
-        $('#modeSingle').onclick = () => setAnalysisMode('single');
-        $('#modeDual').onclick = () => setAnalysisMode('dual');
-
-        $$('.preset').forEach(b => b.onclick = () => {
-            $('#context').value = b.textContent;
-            toggleSexOptions(); 
-            updateChips(getSelections());
-        });
-
-        $('#context').oninput = () => {
-            toggleSexOptions();
-            updateChips(getSelections());
-        };
-
-        $$('.sex-detail').forEach(b => b.onclick = () => {
-            const currentText = $('#sexDetailInput').value.trim();
-            const detailType = b.dataset.detail;
-            if (!currentText.includes(detailType)) {
-                $('#sexDetailInput').value = (currentText ? currentText + '；' : '') + detailType;
-            }
-            updateChips(getSelections());
-        });
-
-        $('#sexDetailInput').oninput = () => {
-            updateChips(getSelections());
-        };
-
-        // 重新綁定 go 按鈕事件
-        $('#go').onclick = performAnalysis; // 綁定到獨立的 performAnalysis 函數
-
-        // 重新綁定 select 元素的 change 事件
-        $$('select').forEach(select => {
-            select.onchange = () => updateChips(getSelections());
-        });
-    }
-
-    // 頁面加載時初始化
-    document.addEventListener('DOMContentLoaded', () => {
-        setAnalysisMode('dual'); // 預設為雙人分析
-        attachEventListeners(); // 綁定所有事件
-        updateChips(getSelections()); // 初始載入時更新一次 chips
-    });
-
+    // 頁面加載時執行一次
+    setAnalysisMode('dual'); // 預設為雙人模式
+    toggleSexOptions(); // 初始化性愛選項顯示
   </script>
 </body>
 </html>

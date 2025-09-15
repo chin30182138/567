@@ -322,7 +322,7 @@
       const scoresHTML = generateScoresHTML(scores);
       let chartCanvasHTML = '';
 
-      if(scores && Object.values(scores).some(v => v !== null && !isNaN(v))){ // 有有效分數才繪圖
+      if(scores && Object.values(scores).some(v => v !== null && isNaN(v))){ // 有有效分數才繪圖
           chartCanvasHTML = `<div id="chart" class="w-full h-64 md:h-80"><canvas id="radar"></canvas></div>`;
           chartContainer.innerHTML = `<div class="md:flex md:gap-8">${scoresHTML}<div class="flex-1">${chartCanvasHTML}</div></div>`;
           const clamp = v => Math.max(0, Math.min(100, Number(v)||0));
@@ -407,4 +407,42 @@
         h3{margin:10px 0 4px}
         .print-flex-container { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 15px; }
         .print-scores-section { flex: 1; min-width: 280px; }
-        .print-chart-section { flex: 1; min-width: 280px; max-
+        .print-chart-section { flex: 1; min-width: 280px; max-width: 50%; display: flex; justify-content: center; align-items: center; }
+        .print-chart-section img { max-width: 100%; height: auto; }
+        .score{display:flex;align-items:center;gap:10px;font-size:13px;color:#334155}
+        .bar{flex:1;height:10px;background:#e2e8f0;border-radius:9999px;overflow:hidden}
+        .bar>i{display:block;height:100%;background:#6366f1}
+        .score b{width:92px;display:inline-block;color:#0f172a}
+        .score em{width:36px;text-align:right;color:#475569;font-style:normal}
+        .scores{display:grid;grid-template-columns:1fr;gap:8px;margin-top:6px}
+        .tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+        .tag{background:#eef2ff;color:#3730a3;padding:4px 10px;border-radius:9999px;font-size:12px}
+        @page{margin:14mm}
+      </style></head><body>
+      <h1>仙人指路神獸七十二型人格</h1>
+      <div class=meta>產生時間：${new Date().toLocaleString()}</div>
+      <div class=chips>
+        <span class=chip>模式：${{ 'personality': '個性分析', 'single': '單人分析', 'dual': '雙人分析' }[sel.mode]}</span>
+        <span class=chip>我方：${[sel.aBeast||'—', sel.aKin||'—', sel.aBranch||'—'].filter(Boolean).join(' × ')}</span>
+        ${sel.mode === 'dual' ? `<span class=chip>對方：${[sel.bBeast||'—', sel.bKin||'—', sel.bBranch||'—'].filter(Boolean).join(' × ')}</span>` : ''}
+        ${sel.mode !== 'personality' ? `<span class=chip>情境：${sel.context||'—'}</span>` : ''}
+        ${sel.context === '性愛' && sel.sexDetail ? `<span class=chip>深入：${sel.sexDetail}</span>` : ''}
+      </div>
+      <div class=box><div class=result>${$('#result').innerHTML || '<em>尚未產生結果</em>'}</div>
+        ${(scoresHTMLForPrint || chartImg) ? `
+          <div class="print-flex-container">
+            ${scoresHTMLForPrint ? `<div class="print-scores-section">${scoresHTMLForPrint}</div>` : ''}
+            ${chartImg ? `<div class="print-chart-section"><img src="${chartImg}" alt="雷達圖"></div>` : ''}
+          </div>` : ''
+        }
+      </div>
+      <script>window.onload=()=>window.print()<\/script></body></html>`;
+      const w = window.open('', '_blank'); w.document.write(html); w.document.close();
+    };
+
+    // 頁面加載時執行一次
+    setAnalysisMode('dual'); // 預設為雙人模式
+    toggleSexOptions(); // 初始化性愛選項顯示
+  </script>
+</body>
+</html>

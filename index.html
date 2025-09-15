@@ -15,10 +15,10 @@
   </style>
 </head>
 <body class="bg-gray-50 text-gray-800">
-  <div class="max-w-3xl mx-auto p-4 md:p-6 space-y-6">
+  <div class="max-w-4xl mx-auto p-4 md:p-6 space-y-6">
     <header class="no-print">
       <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 一鍵分析</h1>
-      <p class="text-sm text-gray-600">（性愛 × 職場 × 個性解析 × 隨機抽籤）</p>
+      <p class="text-sm text-gray-600">（單人解析 × 雙人互動 × 隨機抽籤）</p>
     </header>
 
     <!-- 參數設定 -->
@@ -38,19 +38,20 @@
           <option value="team">職場/合作</option>
           <option value="personality">個性解析</option>
         </select>
+      </div>
 
+      <!-- 單人選項 -->
+      <div id="singleBox" class="p-4 border-b flex flex-wrap gap-3">
         <label class="font-semibold">六獸：</label>
         <select id="aBeast" class="border rounded px-3 py-2">
           <option>青龍</option><option>朱雀</option><option>勾陳</option>
           <option>螣蛇</option><option>白虎</option><option>玄武</option>
         </select>
-
         <label class="font-semibold">六親：</label>
         <select id="aKin" class="border rounded px-3 py-2">
           <option>父母</option><option>兄弟</option><option>子孫</option>
           <option>妻財</option><option>官鬼</option>
         </select>
-
         <label class="font-semibold">地支：</label>
         <select id="aBranch" class="border rounded px-3 py-2">
           <option>子</option><option>丑</option><option>寅</option><option>卯</option>
@@ -59,7 +60,43 @@
         </select>
       </div>
 
-      <!-- 按鈕區 -->
+      <!-- 雙人選項 -->
+      <div id="doubleBox" class="p-4 border-b grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <h3 class="font-bold mb-2">人物 A</h3>
+          <select id="aBeast2" class="border rounded px-3 py-2 w-full mb-2">
+            <option>青龍</option><option>朱雀</option><option>勾陳</option>
+            <option>螣蛇</option><option>白虎</option><option>玄武</option>
+          </select>
+          <select id="aKin2" class="border rounded px-3 py-2 w-full mb-2">
+            <option>父母</option><option>兄弟</option><option>子孫</option>
+            <option>妻財</option><option>官鬼</option>
+          </select>
+          <select id="aBranch2" class="border rounded px-3 py-2 w-full">
+            <option>子</option><option>丑</option><option>寅</option><option>卯</option>
+            <option>辰</option><option>巳</option><option>午</option><option>未</option>
+            <option>申</option><option>酉</option><option>戌</option><option>亥</option>
+          </select>
+        </div>
+        <div>
+          <h3 class="font-bold mb-2">人物 B</h3>
+          <select id="bBeast" class="border rounded px-3 py-2 w-full mb-2">
+            <option>青龍</option><option>朱雀</option><option>勾陳</option>
+            <option>螣蛇</option><option>白虎</option><option>玄武</option>
+          </select>
+          <select id="bKin" class="border rounded px-3 py-2 w-full mb-2">
+            <option>父母</option><option>兄弟</option><option>子孫</option>
+            <option>妻財</option><option>官鬼</option>
+          </select>
+          <select id="bBranch" class="border rounded px-3 py-2 w-full">
+            <option>子</option><option>丑</option><option>寅</option><option>卯</option>
+            <option>辰</option><option>巳</option><option>午</option><option>未</option>
+            <option>申</option><option>酉</option><option>戌</option><option>亥</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- 按鈕 -->
       <div class="p-4 flex gap-3 border-b no-print">
         <button id="btnAnalyze" class="px-4 py-3 rounded-lg bg-indigo-600 text-white font-semibold hover:bg-indigo-700">一鍵分析</button>
         <button id="btnRandom" class="px-4 py-3 rounded-lg bg-pink-500 text-white font-semibold hover:bg-pink-600">隨機抽籤</button>
@@ -70,44 +107,12 @@
 
     <!-- 結果區 -->
     <section id="result" class="bg-white rounded-xl shadow p-4 print-card space-y-4">
-      <div id="summary" class="text-sm text-gray-700"></div>
-      <div id="deepCard" class="p-4 border rounded-lg bg-pink-50"></div>
+      <div id="deepCard"></div>
     </section>
   </div>
 
   <script>
-    // ===== 模板庫 =====
-    const SEX_TEMPLATES = {
-      opening: [
-        "氛圍由{tone}點燃，空間染上「{branch}」的熱度。",
-        "前奏展現{tone}，整體調性傾向「{branch}」。"
-      ],
-      middle: [
-        "中段以『快-快-慢』節奏推進，層層挑動。",
-        "進入主體後採漸進式加壓，每次循環更貼近極限。"
-      ],
-      closing: [
-        "結尾以擁抱與口頭交流收束，留有餘韻。",
-        "最後安排安靜相貼，三句回饋作結。"
-      ]
-    };
-
-    const WORK_TEMPLATES = {
-      opening: [
-        "會議氛圍由{tone}拉起，現場帶著「{branch}」的張力。",
-        "討論一開始展現{tone}，場域調性落在「{branch}」。"
-      ],
-      middle: [
-        "中段議程轉向權責分配，語氣逐漸尖銳。",
-        "進入核心議題，雙方角度衝突但激發新點子。"
-      ],
-      closing: [
-        "結尾透過行動方案定調，彼此角色更清楚。",
-        "最後以共識收束，氣氛回到穩定。"
-      ]
-    };
-
-    // 六獸、六親、地支人格資料庫
+    // ===== 基本資料 =====
     const PERSONALITY_LIBRARY = {
       "青龍": "靈活聰明，善於變化，帶領氣氛。",
       "朱雀": "善表達，重視舞台與聲音，喜歡被看見。",
@@ -116,7 +121,6 @@
       "白虎": "果決直接，行動力強，帶控制欲。",
       "玄武": "深沉內斂，安靜觀察，重信任。"
     };
-
     const KIN_LIBRARY = {
       "父母": { pos: "重規範與學習，容易帶壓力。", blind: "過於守舊，容易自我設限。" },
       "兄弟": { pos: "競爭心強，合作衝突並存。", blind: "容易比較，缺乏包容。" },
@@ -124,116 +128,87 @@
       "妻財": { pos: "重資源與實用，懂得算計利益。", blind: "過於功利，忽略情感。" },
       "官鬼": { pos: "責任感重，權力張力明顯。", blind: "壓力過大，易陷焦慮。" }
     };
-
     const BRANCH_LIBRARY = {
-      "子": "思維敏感，情緒細膩。",
-      "丑": "耐心務實，腳踏實地。",
-      "寅": "衝勁強烈，擅長規劃。",
-      "卯": "重美感，追求和諧。",
-      "辰": "思慮繁多，謹慎小心。",
-      "巳": "爆發外放，行動直接。",
-      "午": "舞台感強，熱情外放。",
-      "未": "穩定慢熱，持久可靠。",
-      "申": "精準細膩，重分析。",
-      "酉": "俐落整潔，效率高。",
-      "戌": "責任感重，固執堅定。",
-      "亥": "情緒流動，共感力強。"
+      "子": "思維敏感，情緒細膩。","丑": "耐心務實，腳踏實地。",
+      "寅": "衝勁強烈，擅長規劃。","卯": "重美感，追求和諧。",
+      "辰": "思慮繁多，謹慎小心。","巳": "爆發外放，行動直接。",
+      "午": "舞台感強，熱情外放。","未": "穩定慢熱，持久可靠。",
+      "申": "精準細膩，重分析。","酉": "俐落整潔，效率高。",
+      "戌": "責任感重，固執堅定。","亥": "情緒流動，共感力強。"
     };
-
-    // ===== 工具 =====
     function rand(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
     function randomChoice(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
 
-    // ===== 深度卡 =====
-    function buildDeepCard(model) {
-      const { scene } = model;
-      let title = "互動深度分析";
-      let TPL = null;
-
-      if (scene === "sex") {
-        title = "性愛深度分析"; TPL = SEX_TEMPLATES;
-      } else if (scene === "team") {
-        title = "職場互動分析"; TPL = WORK_TEMPLATES;
-      } else if (scene === "relationship") {
-        title = "關係深度分析"; TPL = SEX_TEMPLATES; // 暫用性愛模板
-      }
-
-      if (!TPL) return null;
-
-      const tone = "互動氛圍"; const branch = "情境特質";
-      const div = document.createElement("div");
-      div.innerHTML = `
-        <h3 class="font-bold text-pink-600">${title}</h3>
-        <ol class="list-decimal pl-5 space-y-1 text-sm mt-2">
-          <li>${rand(TPL.opening).replace("{tone}", tone).replace("{branch}", branch)}</li>
-          <li>${rand(TPL.middle)}</li>
-          <li>${rand(TPL.closing)}</li>
-        </ol>
-      `;
-      return div;
-    }
-
-    // ===== 個性卡 =====
-    function buildPersonalityCard(model) {
-      const { aBeast="青龍", aKin="兄弟", aBranch="子" } = model;
-      const beast = PERSONALITY_LIBRARY[aBeast] || "";
-      const kin   = KIN_LIBRARY[aKin] || {pos:"",blind:""};
-      const branch= BRANCH_LIBRARY[aBranch] || "";
-      
-      const div = document.createElement("div");
-      div.innerHTML = `
+    // ===== 單人卡 =====
+    function buildPersonalityCard({beast, kin, branch}) {
+      const b = PERSONALITY_LIBRARY[beast] || "";
+      const k = KIN_LIBRARY[kin] || {pos:"", blind:""};
+      const g = BRANCH_LIBRARY[branch] || "";
+      return `
         <h3 class="font-bold text-indigo-600">個性解析</h3>
         <ul class="list-disc pl-5 text-sm leading-6 space-y-1">
-          <li><b>核心特質：</b>${aBeast} — ${beast}</li>
-          <li><b>表現方式：</b>與「${aKin}」結合時，${kin.pos}</li>
-          <li><b>隱藏盲點：</b>${kin.blind} 加上「${aBranch}」之氣，表現為 ${branch}</li>
-        </ul>
-      `;
-      return div;
+          <li><b>核心特質：</b>${beast} — ${b}</li>
+          <li><b>表現方式：</b>與「${kin}」結合時，${k.pos}</li>
+          <li><b>隱藏盲點：</b>${k.blind} 加上「${branch}」之氣，表現為 ${g}</li>
+        </ul>`;
+    }
+
+    // ===== 雙人卡 =====
+    function buildInteractionCard(a, b, scene) {
+      let title = scene==="sex" ? "性愛互動分析" : scene==="team" ? "職場互動分析" : "關係互動分析";
+      return `
+        <h3 class="font-bold text-pink-600">${title}</h3>
+        <ul class="list-disc pl-5 text-sm leading-6 space-y-2">
+          <li><b>人物設定：</b>A = ${a.beast}${a.kin}${a.branch}（${PERSONALITY_LIBRARY[a.beast]} / ${KIN_LIBRARY[a.kin].pos} / ${BRANCH_LIBRARY[a.branch]}），
+              B = ${b.beast}${b.kin}${b.branch}（${PERSONALITY_LIBRARY[b.beast]} / ${KIN_LIBRARY[b.kin].pos} / ${BRANCH_LIBRARY[b.branch]}）。</li>
+          <li><b>互動場景：</b>${a.beast}常以${KIN_LIBRARY[a.kin].pos}表現，${b.beast}則偏向${KIN_LIBRARY[b.kin].pos}。</li>
+          <li><b>衝突點：</b>A 偏向${BRANCH_LIBRARY[a.branch]}，B 偏向${BRANCH_LIBRARY[b.branch]}，在節奏與價值觀上容易摩擦。</li>
+          <li><b>合作契機：</b>若能整合 A 的${PERSONALITY_LIBRARY[a.beast]}與 B 的${PERSONALITY_LIBRARY[b.beast]}，將產生互補力量。</li>
+          <li><b>建議：</b>A 需要多顧及 B 的需求，B 也應給 A 彈性空間。</li>
+        </ul>`;
     }
 
     // ===== 主流程 =====
     function analyze() {
+      const mode = document.getElementById("mode").value;
       const scene = document.getElementById("scene").value;
-      const aBeast = document.getElementById("aBeast").value;
-      const aKin = document.getElementById("aKin").value;
-      const aBranch = document.getElementById("aBranch").value;
-
-      const status = document.getElementById("status");
-      status.textContent = "分析中…";
+      document.getElementById("status").textContent = "分析中…";
 
       setTimeout(() => {
-        const cardHost = document.getElementById("deepCard");
-        cardHost.innerHTML = "";
-
-        if (scene === "personality") {
-          cardHost.appendChild(buildPersonalityCard({ aBeast, aKin, aBranch }));
+        let html="";
+        if (mode==="single" || scene==="personality") {
+          const beast=document.getElementById("aBeast").value;
+          const kin=document.getElementById("aKin").value;
+          const branch=document.getElementById("aBranch").value;
+          html = buildPersonalityCard({beast, kin, branch});
         } else {
-          cardHost.appendChild(buildDeepCard({ scene }));
+          const a={beast:document.getElementById("aBeast2").value,
+                   kin:document.getElementById("aKin2").value,
+                   branch:document.getElementById("aBranch2").value};
+          const b={beast:document.getElementById("bBeast").value,
+                   kin:document.getElementById("bKin").value,
+                   branch:document.getElementById("bBranch").value};
+          html = buildInteractionCard(a,b,scene);
         }
-        status.textContent = "分析完成";
-      }, 600);
+        document.getElementById("deepCard").innerHTML = html;
+        document.getElementById("status").textContent = "分析完成";
+      },600);
     }
 
     // ===== 隨機抽籤 =====
     function randomDraw() {
-      const beasts = ["青龍","朱雀","勾陳","螣蛇","白虎","玄武"];
-      const kins   = ["父母","兄弟","子孫","妻財","官鬼"];
-      const branchs= ["子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"];
-
-      const aBeast = randomChoice(beasts);
-      const aKin   = randomChoice(kins);
-      const aBranch= randomChoice(branchs);
-
-      document.getElementById("aBeast").value = aBeast;
-      document.getElementById("aKin").value   = aKin;
-      document.getElementById("aBranch").value= aBranch;
-      document.getElementById("scene").value  = "personality";
-
-      analyze(); // 直接觸發分析
+      const beasts=["青龍","朱雀","勾陳","螣蛇","白虎","玄武"];
+      const kins=["父母","兄弟","子孫","妻財","官鬼"];
+      const branches=["子","丑","寅","卯","辰","巳","午","未","申","酉","戌","亥"];
+      document.getElementById("aBeast").value=randomChoice(beasts);
+      document.getElementById("aKin").value=randomChoice(kins);
+      document.getElementById("aBranch").value=randomChoice(branches);
+      document.getElementById("scene").value="personality";
+      document.getElementById("mode").value="single";
+      analyze();
     }
 
-    // ===== 綁定事件 =====
+    // 綁定事件
     document.getElementById("btnAnalyze").addEventListener("click", analyze);
     document.getElementById("btnPrint").addEventListener("click", () => window.print());
     document.getElementById("btnRandom").addEventListener("click", randomDraw);

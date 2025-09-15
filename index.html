@@ -414,354 +414,30 @@
 
       $('#status').textContent = '分析中…'; $('#result').innerHTML = ''; $('#chartContainer').innerHTML = ''; // 清空圖表容器
       try {
-        // 這裡需要替換成您實際的 API 端點
-        // const res = await fetch('/api/analyze', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-        // const data = await res.json();
+        // --- START OF MODIFICATION ---
+        // 啟用對 /api/analyze 後端的實際呼叫
+        const res = await fetch('/api/analyze', { 
+            method: 'POST', 
+            headers: {'Content-Type':'application/json'}, 
+            body: JSON.stringify(payload) 
+        });
         
-        // 為了展示效果，這裡使用模擬數據，您需要替換成實際的 API 響應
-        const dummyData = {
-            "result_qzl_qzz_sex": `
-青龍子 X 青龍子 - 王者對決，燃燒慾望的極限較量
-
-情愛指數：10/10（勢均力敵，無法預測的激情）
-
-互動模式：當兩個青龍子相遇，性愛將是一場權力與征服的較量。雙方皆熱愛主導，充滿侵略性，彼此之間的關係就像一場永無止境的戰爭，誰能撐到最後才是贏家。
-
-雷點分析：彼此爭奪主導權，容易陷入無休止的控制爭奪戰，若無法達成平衡，可能導致緊張關係。
-
-最佳性愛劇本推薦：
-- 強制互控挑戰：雙方輪流爭奪主導權，以技巧與耐力分出勝負。
-- 極限挑逗對決：透過延遲滿足與邊緣快感測試，增強雙方的耐受度。
-- 勝者支配：制定性愛勝負條件，輸家必須完全服從對方的要求。
-
-推薦體位：
-- 站立交合（Standing Sex）：適合快速進攻與主導權更替，讓雙方都能保持強勢狀態。
-- 深度騎乘（Powerful Cowgirl）：讓一方暫時掌控，但可透過翻轉體位來重新爭奪主導權。
-- 交錯壓制（Interlocking Grip）：利用身體力量與技巧壓制對方，增加性愛中的挑戰性與競爭性。
-
-推薦玩具：
-- 震動環：增加耐力與控制感，讓雙方能夠延長戰鬥時間。
-- 皮製束縛繩：可用於限制對方行動，讓戰局更加刺激。
-- 溫感潤滑劑：透過冷熱交替的快感刺激，增強性愛的變化與層次。
-
-推薦性愛場景：
-- 鏡屋密室：四面鏡子讓彼此能夠欣賞對方的每一個動作，增加心理與視覺快感。
-- 高樓落地窗前：充滿征服感的場景，讓雙方都感受到性愛的極致刺激。
-- 健身房或擂台：帶有競技感的環境，讓性愛變成一場力量與技巧的真正對決。
-
-\`\`\`json
-{
-  "scores": {
-    "fit": 95,
-    "comm": 80,
-    "pace": 90,
-    "account": 70,
-    "trust": 85,
-    "innov": 98
-  },
-  "tags": ["激情", "主導", "征服", "競技", "權力"]
-}
-\`\`\`
-`,
-            "result_qzl_qzc_sex": `
-青龍子 X 青龍丑 - 霸氣與沉穩的對峙
-
-• 情愛指數：8.5/10（強勢與耐心的結合）
-
-• 互動模式：青龍子具有主導欲，行動迅速且喜愛挑戰，而青龍丑則較為穩重，偏好循序漸進的深層關係。當這兩者相遇時，會有主動與被動的極端拉扯，但若能找到節奏，則能達到完美的情慾平衡。
-
-• 雷點分析：青龍子的速度與強勢可能讓青龍丑感到壓力，而青龍丑的穩重與慢熱則可能讓青龍子感到不耐煩。
-
-• 最佳性愛劇本推薦：
-  o 強制慢節奏訓練：青龍子學會拉長前戲，透過按摩、輕柔挑逗來引導青龍丑進入狀態。
-  o 堅定征服：青龍子耐心挑逗，讓青龍丑無法抗拒，逐步墜入高潮的深淵。
-  o 耐力測試：透過長時間持續的刺激來突破青龍丑的理性，讓其釋放原始慾望。
-
-• 推薦體位：
-  o 騎乘位（Cowgirl）：青龍子主導，掌握節奏，青龍丑則沈浸其中。
-  o 面對面深交式（Face-to-Face Intimacy）：增強眼神交流與情感投入，讓青龍丑放下防備。
-  o 半跪後背位（Half-Kneeling Back Entry）：青龍子仍保持主導權，但讓青龍丑逐漸適應更深層的激情。
-
-• 推薦玩具：
-  o 束縛帶：讓青龍丑無法移動，完全沈浸在青龍子的掌控之下。
-  o 加熱潤滑液：配合青龍丑的慢熱特性，透過熱感加強刺激。
-  o 變頻震動器：提升青龍丑的敏感度，讓其逐步進入快感狀態。
-
-• 推薦性愛場景：
-  o 私人和室：結合溫暖的日式燈光，讓青龍丑能夠完全放鬆，接受青龍子的誘惑。
-  o 高級床鋪：柔軟床鋪搭配絲質床單，加強肢體的舒適度與情慾連結。
-  o 幽暗燭光房：適合慢速引導與深度探索的性愛過程，讓青龍子能夠充分發揮支配力。
-
-\`\`\`json
-{
-  "scores": {
-    "fit": 85,
-    "comm": 70,
-    "pace": 60,
-    "account": 90,
-    "trust": 80,
-    "innov": 75
-  },
-  "tags": ["霸氣", "沉穩", "耐心", "拉扯", "深層"]
-}
-\`\`\`
-`,
-                       "result_qzl_qzc_general": `
-青龍子 X 青龍丑 - 潛力無限的互補組合
-
-青龍子和青龍丑的組合，展現了動態與穩固的結合，充滿了互補的潛力。
-
-• 優勢：
-  - 動靜皆宜：青龍子帶來活力和開創性，青龍丑則提供穩定和深入的思考。
-  - 互相促進：青龍子可以激勵青龍丑採取行動，而青龍丑則能幫助青龍子深思熟慮。
-  - 執行力強：一旦目標確定，兩者都能有效地推動專案執行。
-
-• 挑戰：
-  - 節奏差異：青龍子快速的節奏可能讓青龍丑感到壓力，青龍丑的謹慎可能讓青龍子感到拖沓。
-  - 溝通磨合：需要時間適應彼此的溝通方式和工作步調。
-  - 決策僵局：在意見不合時，可能因各自堅持而陷入僵局。
-
-• 建議：
-  - 互相尊重：認識到彼此的優勢並給予足夠的尊重。
-  - 彈性調整：青龍子在必要時放慢速度，青龍丑則可嘗試更快地做出反應。
-  - 開放溝通：建立定期溝通機制，及時解決潛在問題。
-
-\`\`\`json
-{
-  "scores": {
-    "fit": 90,
-    "comm": 85,
-    "pace": 70,
-    "account": 88,
-    "trust": 92,
-    "innov": 80
-  },
-  "tags": ["互補", "穩定", "活力", "協作", "成長"]
-}
-\`\`\`
-`,
-            "result_personality": `
-青龍子個性分析 - 充滿活力與主導的開拓者
-
-青龍子人格類型代表著行動力、領導力和創新精神。這類人天生具有強烈的驅動力和自信，勇於開創新的局面。
-
-• 特質：
-  - 積極主動：總是充滿能量，喜歡採取行動而非被動等待。
-  - 領導能力：天生具有領導者的風範，善於帶領團隊實現目標。
-  - 創新思維：不喜歡墨守成規，樂於嘗試新方法和新技術。
-  - 挑戰者：喜歡接受挑戰，並從中獲得成就感。
-
-• 優點：
-  - 高效：能夠迅速做出決策並高效執行。
-  - 果斷：不拖泥帶水，能快速解決問題。
-  - 有遠見：對未來有清晰的願景，並能激勵他人共同前進。
-
-• 潛在挑戰：
-  - 過於強勢：有時可能過於主導，不夠傾聽他人意見。
-  - 缺乏耐心：對進度緩慢或效率低下的人事物容易感到不耐煩。
-  - 衝動：可能在未充分考慮後果的情況下做出決定。
-
-• 發展建議：
-  - 學習協作：意識到團隊合作的重要性，適度放權並傾聽他人。
-  - 培養耐心：練習在複雜情境中保持冷靜，給予他人更多時間。
-  - 反思決策：在行動前多做思考，評估潛在風險。
-
-\`\`\`json
-{
-  "scores": {
-    "fit": null,
-    "comm": 80,
-    "pace": 95,
-    "account": 90,
-    "trust": 75,
-    "innov": 90
-  },
-  "tags": ["主動", "領導", "創新", "自信", "高效"]
-}
-\`\`\`
-`,
-            "result_default": `
-請選擇有效的六獸、六親、地支組合及情境進行分析。
-
-\`\`\`json
-{
-  "scores": {
-    "fit": 50,
-    "comm": 50,
-    "pace": 50,
-    "account": 50,
-    "trust": 50,
-    "innov": 50
-  },
-  "tags": ["通用分析"]
-}
-\`\`\`
-`
-        }; // <-- 注意這裡，這是 dummyData 物件的結束標誌
-    // 一鍵分析
-    async function performAnalysis() {
-      const payload = getSelections(); 
-      updateChips(payload);
-
-      let isValid = false;
-
-      if (payload.mode === 'personality') {
-          isValid = (payload.aBeast && payload.aKin && payload.aBranch);
-          if (!isValid) { alert('個性分析：請先選滿我方「六獸、六親、地支」'); return; }
-      } else if (payload.mode === 'single') {
-        isValid = (payload.aBeast && payload.aKin && payload.aBranch && payload.context);
-        if (!isValid) { alert('單人分析：請先選滿我方「六獸、六親、地支」與情境'); return; }
-      } else { // dual
-        isValid = (payload.aBeast && payload.aKin && payload.aBranch && payload.bBeast && payload.bKin && payload.bBranch && payload.context);
-        if (!isValid) { alert('雙人分析：請先選滿我方/對方「六獸、六親、地支」與情境'); return; }
-      }
-
-      $('#status').textContent = '分析中…'; $('#result').innerHTML = ''; $('#chartContainer').innerHTML = ''; // 清空圖表容器
-      try {
-        // 這裡需要替換成您實際的 API 端點
-        // const res = await fetch('/api/analyze', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-        // const data = await res.json();
-        
-        let plain = dummyData.result_default; // 預設為通用分析
-
-        // 根據模式和選擇來決定使用哪一個模擬數據
-        if (payload.mode === 'personality') {
-            if (payload.aBeast === '青龍' && payload.aBranch === '子') {
-                plain = dummyData.result_personality;
-            }
-            // 可以根據需要添加其他六獸/地支的個性分析模擬數據
-        } else if (payload.mode === 'single') {
-            // 單人分析的模擬數據可以根據 'aBeast', 'aKin', 'aBranch', 'context' 來設計
-            if (payload.aBeast === '青龍' && payload.aBranch === '子' && payload.context === '年度目標協調') {
-                plain = `
-青龍子在「年度目標協調」情境下的分析
-
-• 特點：
-  - 強勢主導：青龍子在設定目標時會展現出強烈的個人意志，傾向於推動大膽且具挑戰性的目標。
-  - 追求創新：他們會傾向於提出創新的目標和策略，不喜歡循規蹈矩。
-  - 高效推進：一旦目標確立，會以極高的效率推進執行。
-
-• 潛在挑戰：
-  - 忽略他人意見：在協調過程中，可能過於堅持己見，較少傾聽團隊成員的意見。
-  - 目標過於激進：設定的目標可能超出團隊或資源的實際承受能力。
-  - 溝通不足：可能在目標傳達上不夠細緻，導致團隊理解不一致。
-
-• 建議：
-  - 開放式溝通：鼓勵青龍子在協調初期多聽取各方意見，納入不同視角。
-  - 分解目標：將大膽的目標分解成可實現的小步驟，增加團隊信心。
-  - 權衡風險：在追求創新時，也要充分評估潛在風險和資源需求。
-
-\`\`\`json
-{
-  "scores": {
-    "fit": null,
-    "comm": 70,
-    "pace": 90,
-    "account": 85,
-    "trust": 75,
-    "innov": 90
-  },
-  "tags": ["主導", "創新", "高效", "溝通", "協調"]
-}
-\`\`\`
-`;
-            } else if (payload.aBeast === '朱雀' && payload.aBranch === '午' && payload.context === '愛情') {
-                 plain = `
-朱雀午在「愛情」情境下的分析
-
-• 特點：
-  - 熱情奔放：朱雀午在愛情中表現出極大的熱情和活力，追求浪漫和刺激。
-  - 情感豐富：表達情感直接且真誠，渴望被愛與被關注。
-  - 充滿魅力：天生具有吸引力，容易成為眾人焦點。
-
-• 潛在挑戰：
-  - 衝動易怒：情緒來得快去得也快，可能因一時衝動而做出決定。
-  - 佔有慾強：對伴侶有較強的佔有慾，需要感受到自己是獨特的。
-  - 缺乏安全感：外表自信，內心可能需要持續的肯定與安全感。
-
-• 建議：
-  - 學會聆聽：在表達自己情感的同時，也要多聆聽伴侶的心聲。
-  - 控制情緒：在衝突時，給彼此冷靜的空間，避免言語傷害。
-  - 共同成長：尋找能一起體驗新鮮事物、共同成長的伴侶。
-
-\`\`\`json
-{
-  "scores": {
-    "fit": null,
-    "comm": 85,
-    "pace": 90,
-    "account": 65,
-    "trust": 80,
-    "innov": 88
-  },
-  "tags": ["熱情", "浪漫", "直接", "佔有", "吸引力"]
-}
-\`\`\`
-`;
-            }
-            // 可以根據需要添加其他單人分析的模擬數據
-        } else { // dual mode
-            if (payload.aBeast === '青龍' && payload.aBranch === '子' && 
-                payload.bBeast === '青龍' && payload.bBranch === '子') {
-                if (payload.context === '性愛') {
-                    plain = dummyData.result_qzl_qzz_sex;
-                } else {
-                    plain = dummyData.result_qzl_qzz_general;
-                }
-            } else if (payload.aBeast === '青龍' && payload.aBranch === '子' && 
-                       payload.bBeast === '青龍' && payload.bBranch === '丑') {
-                if (payload.context === '性愛') {
-                    plain = dummyData.result_qzl_qzc_sex;
-                } else {
-                    plain = dummyData.result_qzl_qzc_general;
-                }
-            } else if (payload.aBeast === '朱雀' && payload.aBranch === '午' && 
-                       payload.bBeast === '玄武' && payload.bBranch === '亥' && 
-                       payload.context === '愛情') {
-                plain = `
-朱雀午 X 玄武亥 - 熱情與深沉的交織
-
-• 情愛指數：9/10（互補性強，火熱與深情並存）
-
-• 互動模式：朱雀午像火，熱情奔放，渴望被看到；玄武亥像水，深沉內斂，情感豐富而隱藏。這對組合在愛情中能形成強烈互補，朱雀午能帶給玄武亥活力和刺激，玄武亥則能為朱雀午提供深度和安全感。
-
-• 雷點分析：朱雀午的直接可能讓玄武亥感到壓力，而玄武亥的內斂可能讓朱雀午覺得難以捉摸。雙方需要學習理解彼此不同的情感表達方式。
-
-• 最佳愛情劇本推薦：
-  o 浪漫冒險與溫馨港灣：朱雀午策劃刺激的約會，玄武亥提供舒適的歸屬感，動靜結合。
-  o 深度對話與情感交流：鼓勵玄武亥分享內心世界，朱雀午耐心傾聽並給予溫暖回應。
-  o 共同創造藝術：一起進行繪畫、音樂或寫作等活動，在創作中加深彼此連結。
-
-• 推薦相處模式：
-  o 互相給予空間：理解彼此在社交和獨處上的需求差異。
-  o 定期情感交流：透過寫信、約會等方式，維護情感溫度。
-  o 共同學習成長：探索新知識或技能，讓關係保持新鮮感。
-
-\`\`\`json
-{
-  "scores": {
-    "fit": 92,
-    "comm": 78,
-    "pace": 70,
-    "account": 85,
-    "trust": 90,
-    "innov": 82
-  },
-  "tags": ["熱情", "深沉", "互補", "浪漫", "理解"]
-}
-\`\`\`
-`;
-            }
-            // 可以根據需要添加其他雙人分析的模擬數據
+        if (!res.ok) {
+            const errorText = await res.text(); // 嘗試獲取錯誤響應的文本
+            throw new Error(`API Request Failed: ${res.status} ${res.statusText} - ${errorText}`);
         }
 
+        const data = await res.json();
+        const plain = data.result || data.message || "未能獲取分析結果。"; // 根據後端實際響應的鍵值獲取結果
+        // --- END OF MODIFICATION ---
+        
         const formatted = formatOutputWithJson(plain);
         $('#result').innerHTML = formatted.html + formatted.tagsHTML;
         renderRadar(formatted.scores);
         $('#status').textContent = '✅ 完成';
       } catch (e) {
-          $('#status').textContent = '❌ 失敗';
-          $('#result').textContent = String(e);
+          $('#status').textContent = `❌ 失敗: ${e.message || e}`; // 顯示更詳細的錯誤信息
+          $('#result').textContent = `分析時發生錯誤，請檢查主控台訊息。錯誤詳情：${e.message || e}`;
           console.error("Analysis failed:", e);
       }
     }
@@ -828,7 +504,8 @@
         </div>
       `;
 
-      // 替換 body 內容為列印內容，然後執行列印
+      // 替換 body
+      <!-- 替換 body -->
       document.body.innerHTML = printContent;
       document.body.classList.remove('bg-slate-50', 'text-slate-800'); // 移除 body 背景色和文字色，確保列印背景為白色
       document.body.classList.add('bg-white', 'text-black'); // 設置為白色背景黑色文字以供列印
@@ -836,18 +513,35 @@
       window.print();
 
       // 列印完成後恢復原始 body 內容
+      // 由於innerHTML被覆蓋，需要重新綁定JS事件和Chart
+      // 儲存當前分析模式和結果，以便恢復
+      const currentAnalysisMode = analysisMode;
+      const currentResultHtml = $('#result').innerHTML;
+      const currentChartData = radarChart ? radarChart.data : null;
+
       document.body.innerHTML = originalBody;
       document.body.className = originalBodyClass; // 恢復原始 class
       
-      // 由於innerHTML被覆蓋，需要重新初始化JS事件和Chart
       attachEventListeners(); // 重新綁定所有事件
-      setAnalysisMode(analysisMode); // 恢復模式選擇
+      setAnalysisMode(currentAnalysisMode); // 恢復模式選擇
       updateChips(getSelections()); // 恢復chips顯示
-      
-      // 重新渲染雷達圖，需要從當前顯示的 result 文本中解析
-      const currentResultText = $('#result').innerHTML; 
-      const formattedAfterPrint = formatOutputWithJson(currentResultText); 
-      renderRadar(formattedAfterPrint.scores);
+
+      // 恢復結果區的內容
+      $('#result').innerHTML = currentResultHtml;
+
+      // 重新渲染雷達圖，需要從保存的數據中恢復
+      if (currentChartData) {
+          const scoresToRestore = currentChartData.datasets[0].data.reduce((acc, val, i) => {
+              const labelKey = currentChartData.labels[i].split(' ')[0].toLowerCase();
+              acc[labelKey] = val; 
+              return acc;
+          }, {});
+          renderRadar(scoresToRestore);
+      } else {
+          // 如果沒有雷達圖數據，確保 chartContainer 是空的
+          $('#chartContainer').innerHTML = generateScoresHTML(null); 
+          if(radarChart){ radarChart.destroy(); radarChart = null;}
+      }
     };
 
     function attachEventListeners() {

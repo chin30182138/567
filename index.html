@@ -395,8 +395,10 @@
         $('#status').textContent = `✅ 已新增模板：${template.key}`;
       } catch (e) {
         console.error(e);
-        $('#status').textContent = '❌ 模板產生失敗';
-        alert('產生失敗：請確認已部署 /api/sex-template 並設定 OPENAI_API_KEY。');
+$('#status').textContent = '❌ 模板產生失敗';
+
+// 讓錯誤訊息更透明
+alert('產生失敗：' + (e.message || e));
       }
     };
 
@@ -504,3 +506,4 @@
   </script>
 </body>
 </html>
+

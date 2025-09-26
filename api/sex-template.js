@@ -1,5 +1,5 @@
-// /api/sex-template.js —— 正式版
-// 功能：根據 六獸 × 六親 × 地支 × 情境，呼叫 OpenAI Responses API 產生情境模板
+// /api/sex-template.js —— 正式版（使用地支，不用時辰）
+// 適用：Vercel Serverless / Node 18+
 
 export default async function handler(req, res) {
   try {
@@ -7,7 +7,6 @@ export default async function handler(req, res) {
       return res.status(405).json({ error: "Method not allowed" });
     }
 
-    // 1) 檢查環境變數
     if (!process.env.OPENAI_API_KEY) {
       return res.status(500).json({
         error: "missing_env",
@@ -16,8 +15,7 @@ export default async function handler(req, res) {
       });
     }
 
-    // 2) 解析輸入
-    const { aBeast, aKin, aBranch, bBeast, bKin, bBranch, context } = req.body ?? {};
+    const { aBeast, aBranch, bBeast, bBranch, context, sexDetail } = req.body ?? {};
     if (!aBeast || !aBranch || !context) {
       return res.status(400).json({
         error: "missing_fields",
@@ -25,27 +23,40 @@ export default async function handler(req, res) {
       });
     }
 
-    // 3) Prompt 設定
-    const system = `你是「六獸 × 六親 × 地支性愛情境模板生成器」。
-請用中立、結構化、偏向敘事和建議的語氣，生成職場或情感互動模板。
-避免輸出 HTML 表單，只能輸出排版用的文字和清單。`;
+    // 1) System 提示
+    const system = `你是「六獸六親×地支性愛模板產生器」。
+重點：十二地支必須寫成「子支、丑支、寅支、卯支…」而不是子時、丑時。
+輸出請使用條列與小標題，語氣生動，但避免過度冗長。`;
 
-    const user = `組合：
-我方：${aBeast}${aKin ? "×" + aKin : ""}×${aBranch}
-${bBeast ? `對方：${bBeast}${bKin ? "×" + bKin : ""}×${bBranch}` : "（單人）"}
+    // 2) User 提示
+    const user = `請產生性愛分析模板：
+
+我方：${aBeast} × ${aBranch}支
+${bBeast ? `對方：${bBeast} × ${bBranch}支\n` : ""}
 情境：${context}
+${sexDetail ? `深入分析需求：${sexDetail}` : ""}
 
-請依下列格式輸出：
-• 標題（簡短描述）
-• 情感氛圍（2–3 句）
-• 互動模式（條列 2–3 點）
-• 潛在雷點（條列 ≤2 點）
-• 劇本風格推薦（條列 2–3 條）
-• 溝通與照護（條列 2–3 條）
+請依照下列格式輸出（注意地支要寫「支」而非「時」）：
 
-輸出應該簡潔、可直接顯示，避免程式碼區塊或 JSON。`;
+• 標題  
+（舉例：申支火熱交織：朱雀與勾陳的激情融合）
 
-    // 4) 呼叫 OpenAI Responses API
+• 情感氛圍  
+（2–3 句描述）
+
+• 互動模式  
+- 條列 2–3 點
+
+• 潛在雷點  
+- 條列 1–2 點
+
+• 劇本風格推薦  
+- 條列 2–3 點
+
+• 溝通與照護  
+- 條列 2–3 點`;
+
+    // 3) 呼叫 OpenAI
     const r = await fetch("https://api.openai.com/v1/responses", {
       method: "POST",
       headers: {
@@ -54,7 +65,7 @@ ${bBeast ? `對方：${bBeast}${bKin ? "×" + bKin : ""}×${bBranch}` : "（單�
       },
       body: JSON.stringify({
         model: "gpt-4.1-mini",
-        temperature: 0.8,
+        temperature: 0.9,
         input: [
           { role: "system", content: system },
           { role: "user", content: user },
@@ -69,14 +80,12 @@ ${bBeast ? `對方：${bBeast}${bKin ? "×" + bKin : ""}×${bBranch}` : "（單�
 
     const data = await r.json();
 
-    // 5) 抽出純文字
+    // 4) 解析輸出
     let text = data.output_text;
     if (!text && Array.isArray(data.output)) {
       text = data.output
         .map((o) =>
-          Array.isArray(o.content)
-            ? o.content.map((c) => c.text || "").join("\n")
-            : ""
+          Array.isArray(o.content) ? o.content.map((c) => c.text || "").join("\n") : ""
         )
         .join("\n")
         .trim();
@@ -85,7 +94,6 @@ ${bBeast ? `對方：${bBeast}${bKin ? "×" + bKin : ""}×${bBranch}` : "（單�
       text = JSON.stringify(data, null, 2); // fallback
     }
 
-    // 6) 回傳
     return res.status(200).json({ text });
   } catch (e) {
     return res.status(500).json({ error: "server_error", detail: String(e) });

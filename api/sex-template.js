@@ -1,40 +1,82 @@
-朱雀子 X 朱雀子 - 火焰交錯，激情如烈焰燃燒
-•	情愛指數：10/10（互相挑釁，充滿熱度的愛慾較量）
-•	互動模式：雙方皆擅長誘惑與掌控，性愛如同炙熱舞蹈，充滿張力與衝擊。
-•	雷點分析：彼此太過火熱，可能忽略細膩的情感交流，導致過於躁動。
-•	最佳性愛劇本推薦：
-o	挑逗對決：雙方輪流主導，互相挑戰耐力與極限。
-o	火焰誘惑：透過視覺與言語暗示增強前戲，引爆無可遏止的激情。
-o	快速激情戰：適合短時間內進入高峰，讓性愛變成一場熱烈比拼。
-•	推薦體位：
-o	站立交合（Standing Sex）：快速進入激情，適合急性子朱雀。
-o	深度後背位（Deep Rear Entry）：加強身體掌控，讓快感更為強烈。
-o	極限壓制（Pinning Hold）：透過壓制增強戰鬥感，使對方屈服於激情之中。
-•	推薦玩具：
-o	震動手環：透過肢體束縛加強掌控。
-o	性感蠟燭：適合調節氣氛，使性愛更具儀式感。
-o	智能震動器：可遠端控制，增強雙方的情慾掌控感。
-•	推薦性愛場景：
-o	夜店包廂：燈光與音樂環繞，增強狂野與刺激感。
-o	高樓露臺：開放空間帶來興奮感與危險感，使快感倍增。
-o	舞蹈室鏡前：觀看彼此的身體交錯，讓情慾視覺化。
-朱雀子 X 朱雀丑 - 慢熱中的爆發，柔情與激情並存
-•	情愛指數：8.5/10（耐心與誘惑的交錯）
-•	互動模式：朱雀子熱情奔放，而朱雀丑則較為內斂，彼此形成極端的吸引力。
-•	雷點分析：朱雀子的急躁可能讓朱雀丑無法適應，需長時間調整。
-•	最佳性愛劇本推薦：
-o	緩慢撩撥：讓朱雀子學會等待，引導朱雀丑進入熱情狀態。
-o	極限耐力戰：透過拖延滿足來增強高潮感。
-o	溫柔支配：朱雀子透過細膩的調情掌控朱雀丑，使其漸漸臣服。
-•	推薦體位：
-o	蓮花交合（Lotus Position）：適合慢熱性愛，加強情感連結。
-o	後背擁抱（Spooning）：讓朱雀丑感到安全，使其更能投入。
-o	交錯纏繞（Interlocked Grip）：透過緊密接觸提升激情感。
-•	推薦玩具：
-o	柔軟束縛帶：提供輕度束縛，使朱雀丑適應性愛節奏。
-o	羽毛挑逗器：提升敏感度，使性愛過程更具層次。
-o	熱感按摩油：透過溫熱感增強前戲的舒適度與感官享受。
-•	推薦性愛場景：
-o	溫泉池畔：透過熱水讓朱雀丑更快適應性愛氛圍。
-o	大理石臥室：透過冰冷與炙熱的交替刺激，使性愛更具層次感。
-o	密閉空間：如電梯或小型包廂，增加情境的刺激與緊張感。
+// /api/sex-template.js —— 強制七大段落性愛模板
+// 適用：Vercel Serverless / Node 18+
+
+export default async function handler(req, res) {
+  try {
+    if (req.method !== "POST") {
+      return res.status(405).json({ error: "Method not allowed" });
+    }
+
+    if (!process.env.OPENAI_API_KEY) {
+      return res.status(500).json({
+        error: "missing_env",
+        detail:
+          "OPENAI_API_KEY not set. Add it in Project → Settings → Environment Variables, then Redeploy.",
+      });
+    }
+
+    const { aBeast, aKin, aBranch, bBeast, bKin, bBranch } = req.body ?? {};
+    if (!aBeast || !aKin || !aBranch || !bBeast || !bKin || !bBranch) {
+      return res.status(400).json({
+        error: "missing_fields",
+        need: ["aBeast","aKin","aBranch","bBeast","bKin","bBranch"],
+      });
+    }
+
+    const system = `你是「六獸六親×地支性愛分析器」。  
+必須輸出完整的性愛相容性報告，語氣大膽但專業，保持中文繁體格式。  
+每次輸出必須包含下列 **七大段落**，且順序固定：  
+1. 標題＋情愛指數（以 0–10，含小數點）  
+2. 互動模式（至少 2–3 條）  
+3. 雷點分析（至少 2 條）  
+4. 最佳性愛劇本推薦（至少 3 條）  
+5. 推薦體位（至少 3 條，附中文＋英文體位名）  
+6. 推薦玩具（至少 3 條，含情境用途）  
+7. 推薦性愛場景（至少 3 條，具體地點或氛圍）  
+
+請務必讓輸出長度至少 400 字，避免過度精簡。`;
+
+    const user = `分析組合：${aBeast}×${aKin}×${aBranch}  ＋  ${bBeast}×${bKin}×${bBranch}  
+請輸出完整性愛分析報告，格式用條列或小段落。`;
+
+    const r = await fetch("https://api.openai.com/v1/responses", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.OPENAI_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "gpt-4.1-mini",
+        temperature: 0.95,
+        input: [
+          { role: "system", content: system },
+          { role: "user", content: user },
+        ],
+      }),
+    });
+
+    if (!r.ok) {
+      const errText = await r.text();
+      return res.status(500).json({ error: "openai_failed", detail: errText });
+    }
+
+    const data = await r.json();
+
+    let text = data.output_text;
+    if (!text && Array.isArray(data.output)) {
+      text = data.output
+        .map((o) =>
+          Array.isArray(o.content)
+            ? o.content.map((c) => c.text || "").join("\n")
+            : ""
+        )
+        .join("\n")
+        .trim();
+    }
+    if (!text) text = JSON.stringify(data, null, 2);
+
+    return res.status(200).json({ text });
+  } catch (e) {
+    return res.status(500).json({ error: "server_error", detail: String(e) });
+  }
+}

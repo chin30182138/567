@@ -25,13 +25,13 @@
       <p class="text-slate-500 text-sm">選擇分析對象、情境 → 按「一鍵分析」或「AI 模板」。支援分數條、雷達圖、列印 / 匯出 PDF。</p>
     </header>
 
-    <!-- 模式選擇 -->
+    <!-- 模式 -->
     <div class="no-print flex gap-4 mb-4">
       <button id="modeSingle" class="px-4 py-2 rounded-xl bg-indigo-600 text-white">單人分析</button>
       <button id="modeDual" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-800">雙人分析</button>
     </div>
 
-    <!-- 我方 & 對方 -->
+    <!-- 我方 / 對方 -->
     <div class="grid md:grid-cols-2 gap-4 no-print">
       <section class="bg-white p-4 rounded-2xl shadow-sm">
         <h2 class="font-semibold mb-3">我方 <span id="labelA" class="text-sm text-slate-500">(分析主體)</span></h2>
@@ -135,6 +135,7 @@ function toggleSexOptions(){
   }
 }
 
+// AI 模板按鈕
 $('#genTpl').onclick = async () => {
   const payload = {
     aBeast: $('#aBeast').value,
@@ -156,7 +157,15 @@ $('#genTpl').onclick = async () => {
       body:JSON.stringify(payload)
     });
     const data = await res.json();
-    $('#result').innerHTML = '<pre>'+JSON.stringify(data,null,2)+'</pre>';
+    if (data.text) {
+      $('#result').innerHTML = data.text
+        .replace(/^\s*•\s*(.+)$/gm, '<h3 class="text-lg font-semibold mt-4">$1</h3>')
+        .replace(/^\s*-\s*(.+)$/gm, '<li>$1</li>')
+        .replace(/(?:<li>[^<]*<\/li>\n?)+/g, m => `<ul class="list-disc pl-5 space-y-1">${m}</ul>`)
+        .replace(/\n/g, '<br/>');
+    } else {
+      $('#result').innerHTML = '<pre>'+JSON.stringify(data,null,2)+'</pre>';
+    }
     $('#status').textContent = '✅ AI 模板完成';
   } catch(e){
     $('#status').textContent = '❌ 模板產生失敗';

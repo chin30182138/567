@@ -125,7 +125,6 @@ function initPresets(){
     };
   });
 }
-
 function toggleSexOptions(){
   if ($('#context').value.trim() === '性愛') {
     $('#sexOptions').classList.remove('hidden');
@@ -135,7 +134,16 @@ function toggleSexOptions(){
   }
 }
 
-// AI 模板按鈕
+// 共用：文字轉 HTML 排版
+function formatTextBlock(text){
+  return text
+    .replace(/^\s*•\s*(.+)$/gm, '<h3 class="text-lg font-semibold mt-4">$1</h3>')
+    .replace(/^\s*-\s*(.+)$/gm, '<li>$1</li>')
+    .replace(/(?:<li>[^<]*<\/li>\n?)+/g, m => `<ul class="list-disc pl-5 space-y-1">${m}</ul>`)
+    .replace(/\n/g, '<br/>');
+}
+
+// AI 模板
 $('#genTpl').onclick = async () => {
   const payload = {
     aBeast: $('#aBeast').value,
@@ -157,19 +165,48 @@ $('#genTpl').onclick = async () => {
       body:JSON.stringify(payload)
     });
     const data = await res.json();
-    if (data.text) {
-      $('#result').innerHTML = data.text
-        .replace(/^\s*•\s*(.+)$/gm, '<h3 class="text-lg font-semibold mt-4">$1</h3>')
-        .replace(/^\s*-\s*(.+)$/gm, '<li>$1</li>')
-        .replace(/(?:<li>[^<]*<\/li>\n?)+/g, m => `<ul class="list-disc pl-5 space-y-1">${m}</ul>`)
-        .replace(/\n/g, '<br/>');
-    } else {
-      $('#result').innerHTML = '<pre>'+JSON.stringify(data,null,2)+'</pre>';
-    }
+    $('#result').innerHTML = data.text ? formatTextBlock(data.text) : '<pre>'+JSON.stringify(data,null,2)+'</pre>';
     $('#status').textContent = '✅ AI 模板完成';
   } catch(e){
     $('#status').textContent = '❌ 模板產生失敗';
     alert('產生失敗：'+(e.message||e));
+  }
+};
+
+// 一鍵分析
+$('#go').onclick = async () => {
+  const payload = {
+    aBeast: $('#aBeast').value,
+    aKin: $('#aKin').value,
+    aBranch: $('#aBranch').value,
+    bBeast: $('#bBeast').value,
+    bKin: $('#bKin').value,
+    bBranch: $('#bBranch').value,
+    context: $('#context').value.trim()
+  };
+  if(!payload.aBeast || !payload.aKin || !payload.aBranch || !payload.context){
+    alert('請先選滿我方（六獸、六親、地支）與情境');
+    return;
+  }
+  if($('#sectionB').style.display!=="none" && (!payload.bBeast || !payload.bKin || !payload.bBranch)){
+    alert('雙人模式請也選滿對方（六獸、六親、地支）');
+    return;
+  }
+
+  $('#status').textContent = '分析中…';
+  try {
+    const res = await fetch('/api/analyze',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+    const data = await res.json();
+    let text = data.text || '';
+    $('#result').innerHTML = text ? formatTextBlock(text) : '<pre>'+JSON.stringify(data,null,2)+'</pre>';
+    $('#status').textContent = '✅ 完成';
+  } catch(e){
+    $('#status').textContent = '❌ 失敗';
+    $('#result').textContent = String(e);
   }
 };
 

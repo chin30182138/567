@@ -7,7 +7,12 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
-    @media print { @page { margin: 14mm; } .no-print { display:none !important; } body { background:#fff !important; } .print-card { box-shadow:none !important; border:1px solid #e5e7eb; } }
+    @media print { 
+      @page { margin: 14mm; } 
+      .no-print { display:none !important; } 
+      body { background:#fff !important; } 
+      .print-card { box-shadow:none !important; border:1px solid #e5e7eb; } 
+    }
     .scores{display:grid;grid-template-columns:1fr;gap:8px;margin-top:6px}
     .score{display:flex;align-items:center;gap:10px;font-size:13px;color:#334155}
     .bar{flex:1;height:10px;background:#e2e8f0;border-radius:9999px;overflow:hidden}
@@ -18,22 +23,23 @@
     .tag{background:#eef2ff;color:#3730a3;padding:4px 10px;border-radius:9999px;font-size:12px}
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800">
+<body class="bg-gradient-to-b from-slate-50 to-slate-100 text-slate-800">
   <div class="max-w-5xl mx-auto p-6 space-y-5">
-    <header class="no-print">
-      <h1 class="text-2xl font-bold">仙人指路神獸七十二型人格｜一鍵分析</h1>
-      <p class="text-slate-500 text-sm">選擇分析對象、情境 → 按「一鍵分析」或「AI 模板」。支援分數條、雷達圖、列印 / 匯出 PDF。</p>
+    <!-- Header -->
+    <header class="no-print text-center">
+      <h1 class="text-3xl font-extrabold text-indigo-700">仙人指路神獸七十二型人格</h1>
+      <p class="text-slate-500 text-sm mt-1">選擇分析對象、情境 → 按「一鍵分析」或「性愛分析」。</p>
     </header>
 
     <!-- 模式 -->
-    <div class="no-print flex gap-4 mb-4">
+    <div class="no-print flex justify-center gap-4 mb-4">
       <button id="modeSingle" class="px-4 py-2 rounded-xl bg-indigo-600 text-white">單人分析</button>
       <button id="modeDual" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-800">雙人分析</button>
     </div>
 
     <!-- 我方 / 對方 -->
     <div class="grid md:grid-cols-2 gap-4 no-print">
-      <section class="bg-white p-4 rounded-2xl shadow-sm">
+      <section class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
         <h2 class="font-semibold mb-3">我方 <span id="labelA" class="text-sm text-slate-500">(分析主體)</span></h2>
         <select id="aBeast" class="w-full mb-2 border rounded-lg p-2">
           <option value="">六獸</option>
@@ -53,7 +59,7 @@
         </select>
       </section>
 
-      <section id="sectionB" class="bg-white p-4 rounded-2xl shadow-sm">
+      <section id="sectionB" class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
         <h2 class="font-semibold mb-3">對方</h2>
         <select id="bBeast" class="w-full mb-2 border rounded-lg p-2">
           <option value="">六獸</option>
@@ -75,7 +81,7 @@
     </div>
 
     <!-- 情境 -->
-    <section class="bg-white p-4 rounded-2xl shadow-sm space-y-2 no-print">
+    <section class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-2 no-print">
       <h2 class="font-semibold">情境</h2>
       <div class="flex gap-2 flex-wrap mb-2">
         <button class="preset px-3 py-1.5 rounded-full bg-slate-100">年度目標協調</button>
@@ -101,13 +107,13 @@
     <!-- 動作列 -->
     <div class="flex flex-wrap items-center gap-3 no-print">
       <button id="go" class="px-4 py-2 rounded-xl bg-indigo-600 text-white">一鍵分析</button>
+      <button id="goSex" class="px-4 py-2 rounded-xl bg-pink-600 text-white">性愛分析</button>
       <button id="print" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-800">列印 / 匯出 PDF</button>
-      <button id="genTpl" class="px-4 py-2 rounded-xl bg-red-500 text-white">用 AI 產生此組合模板</button>
       <span id="status" class="text-sm text-slate-600"></span>
     </div>
 
     <!-- 結果 -->
-    <section class="bg-white p-5 rounded-2xl shadow-sm print-card">
+    <section class="bg-white p-5 rounded-2xl shadow-md print-card">
       <div id="result" class="prose max-w-none text-[15px]"></div>
       <div id="chart" class="mt-4"></div>
     </section>
@@ -116,101 +122,105 @@
 <script>
 const $ = s => document.querySelector(s);
 const $$ = s => document.querySelectorAll(s);
+let analysisMode = 'dual';
 
+// 模式切換
+function setAnalysisMode(mode){
+  analysisMode = mode;
+  if(mode==='single'){
+    $('#sectionB').style.display='none';
+    $('#labelA').textContent='(分析主體)';
+  } else {
+    $('#sectionB').style.display='block';
+    $('#labelA').textContent='';
+  }
+}
+$('#modeSingle').onclick = ()=>setAnalysisMode('single');
+$('#modeDual').onclick = ()=>setAnalysisMode('dual');
+
+// 預設情境按鈕
 function initPresets(){
-  $$('.preset').forEach(b => {
-    b.onclick = () => {
-      $('#context').value = b.textContent.trim();
+  $$('.preset').forEach(b=>{
+    b.onclick=()=>{
+      $('#context').value=b.textContent.trim();
       toggleSexOptions();
     };
   });
 }
 function toggleSexOptions(){
-  if ($('#context').value.trim() === '性愛') {
+  if($('#context').value.trim()==='性愛'){
     $('#sexOptions').classList.remove('hidden');
   } else {
     $('#sexOptions').classList.add('hidden');
-    $('#sexDetailInput').value = '';
+    $('#sexDetailInput').value='';
   }
 }
 
-// 共用：文字轉 HTML 排版
+// 共用文字格式化
 function formatTextBlock(text){
   return text
-    .replace(/^\s*•\s*(.+)$/gm, '<h3 class="text-lg font-semibold mt-4">$1</h3>')
-    .replace(/^\s*-\s*(.+)$/gm, '<li>$1</li>')
-    .replace(/(?:<li>[^<]*<\/li>\n?)+/g, m => `<ul class="list-disc pl-5 space-y-1">${m}</ul>`)
-    .replace(/\n/g, '<br/>');
+    .replace(/^\s*•\s*(.+)$/gm,'<h3 class="text-lg font-semibold mt-4">$1</h3>')
+    .replace(/^\s*-\s*(.+)$/gm,'<li>$1</li>')
+    .replace(/(?:<li>[^<]*<\/li>\n?)+/g,m=>`<ul class="list-disc pl-5 space-y-1">${m}</ul>`)
+    .replace(/\n/g,'<br/>');
 }
 
-// AI 模板
-$('#genTpl').onclick = async () => {
-  const payload = {
-    aBeast: $('#aBeast').value,
-    aBranch: $('#aBranch').value,
-    bBeast: $('#bBeast').value,
-    bBranch: $('#bBranch').value,
-    context: $('#context').value.trim(),
-    sexDetail: $('#sexDetailInput').value.trim()
+// 一鍵分析 (/api/analyze)
+$('#go').onclick=async()=>{
+  const payload={
+    aBeast:$('#aBeast').value,aKin:$('#aKin').value,aBranch:$('#aBranch').value,
+    bBeast:$('#bBeast').value,bKin:$('#bKin').value,bBranch:$('#bBranch').value,
+    context:$('#context').value.trim(),mode:analysisMode
   };
-  if(!payload.aBeast || !payload.aBranch || !payload.context){
-    alert('請先選好 我方六獸、地支，並輸入情境');
-    return;
+  if(!payload.aBeast||!payload.aKin||!payload.aBranch||!payload.context){
+    alert('請先選滿我方（六獸、六親、地支）與情境');return;
   }
-  $('#status').textContent = 'AI 模板產生中…';
-  try {
-    const res = await fetch('/api/sex-template',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(payload)
-    });
-    const data = await res.json();
-    $('#result').innerHTML = data.text ? formatTextBlock(data.text) : '<pre>'+JSON.stringify(data,null,2)+'</pre>';
-    $('#status').textContent = '✅ AI 模板完成';
-  } catch(e){
-    $('#status').textContent = '❌ 模板產生失敗';
-    alert('產生失敗：'+(e.message||e));
+  if(analysisMode==='dual'&&(!payload.bBeast||!payload.bKin||!payload.bBranch)){
+    alert('雙人模式請也選滿對方（六獸、六親、地支）');return;
+  }
+  $('#status').textContent='分析中…';$('#result').innerHTML='';
+  try{
+    const res=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const data=await res.json();
+    $('#result').innerHTML=data.text?formatTextBlock(data.text):'<pre>'+JSON.stringify(data,null,2)+'</pre>';
+    $('#status').textContent='✅ 完成';
+  }catch(e){
+    $('#status').textContent='❌ 失敗';$('#result').textContent=String(e);
   }
 };
 
-// 一鍵分析
-$('#go').onclick = async () => {
-  const payload = {
-    aBeast: $('#aBeast').value,
-    aKin: $('#aKin').value,
-    aBranch: $('#aBranch').value,
-    bBeast: $('#bBeast').value,
-    bKin: $('#bKin').value,
-    bBranch: $('#bBranch').value,
-    context: $('#context').value.trim()
+// 性愛分析 (/api/sex-template)
+$('#goSex').onclick=async()=>{
+  const payload={
+    aBeast:$('#aBeast').value,aBranch:$('#aBranch').value,
+    bBeast:$('#bBeast').value,bBranch:$('#bBranch').value,
+    context:$('#context').value.trim(),sexDetail:$('#sexDetailInput').value.trim()
   };
-  if(!payload.aBeast || !payload.aKin || !payload.aBranch || !payload.context){
-    alert('請先選滿我方（六獸、六親、地支）與情境');
-    return;
+  if(!payload.aBeast||!payload.aBranch||!payload.context){
+    alert('請先選好 我方六獸、地支，並輸入情境');return;
   }
-  if($('#sectionB').style.display!=="none" && (!payload.bBeast || !payload.bKin || !payload.bBranch)){
-    alert('雙人模式請也選滿對方（六獸、六親、地支）');
-    return;
+  $('#status').textContent='性愛模板產生中…';$('#result').innerHTML='';
+  try{
+    const res=await fetch('/api/sex-template',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    const data=await res.json();
+    $('#result').innerHTML=data.text?formatTextBlock(data.text):'<pre>'+JSON.stringify(data,null,2)+'</pre>';
+    $('#status').textContent='✅ 性愛分析完成';
+  }catch(e){
+    $('#status').textContent='❌ 模板產生失敗';alert('產生失敗：'+(e.message||e));
   }
+};
 
-  $('#status').textContent = '分析中…';
-  try {
-    const res = await fetch('/api/analyze',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify(payload)
-    });
-    const data = await res.json();
-    let text = data.text || '';
-    $('#result').innerHTML = text ? formatTextBlock(text) : '<pre>'+JSON.stringify(data,null,2)+'</pre>';
-    $('#status').textContent = '✅ 完成';
-  } catch(e){
-    $('#status').textContent = '❌ 失敗';
-    $('#result').textContent = String(e);
-  }
+// 列印 / 匯出 PDF
+$('#print').onclick=()=>{
+  const html=`<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><title>列印</title></head><body>
+  <h1>仙人指路神獸七十二型人格</h1>
+  <div>${$('#result').innerHTML||'<em>尚未產生結果</em>'}</div>
+  <script>window.onload=()=>window.print()<\/script></body></html>`;
+  const w=window.open('','_blank');w.document.write(html);w.document.close();
 };
 
 // 初始化
+setAnalysisMode('dual');
 initPresets();
 toggleSexOptions();
 </script>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>仙人指路神獸七十二型人格 一鍵分析</title>
+  <title>神獸七十二型人格 一鍵分析</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
@@ -12,212 +12,218 @@
       .no-print { display: none !important; }
       body { background: #fff !important; }
     }
-    body {
-      transition: background 0.5s ease-in-out;
-      background-size: cover;
-      background-position: center;
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 12px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.08);
     }
-    .card { background: white; border-radius: 1rem; box-shadow: 0 2px 6px rgba(0,0,0,0.1); padding: 1.2rem; }
-    .score-bar { height: 12px; border-radius: 9999px; overflow: hidden; background: #e5e7eb; }
-    .score-fill { height: 100%; }
+    .score-bar { height: 10px; background: #e5e7eb; border-radius: 9999px; overflow: hidden; }
+    .score-bar > div { height: 100%; }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
-  <div class="max-w-6xl mx-auto p-6 space-y-6">
-    <!-- Header -->
-    <header class="no-print text-center space-y-2">
-      <h1 class="text-3xl font-bold text-indigo-700">仙人指路神獸七十二型人格｜一鍵分析</h1>
-      <p class="text-slate-500 text-sm">選擇模式 → 輸入對象與情境 → 按「一鍵分析」。支援雷達圖、百分比條、列印 / PDF。</p>
+  <div class="max-w-5xl mx-auto p-6 space-y-5">
+    <header class="no-print">
+      <h1 class="text-2xl font-bold">神獸七十二型人格｜一鍵分析</h1>
+      <p class="text-slate-500 text-sm">支援個性 / 性愛分析、雷達圖、列印、背景自訂、主題色切換。</p>
     </header>
 
-    <!-- 分析模式切換 -->
-    <div class="no-print flex justify-center gap-4">
-      <button id="modePersonality" class="px-4 py-2 rounded-xl bg-indigo-600 text-white">個性分析</button>
-      <button id="modeSex" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-800">性愛分析</button>
+    <!-- 模式 -->
+    <div class="no-print flex gap-4 mb-4">
+      <button id="modeSingle" class="px-4 py-2 rounded-xl bg-indigo-600 text-white">單人分析</button>
+      <button id="modeDual" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-800">雙人分析</button>
     </div>
 
-    <!-- 參數選擇 -->
+    <!-- 我方 / 對方 -->
     <div class="grid md:grid-cols-2 gap-4 no-print">
-      <!-- 我方 -->
-      <section class="card">
-        <h2 class="font-semibold mb-2">我方</h2>
-        <select id="aBeast" class="w-full mb-2 border rounded-lg p-2">
-          <option value="">六獸</option>
-          <option>青龍</option><option>朱雀</option><option>勾陳</option>
-          <option>螣蛇</option><option>白虎</option><option>玄武</option>
-        </select>
-        <select id="aKin" class="w-full mb-2 border rounded-lg p-2">
-          <option value="">六親</option>
-          <option>父母</option><option>兄弟</option><option>子孫</option>
-          <option>妻財</option><option>官鬼</option>
-        </select>
-        <select id="aBranch" class="w-full border rounded-lg p-2">
-          <option value="">地支</option>
-          <option>子</option><option>丑</option><option>寅</option><option>卯</option>
-          <option>辰</option><option>巳</option><option>午</option><option>未</option>
-          <option>申</option><option>酉</option><option>戌</option><option>亥</option>
-        </select>
+      <section class="bg-white p-4 rounded-2xl shadow-sm">
+        <h2 class="font-semibold mb-3">我方</h2>
+        <select id="aBeast" class="w-full mb-2 border rounded-lg p-2"><option value="">六獸</option><option>青龍</option><option>朱雀</option><option>勾陳</option><option>螣蛇</option><option>白虎</option><option>玄武</option></select>
+        <select id="aKin" class="w-full mb-2 border rounded-lg p-2"><option value="">六親</option><option>父母</option><option>兄弟</option><option>子孫</option><option>妻財</option><option>官鬼</option></select>
+        <select id="aBranch" class="w-full border rounded-lg p-2"><option value="">地支</option><option>子</option><option>丑</option><option>寅</option><option>卯</option><option>辰</option><option>巳</option><option>午</option><option>未</option><option>申</option><option>酉</option><option>戌</option><option>亥</option></select>
       </section>
 
-      <!-- 對方 -->
-      <section id="sectionB" class="card">
-        <h2 class="font-semibold mb-2">對方</h2>
-        <select id="bBeast" class="w-full mb-2 border rounded-lg p-2">
-          <option value="">六獸</option>
-          <option>青龍</option><option>朱雀</option><option>勾陳</option>
-          <option>螣蛇</option><option>白虎</option><option>玄武</option>
-        </select>
-        <select id="bKin" class="w-full mb-2 border rounded-lg p-2">
-          <option value="">六親</option>
-          <option>父母</option><option>兄弟</option><option>子孫</option>
-          <option>妻財</option><option>官鬼</option>
-        </select>
-        <select id="bBranch" class="w-full border rounded-lg p-2">
-          <option value="">地支</option>
-          <option>子</option><option>丑</option><option>寅</option><option>卯</option>
-          <option>辰</option><option>巳</option><option>午</option><option>未</option>
-          <option>申</option><option>酉</option><option>戌</option><option>亥</option>
-        </select>
+      <section id="sectionB" class="bg-white p-4 rounded-2xl shadow-sm">
+        <h2 class="font-semibold mb-3">對方</h2>
+        <select id="bBeast" class="w-full mb-2 border rounded-lg p-2"><option value="">六獸</option><option>青龍</option><option>朱雀</option><option>勾陳</option><option>螣蛇</option><option>白虎</option><option>玄武</option></select>
+        <select id="bKin" class="w-full mb-2 border rounded-lg p-2"><option value="">六親</option><option>父母</option><option>兄弟</option><option>子孫</option><option>妻財</option><option>官鬼</option></select>
+        <select id="bBranch" class="w-full border rounded-lg p-2"><option value="">地支</option><option>子</option><option>丑</option><option>寅</option><option>卯</option><option>辰</option><option>巳</option><option>午</option><option>未</option><option>申</option><option>酉</option><option>戌</option><option>亥</option></select>
       </section>
     </div>
 
     <!-- 情境 -->
-    <section class="card no-print space-y-2">
+    <section class="bg-white p-4 rounded-2xl shadow-sm space-y-2 no-print">
       <h2 class="font-semibold">情境</h2>
       <div class="flex gap-2 flex-wrap mb-2">
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">職場合作</button>
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">績效回饋</button>
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">跨部門溝通</button>
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">衝突化解</button>
         <button class="preset px-3 py-1.5 rounded-full bg-slate-100">人際關係</button>
-        <button class="preset px-3 py-1.5 rounded-full bg-red-100 text-red-700">愛情</button>
-        <button class="preset px-3 py-1.5 rounded-full bg-red-100 text-red-700">性愛</button>
+        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">職場合作</button>
+        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">性愛</button>
       </div>
       <input id="context" class="w-full border rounded-lg p-2" placeholder="輸入情境…" />
-      <div id="sexOptions" class="hidden mt-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-        <p class="font-semibold text-red-700 mb-2">性愛情境深入分析：</p>
-        <div class="flex flex-wrap gap-2">
-          <label><input type="checkbox" value="情境描述"> 情境描述</label>
-          <label><input type="checkbox" value="姿勢建議"> 姿勢建議</label>
-          <label><input type="checkbox" value="對話引導"> 對話引導</label>
-          <label><input type="checkbox" value="情趣服裝"> 情趣服裝</label>
-          <label><input type="checkbox" value="玩具推薦"> 玩具推薦</label>
-          <label><input type="checkbox" value="場景建議"> 場景建議</label>
+      <!-- 性愛深入分析 -->
+      <div id="sexOptions" class="hidden mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
+        <p class="font-semibold text-red-700 mb-2">性愛深入分析選項：</p>
+        <div class="flex flex-wrap gap-3">
+          <label><input type="checkbox" class="sex-detail" value="情境描述"> 情境描述</label>
+          <label><input type="checkbox" class="sex-detail" value="體位建議"> 體位建議</label>
+          <label><input type="checkbox" class="sex-detail" value="玩具推薦"> 玩具推薦</label>
+          <label><input type="checkbox" class="sex-detail" value="場景推薦"> 場景推薦</label>
         </div>
       </div>
     </section>
 
-    <!-- 背景設定 -->
-    <section class="card no-print space-y-2">
-      <h2 class="font-semibold">背景設定</h2>
-      <input id="bgColor" type="color" class="border rounded p-1" />
-      <input id="bgImage" type="text" placeholder="輸入背景圖片網址" class="border rounded-lg p-2 w-full" />
-      <button id="applyBg" class="mt-2 px-3 py-1 rounded-lg bg-indigo-600 text-white">套用背景</button>
-    </section>
-
     <!-- 動作列 -->
-    <div class="flex gap-3 no-print">
+    <div class="flex flex-wrap items-center gap-3 no-print">
       <button id="go" class="px-4 py-2 rounded-xl bg-indigo-600 text-white">一鍵分析</button>
       <button id="print" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-800">列印 / 匯出 PDF</button>
+      <label class="px-3 py-2 rounded-lg bg-slate-200 text-slate-700 cursor-pointer">
+        匯入背景圖片
+        <input type="file" id="bgUpload" accept="image/*" class="hidden">
+      </label>
+      <button id="clearBg" class="px-3 py-2 rounded-lg bg-red-100 text-red-700">清除背景</button>
+      <select id="theme" class="border rounded-lg p-2">
+        <option value="indigo">主題色：藍紫</option>
+        <option value="red">紅色</option>
+        <option value="green">綠色</option>
+        <option value="yellow">黃色</option>
+        <option value="purple">紫色</option>
+        <option value="black">黑色</option>
+      </select>
       <span id="status" class="text-sm text-slate-600"></span>
     </div>
 
     <!-- 結果 -->
-    <section class="card space-y-4 print-card">
-      <h2 class="text-xl font-bold text-indigo-700">分析結果</h2>
-      <div id="result" class="space-y-4 text-[15px]"></div>
-      <div id="scores"></div>
-      <div id="chart"></div>
-    </section>
+    <section id="result" class="print-card"></section>
+    <div id="chart" class="mt-4"></div>
   </div>
 
   <script>
     const $ = s => document.querySelector(s);
     const $$ = s => document.querySelectorAll(s);
-    let analysisMode = "personality";
+    let analysisMode = 'dual';
+    let radarChart = null;
+    let themeColor = "#6366f1"; // 預設 indigo
 
     // 模式切換
-    $("#modePersonality").onclick = () => setMode("personality");
-    $("#modeSex").onclick = () => setMode("sex");
-    function setMode(mode){
+    function setAnalysisMode(mode) {
       analysisMode = mode;
-      $("#modePersonality").className = mode==="personality"?"px-4 py-2 rounded-xl bg-indigo-600 text-white":"px-4 py-2 rounded-xl bg-slate-200 text-slate-800";
-      $("#modeSex").className = mode==="sex"?"px-4 py-2 rounded-xl bg-indigo-600 text-white":"px-4 py-2 rounded-xl bg-slate-200 text-slate-800";
+      $('#sectionB').style.display = (mode==='single') ? 'none' : 'block';
     }
+    $('#modeSingle').onclick = () => setAnalysisMode('single');
+    $('#modeDual').onclick = () => setAnalysisMode('dual');
 
     // 情境按鈕
-    $$(".preset").forEach(b => b.onclick = () => {
-      $("#context").value = b.textContent;
+    $$('.preset').forEach(b => b.onclick = () => {
+      $('#context').value = b.textContent;
       toggleSexOptions();
     });
-    $("#context").oninput = toggleSexOptions;
-    function toggleSexOptions(){
-      if ($("#context").value.includes("性愛")) $("#sexOptions").classList.remove("hidden");
-      else $("#sexOptions").classList.add("hidden");
+    function toggleSexOptions() {
+      if ($('#context').value.includes('性愛')) $('#sexOptions').classList.remove('hidden');
+      else $('#sexOptions').classList.add('hidden');
     }
 
-    // 背景設定
-    $("#applyBg").onclick = () => {
-      if($("#bgImage").value.trim()){
-        document.body.style.background = `url('${$("#bgImage").value}') no-repeat center/cover`;
-      } else {
-        document.body.style.background = $("#bgColor").value;
-      }
-    };
-
-    // 假資料測試
-    $("#go").onclick = async () => {
-      $("#status").textContent = "分析中…";
-      const payload = {
+    // 取得選項
+    function getSelections(){
+      const sexDetail = Array.from($$('.sex-detail:checked')).map(i=>i.value);
+      return {
         mode: analysisMode,
-        aBeast: $("#aBeast").value, aKin: $("#aKin").value, aBranch: $("#aBranch").value,
-        bBeast: $("#bBeast").value, bKin: $("#bKin").value, bBranch: $("#bBranch").value,
-        context: $("#context").value,
-        sexDetail: [...$$("input[type=checkbox]:checked")].map(c=>c.value)
+        aBeast: $('#aBeast').value, aKin: $('#aKin').value, aBranch: $('#aBranch').value,
+        bBeast: $('#bBeast').value, bKin: $('#bKin').value, bBranch: $('#bBranch').value,
+        context: $('#context').value.trim(),
+        sexDetail
       };
+    }
 
-      // TODO: 接上你的 /api/analyze 或 /api/sex-template
-      // 這裡先放假資料
-      const fake = {
-        text: "情境描述：雙方互動熱烈，激情與理性交錯。\n互動模式：一方主導，一方回應，默契良好。\n雷點分析：需注意節奏差異避免摩擦。",
-        scores: { fit:76, comm:73, pace:65, account:71, trust:65, innov:78 },
-        tags: ["創新","契合","感官探索"]
-      };
-      renderResult(fake);
-      $("#status").textContent = "✅ 完成";
-    };
-
+    // 結果渲染
     function renderResult(data){
-      $("#result").innerHTML = data.text.split("\n").map(p=>`<div class="card"><p>${p}</p></div>`).join("");
+      let html = `<div class="card"><h3 class="text-xl font-bold mb-2" style="color:${themeColor}">${data.text || ''}</h3></div>`;
+      if(data.sections){
+        data.sections.forEach(sec=>{
+          if(sec.items){
+            html += `<div class="card"><h4 class="font-semibold mb-1">${sec.title}</h4>
+              <ul class="list-disc pl-5 space-y-1">${sec.items.map(i=>`<li>${i}</li>`).join("")}</ul></div>`;
+          } else {
+            html += `<div class="card"><h4 class="font-semibold mb-1">${sec.title}</h4><p>${sec.content}</p></div>`;
+          }
+        });
+      }
+      $('#result').innerHTML = html;
       if(data.scores){ renderScores(data.scores); renderRadar(data.scores); }
     }
 
-    function renderScores(s){
-      const wrap = $("#scores"); wrap.innerHTML = "";
-      const items = { fit:"契合", comm:"溝通", pace:"節奏", account:"權責", trust:"信任", innov:"創新" };
-      for(const k in items){
-        const v = Math.max(0, Math.min(100, s[k]||0));
-        wrap.innerHTML += `<div class="mb-2"><b>${items[k]}</b>
-          <div class="score-bar"><div class="score-fill" style="width:${v}%;background:linear-gradient(to right,#6366f1,#22c55e)"></div></div>
-          <span class="text-sm text-slate-600">${v}%</span></div>`;
+    // 分數條
+    function renderScores(scores){
+      let html = `<div class="card"><h4 class="font-semibold mb-2">六維度分數</h4>`;
+      for(let k in scores){
+        const v = scores[k];
+        html += `<div class="mb-2"><div class="flex justify-between text-sm"><span>${k}</span><span>${v}</span></div>
+        <div class="score-bar"><div style="width:${v}%;background:${themeColor}"></div></div></div>`;
       }
+      html += `</div>`;
+      $('#result').innerHTML += html;
     }
 
-    let radarChart=null;
-    function renderRadar(s){
-      const ctx = document.createElement("canvas");
-      $("#chart").innerHTML=""; $("#chart").appendChild(ctx);
-      radarChart && radarChart.destroy();
-      radarChart = new Chart(ctx,{type:"radar",
-        data:{labels:["契合","溝通","節奏","權責","信任","創新"],
-        datasets:[{label:"分析雷達圖",data:[s.fit,s.comm,s.pace,s.account,s.trust,s.innov],
-        fill:true,backgroundColor:"rgba(99,102,241,0.2)",borderColor:"#6366f1"}]},
-        options:{scales:{r:{beginAtZero:true,max:100}}}
+    // 雷達圖
+    function renderRadar(scores){
+      const wrap = document.getElementById('chart'); wrap.innerHTML = '';
+      const labels = Object.keys(scores); const data = Object.values(scores);
+      const canvas = document.createElement('canvas'); wrap.appendChild(canvas);
+      if(radarChart) radarChart.destroy();
+      radarChart = new Chart(canvas.getContext('2d'), {
+        type:'radar',
+        data:{labels,datasets:[{label:'六維度雷達圖',data,fill:true,
+          backgroundColor:themeColor+'33', borderColor:themeColor, pointBackgroundColor:themeColor}]},
+        options:{scales:{r:{suggestedMin:0,suggestedMax:100}}}
       });
     }
 
-    // 列印
-    $("#print").onclick = () => window.print();
+    // 一鍵分析
+    $('#go').onclick = async () => {
+      const sel = getSelections();
+      if(sel.mode==='dual'){
+        if(sel.aBeast===sel.bBeast && sel.aBeast) return alert('雙人分析時六獸不能相同');
+        if(sel.aKin===sel.bKin && sel.aKin) return alert('雙人分析時六親不能相同');
+      }
+      $('#status').textContent='分析中…'; $('#result').innerHTML=''; $('#chart').innerHTML='';
+      try{
+        const api = sel.context.includes('性愛') ? '/api/sex-template' : '/api/analyze';
+        const res = await fetch(api,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(sel)});
+        const data = await res.json();
+        renderResult(data);
+        $('#status').textContent='✅ 完成';
+      }catch(e){
+        $('#status').textContent='❌ 失敗'; $('#result').textContent=String(e);
+      }
+    };
+
+    $('#print').onclick = () => window.print();
+
+    // 背景圖片
+    $('#bgUpload').addEventListener('change', e=>{
+      const file=e.target.files[0]; if(!file) return;
+      const reader=new FileReader();
+      reader.onload=evt=>{
+        document.body.style.backgroundImage=`url(${evt.target.result})`;
+        document.body.style.backgroundSize='cover';
+        document.body.style.backgroundAttachment='fixed';
+      };
+      reader.readAsDataURL(file);
+    });
+    $('#clearBg').onclick=()=>{document.body.style.backgroundImage='';};
+
+    // 主題色切換
+    function setTheme(color){
+      const map={indigo:"#6366f1",red:"#ef4444",green:"#22c55e",yellow:"#f59e0b",purple:"#8b5cf6",black:"#0f172a"};
+      themeColor=map[color]||"#6366f1";
+      document.querySelectorAll('button').forEach(btn=>{
+        if(btn.id==='go') btn.style.backgroundColor=themeColor;
+      });
+    }
+    $('#theme').onchange = e=>setTheme(e.target.value);
+
+    setAnalysisMode('dual');
   </script>
 </body>
 </html>

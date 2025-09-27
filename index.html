@@ -3,193 +3,242 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>神獸七十二型人格 一鍵分析</title>
+  <title>神獸七十二型人格｜分析系統</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
-    @media print { @page { margin: 14mm; } .no-print { display:none !important; } body { background:#fff !important; } .print-card { box-shadow:none !important; border:1px solid #e5e7eb; } }
-    body{background-size:cover;background-position:center;}
-    .scores{display:grid;grid-template-columns:1fr;gap:8px;margin-top:6px}
-    .score{display:flex;align-items:center;gap:10px;font-size:13px;color:#334155}
-    .bar{flex:1;height:10px;background:#e2e8f0;border-radius:9999px;overflow:hidden}
-    .bar>i{display:block;height:100%}
-    .score b{width:92px;display:inline-block;color:#0f172a}
-    .score em{width:36px;text-align:right;color:#475569;font-style:normal}
-    .tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-    .tag{background:#eef2ff;color:#3730a3;padding:4px 10px;border-radius:9999px;font-size:12px}
-    .card{background:#fff;border-radius:1rem;padding:1rem;margin-bottom:1rem;box-shadow:0 2px 6px rgba(0,0,0,0.08);}
+    @media print {
+      @page { margin: 14mm; }
+      .no-print { display: none !important; }
+      body { background: #fff !important; }
+    }
+    .card { background: #fff; border-radius: 12px; padding: 16px; margin-top: 12px; box-shadow: 0 2px 6px rgba(0,0,0,0.05); }
+    .score { display: flex; align-items: center; gap: 10px; font-size: 13px; margin: 6px 0; }
+    .bar { flex: 1; height: 10px; background: #e2e8f0; border-radius: 9999px; overflow: hidden; }
+    .bar > i { display: block; height: 100%; }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
-  <div class="max-w-6xl mx-auto p-6 space-y-5">
-    <header class="no-print flex justify-between items-center">
-      <h1 class="text-2xl font-bold">神獸七十二型人格｜一鍵分析</h1>
-      <div class="flex gap-2 items-center">
-        <label class="text-sm">背景色 <input type="color" id="bgColor" value="#f8fafc"></label>
-        <label class="text-sm">背景圖 <input type="file" id="bgImg" accept="image/*"></label>
-      </div>
+  <div class="max-w-5xl mx-auto p-6 space-y-5">
+    <header class="no-print">
+      <h1 class="text-2xl font-bold">神獸七十二型人格｜分析系統</h1>
+      <p class="text-slate-500 text-sm">單人 / 雙人分析，支援性愛與個性模式，含分數條、雷達圖、背景上傳與列印。</p>
     </header>
 
-    <!-- 模式選擇 -->
-    <div class="no-print flex gap-4 mb-4">
+    <!-- 模式切換 -->
+    <div class="no-print flex gap-4">
       <button id="modeSingle" class="px-4 py-2 rounded-xl bg-indigo-600 text-white">單人分析</button>
       <button id="modeDual" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-800">雙人分析</button>
     </div>
 
-    <!-- 條件輸入 -->
-    <div class="no-print grid md:grid-cols-2 gap-4">
+    <!-- 選擇區 -->
+    <div class="grid md:grid-cols-2 gap-4 no-print">
       <!-- 我方 -->
       <section class="bg-white p-4 rounded-2xl shadow-sm">
-        <h2 class="font-semibold mb-3">我方 <span id="labelA" class="text-sm text-slate-500">(分析主體)</span></h2>
-        <select id="aBeast" class="w-full mb-2 border rounded-lg p-2"><option value="">六獸</option><option>青龍</option><option>朱雀</option><option>勾陳</option><option>螣蛇</option><option>白虎</option><option>玄武</option></select>
-        <select id="aKin" class="w-full mb-2 border rounded-lg p-2"><option value="">六親</option><option>父母</option><option>兄弟</option><option>子孫</option><option>妻財</option><option>官鬼</option></select>
-        <select id="aBranch" class="w-full border rounded-lg p-2"><option value="">地支</option><option>子</option><option>丑</option><option>寅</option><option>卯</option><option>辰</option><option>巳</option><option>午</option><option>未</option><option>申</option><option>酉</option><option>戌</option><option>亥</option></select>
+        <h2 class="font-semibold mb-3">我方</h2>
+        <select id="aBeast" class="w-full mb-2 border rounded-lg p-2">
+          <option value="">六獸</option>
+          <option>青龍</option><option>朱雀</option><option>勾陳</option>
+          <option>螣蛇</option><option>白虎</option><option>玄武</option>
+        </select>
+        <select id="aKin" class="w-full mb-2 border rounded-lg p-2">
+          <option value="">六親</option>
+          <option>父母</option><option>兄弟</option><option>子孫</option>
+          <option>妻財</option><option>官鬼</option>
+        </select>
+        <select id="aBranch" class="w-full border rounded-lg p-2">
+          <option value="">地支</option>
+          <option>子</option><option>丑</option><option>寅</option><option>卯</option>
+          <option>辰</option><option>巳</option><option>午</option><option>未</option>
+          <option>申</option><option>酉</option><option>戌</option><option>亥</option>
+        </select>
       </section>
+
       <!-- 對方 -->
       <section id="sectionB" class="bg-white p-4 rounded-2xl shadow-sm">
         <h2 class="font-semibold mb-3">對方</h2>
-        <select id="bBeast" class="w-full mb-2 border rounded-lg p-2"><option value="">六獸</option><option>青龍</option><option>朱雀</option><option>勾陳</option><option>螣蛇</option><option>白虎</option><option>玄武</option></select>
-        <select id="bKin" class="w-full mb-2 border rounded-lg p-2"><option value="">六親</option><option>父母</option><option>兄弟</option><option>子孫</option><option>妻財</option><option>官鬼</option></select>
-        <select id="bBranch" class="w-full border rounded-lg p-2"><option value="">地支</option><option>子</option><option>丑</option><option>寅</option><option>卯</option><option>辰</option><option>巳</option><option>午</option><option>未</option><option>申</option><option>酉</option><option>戌</option><option>亥</option></select>
+        <select id="bBeast" class="w-full mb-2 border rounded-lg p-2">
+          <option value="">六獸</option>
+          <option>青龍</option><option>朱雀</option><option>勾陳</option>
+          <option>螣蛇</option><option>白虎</option><option>玄武</option>
+        </select>
+        <select id="bKin" class="w-full mb-2 border rounded-lg p-2">
+          <option value="">六親</option>
+          <option>父母</option><option>兄弟</option><option>子孫</option>
+          <option>妻財</option><option>官鬼</option>
+        </select>
+        <select id="bBranch" class="w-full border rounded-lg p-2">
+          <option value="">地支</option>
+          <option>子</option><option>丑</option><option>寅</option><option>卯</option>
+          <option>辰</option><option>巳</option><option>午</option><option>未</option>
+          <option>申</option><option>酉</option><option>戌</option><option>亥</option>
+        </select>
       </section>
     </div>
 
     <!-- 情境 -->
-    <section class="bg-white p-4 rounded-2xl shadow-sm space-y-2 no-print">
-      <h2 class="font-semibold">情境</h2>
+    <section class="bg-white p-4 rounded-2xl shadow-sm no-print">
+      <h2 class="font-semibold mb-2">情境</h2>
       <div class="flex gap-2 flex-wrap mb-2">
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">人際關係</button>
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">性愛</button>
+        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">年度目標協調</button>
+        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">績效回饋會議</button>
+        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">跨部門協作</button>
+        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">壓期交付專案</button>
+        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">人際關係協調</button>
+        <button class="preset px-3 py-1.5 rounded-full bg-red-100">性愛</button>
       </div>
       <input id="context" class="w-full border rounded-lg p-2" placeholder="輸入情境…" />
-      <div id="sexOptions" class="hidden mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-        <p class="font-semibold text-red-700 mb-2">性愛情境深入分析：</p>
-        <div class="flex flex-wrap gap-2">
-          <label><input type="checkbox" class="sex-detail" value="姿勢建議"> 姿勢建議</label>
-          <label><input type="checkbox" class="sex-detail" value="對話引導"> 對話引導</label>
-          <label><input type="checkbox" class="sex-detail" value="情境描述"> 情境描述</label>
-          <label><input type="checkbox" class="sex-detail" value="玩具推薦"> 玩具推薦</label>
-        </div>
-      </div>
     </section>
 
     <!-- 動作列 -->
-    <div class="flex flex-wrap items-center gap-3 no-print">
+    <div class="no-print flex flex-wrap items-center gap-3">
       <button id="go" class="px-4 py-2 rounded-xl bg-indigo-600 text-white">一鍵分析</button>
-      <button id="print" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-800">列印 / 匯出 PDF</button>
+      <button id="print" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-800">列印 / PDF</button>
+      <label class="px-3 py-2 rounded-lg bg-slate-200 text-slate-700 cursor-pointer">
+        匯入背景圖片
+        <input type="file" id="bgImg" accept="image/*" class="hidden">
+      </label>
+      <input type="color" id="bgColor" class="w-10 h-10 rounded" />
       <span id="status" class="text-sm text-slate-600"></span>
     </div>
 
     <!-- 結果 -->
-    <section class="bg-white p-5 rounded-2xl shadow-sm print-card">
-      <div class="flex flex-wrap gap-2 text-sm text-slate-600 mb-3">
-        <span class="px-3 py-1 bg-slate-100 rounded-full">模式：<strong id="chipMode">—</strong></span>
-        <span class="px-3 py-1 bg-slate-100 rounded-full">我方：<strong id="chipA">—</strong></span>
-        <span id="chipB_wrapper" class="px-3 py-1 bg-slate-100 rounded-full">對方：<strong id="chipB">—</strong></span>
-        <span class="px-3 py-1 bg-slate-100 rounded-full">情境：<strong id="chipC">—</strong></span>
-      </div>
-      <div id="result"></div>
-      <div id="scoresWrap"></div>
-      <div id="chart" class="mt-4"></div>
-    </section>
+    <section id="result" class="space-y-4"></section>
+    <div id="scoresWrap"></div>
+    <div id="chart" class="mt-4"></div>
   </div>
 
 <script>
-const $ = s => document.querySelector(s);
-const $$ = s => document.querySelectorAll(s);
-let analysisMode='dual';
-let themeColor="#6366f1";
+const $=s=>document.querySelector(s), $$=s=>document.querySelectorAll(s);
+let analysisMode='dual', themeColor='#6366f1';
 
+// 分析模式
 function setAnalysisMode(mode){
   analysisMode=mode;
-  if(mode==='single'){ $('#sectionB').style.display='none'; $('#labelA').textContent='(分析主體)'; $('#chipB_wrapper').style.display='none'; }
-  else { $('#sectionB').style.display='block'; $('#labelA').textContent=''; $('#chipB_wrapper').style.display='block'; }
+  if(mode==='single'){ $('#sectionB').style.display='none'; }
+  else { $('#sectionB').style.display='block'; }
 }
 $('#modeSingle').onclick=()=>setAnalysisMode('single');
 $('#modeDual').onclick=()=>setAnalysisMode('dual');
 
-$$('.preset').forEach(b=>b.onclick=()=>{ $('#context').value=b.textContent; toggleSexOptions(); });
-$('#context').oninput=toggleSexOptions;
+// 預設情境
+$$('.preset').forEach(b=>b.onclick=()=>$('#context').value=b.textContent);
 
-function toggleSexOptions(){ ($('#context').value.trim()==='性愛') ? $('#sexOptions').classList.remove('hidden'):$('#sexOptions').classList.add('hidden'); }
-
-function getSelections(){return {
-  mode:analysisMode,
-  aBeast:$('#aBeast').value,aKin:$('#aKin').value,aBranch:$('#aBranch').value,
-  bBeast:$('#bBeast').value,bKin:$('#bKin').value,bBranch:$('#bBranch').value,
-  context:$('#context').value.trim(),
-  sexDetail:Array.from($$('.sex-detail:checked')).map(c=>c.value).join('；')
-};}
-
-function updateChips(sel){ $('#chipMode').textContent=sel.mode==='single'?'單人':'雙人';
-$('#chipA').textContent=[sel.aBeast,sel.aKin,sel.aBranch].filter(Boolean).join(' × ')||'—';
-$('#chipB').textContent=[sel.bBeast,sel.bKin,sel.bBranch].filter(Boolean).join(' × ')||'—';
-$('#chipC').textContent=sel.context||'—'; }
-
+// 分數條
 function renderScores(scores){
-  if(!scores) return;
-  const clamp=v=>Math.max(0,Math.min(100,Number(v)||0));
-  const row=(label,key,color)=>`<div class="score"><b>${label}</b><div class="bar"><i style="width:${clamp(scores[key])}%;background:${color}"></i></div><em>${clamp(scores[key])}</em></div>`;
-  $('#scoresWrap').innerHTML=`<div class="card"><h3 class="font-semibold mb-2" style="color:${themeColor}">六維度分數</h3>
-  <div class="scores">${row('契合 fit','fit','#22c55e')}${row('溝通 comm','comm','#06b6d4')}${row('節奏 pace','pace','#f59e0b')}${row('權責 account','account','#8b5cf6')}${row('信任 trust','trust','#ef4444')}${row('創新 innov','innov','#6366f1')}</div></div>`;
+  const s=scores; const clamp=v=>Math.max(0,Math.min(100,Number(v)||0));
+  const row=(label,key,color)=>`
+    <div class="score"><b class="w-24">${label}</b>
+      <div class="bar"><i style="width:${clamp(s[key])}%;background:${color}"></i></div>
+      <em class="w-10 text-right">${clamp(s[key])}</em>
+    </div>`;
+  $('#scoresWrap').innerHTML=`<div class="card"><h3 class="font-semibold mb-2">六維度分數</h3>
+    ${row('契合 fit','fit','#22c55e')}
+    ${row('溝通 comm','comm','#06b6d4')}
+    ${row('節奏 pace','pace','#f59e0b')}
+    ${row('權責 account','account','#8b5cf6')}
+    ${row('信任 trust','trust','#ef4444')}
+    ${row('創新 innov','innov','#6366f1')}
+  </div>`;
 }
 
+// 雷達圖
 let radarChart=null;
 function renderRadar(scores){
-  const wrap=document.getElementById('chart'); wrap.innerHTML='';
-  if(!scores) return;
+  const wrap=$('#chart'); wrap.innerHTML='';
   const clamp=v=>Math.max(0,Math.min(100,Number(v)||0));
   const labels=['契合','溝通','節奏','權責','信任','創新'];
-  const data=[clamp(scores.fit),clamp(scores.comm),clamp(scores.pace),clamp(scores.account),clamp(scores.trust),clamp(scores.innov)];
+  const data=[clamp(scores.fit),clamp(scores.comm),clamp(scores.pace),
+              clamp(scores.account),clamp(scores.trust),clamp(scores.innov)];
   const canvas=document.createElement('canvas'); wrap.appendChild(canvas);
-  if(radarChart){radarChart.destroy();}
-  radarChart=new Chart(canvas.getContext('2d'),{type:'radar',data:{labels,datasets:[{label:'六維度雷達圖',data,fill:true,backgroundColor:'rgba(99,102,241,0.15)',borderColor:themeColor,pointBackgroundColor:themeColor}]},options:{scales:{r:{suggestedMin:0,suggestedMax:100,ticks:{stepSize:20}}},plugins:{legend:{display:false}}}});
+  if(radarChart) radarChart.destroy();
+  radarChart=new Chart(canvas.getContext('2d'),{
+    type:'radar',
+    data:{ labels, datasets:[{ label:'六維度雷達圖', data, fill:true,
+      backgroundColor:'rgba(99,102,241,0.15)', borderColor:themeColor,
+      pointBackgroundColor:themeColor }] },
+    options:{ scales:{ r:{ suggestedMin:0, suggestedMax:100 }}, plugins:{ legend:{ display:false } } }
+  });
 }
 
+// 渲染結果
 function renderResult(data){
-  let html="";
+  let html='';
   if(data.sections){
     data.sections.forEach(sec=>{
       if(sec.items){
-        html+=`<div class="card"><h4 class="font-semibold mb-2" style="color:${themeColor}">${sec.title}</h4><ul class="list-disc pl-6 space-y-1 text-slate-700">${sec.items.map(i=>`<li>${i}</li>`).join("")}</ul></div>`;
+        html+=`<div class="card"><h4 class="font-semibold mb-2" style="color:${themeColor}">${sec.title}</h4>
+          <ul class="list-disc pl-6 space-y-1 text-slate-700">${sec.items.map(i=>`<li>${i}</li>`).join('')}</ul></div>`;
       } else if(sec.content){
-        html+=`<div class="card"><h4 class="font-semibold mb-2" style="color:${themeColor}">${sec.title}</h4><p class="text-slate-700 leading-relaxed">${sec.content.replace(/\n/g,"<br>")}</p></div>`;
+        html+=`<div class="card"><h4 class="font-semibold mb-2" style="color:${themeColor}">${sec.title}</h4>
+          <p class="text-slate-700 leading-relaxed">${sec.content.replace(/\n/g,'<br>')}</p></div>`;
       }
     });
   } else {
-    html=`<div class="card"><p class="text-slate-700">${data.text||"—"}</p></div>`;
+    html=`<div class="card"><p class="text-slate-700">${data.text||'無輸出'}</p></div>`;
   }
   $('#result').innerHTML=html;
-  if(data.scores){renderScores(data.scores);renderRadar(data.scores);}
+  if(data.scores){ renderScores(data.scores); renderRadar(data.scores); }
 }
 
+// 模擬 API（示範）
+async function fakeApi(){
+  return {
+    text:"朱雀子 × 青龍午 - 火焰與穩重的碰撞",
+    sections:[
+      {title:"情愛指數", content:"8.5/10 熱情與穩定兼具"},
+      {title:"互動模式", content:"朱雀子熱烈主動，青龍午穩重包容。"},
+      {title:"雷點分析", items:["朱雀過於急躁","青龍過於保守"]},
+      {title:"最佳性愛劇本推薦", items:["挑逗對決","溫柔調情","快速激情戰"]},
+      {title:"推薦體位", items:["蓮花交合","後背擁抱","交錯纏繞"]},
+      {title:"推薦玩具", items:["羽毛挑逗器","熱感按摩油","智能震動器"]},
+      {title:"推薦性愛場景", items:["溫泉池畔","高樓露臺","舞蹈室鏡前"]}
+    ],
+    scores:{ fit:80, comm:70, pace:65, account:72, trust:68, innov:85 }
+  };
+}
+
+// 一鍵分析
 $('#go').onclick=async()=>{
-  const payload=getSelections(); updateChips(payload);
   $('#status').textContent='分析中…'; $('#result').innerHTML=''; $('#scoresWrap').innerHTML=''; $('#chart').innerHTML='';
   try{
-    const res=await fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
-    const data=await res.json();
+    const data=await fakeApi(); // ⚠️ 之後換成 fetch('/api/analyze'...)
     renderResult(data);
     $('#status').textContent='✅ 完成';
-  }catch(e){$('#status').textContent='❌ 失敗';$('#result').textContent=e;}
+  }catch(e){ $('#status').textContent='❌ 失敗'; $('#result').textContent=String(e); }
 };
 
+// 列印
 $('#print').onclick=()=>{
-  const w=window.open('','_blank');
-  const chartImg=(window.radarChart&&window.radarChart.canvas)?window.radarChart.canvas.toDataURL('image/png'):'';
-  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>列印</title></head><body>${document.querySelector('#result').innerHTML}${document.querySelector('#scoresWrap').innerHTML}${chartImg?`<div><img src="${chartImg}"></div>`:''}<script>window.onload=()=>window.print()</script></body></html>`);
+  const w=window.open('', '_blank');
+  const chartImg=(radarChart&&radarChart.canvas)?radarChart.canvas.toDataURL('image/png'):'';
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>列印</title>
+    <style>body{font-family:sans-serif;padding:20px;} .card{border:1px solid #ddd;border-radius:8px;padding:10px;margin:10px 0;}
+    ul{margin:0 0 0 20px;}</style></head><body>
+    ${$('#result').innerHTML}
+    ${$('#scoresWrap').innerHTML}
+    ${chartImg?`<div><img src="${chartImg}" style="max-width:400px;"></div>`:''}
+    <script>window.onload=()=>window.print()</script></body></html>`);
   w.document.close();
 };
 
-$('#bgColor').oninput=e=>{document.body.style.background=e.target.value;};
+// 背景設定
+$('#bgColor').oninput=e=>{
+  document.body.style.background=e.target.value;
+};
 $('#bgImg').onchange=e=>{
   const file=e.target.files[0]; if(!file) return;
   const reader=new FileReader();
-  reader.onload=ev=>{document.body.style.backgroundImage=`url(${ev.target.result})`;};
+  reader.onload=ev=>{
+    document.body.style.backgroundImage=`url(${ev.target.result})`;
+    document.body.style.backgroundSize='cover';
+    document.body.style.backgroundAttachment='fixed';
+  };
   reader.readAsDataURL(file);
 };
 
-setAnalysisMode('dual'); toggleSexOptions();
+// 初始化
+setAnalysisMode('dual');
 </script>
 </body>
 </html>

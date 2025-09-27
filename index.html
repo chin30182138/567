@@ -19,18 +19,25 @@
       margin-top: 12px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.08);
     }
-    .score-bar { height: 10px; background: #e5e7eb; border-radius: 9999px; overflow: hidden; }
-    .score-bar > div { height: 100%; }
+    .score-bar {
+      height: 10px;
+      background: #e5e7eb;
+      border-radius: 9999px;
+      overflow: hidden;
+    }
+    .score-bar > div {
+      height: 100%;
+    }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
   <div class="max-w-5xl mx-auto p-6 space-y-5">
     <header class="no-print">
       <h1 class="text-2xl font-bold">神獸七十二型人格｜一鍵分析</h1>
-      <p class="text-slate-500 text-sm">支援個性 / 性愛分析、雷達圖、列印、背景自訂、主題色切換。</p>
+      <p class="text-slate-500 text-sm">支援個性 / 性愛分析、卡片報告、雷達圖、背景上傳、主題色切換、列印。</p>
     </header>
 
-    <!-- 模式 -->
+    <!-- 模式切換 -->
     <div class="no-print flex gap-4 mb-4">
       <button id="modeSingle" class="px-4 py-2 rounded-xl bg-indigo-600 text-white">單人分析</button>
       <button id="modeDual" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-800">雙人分析</button>
@@ -40,16 +47,28 @@
     <div class="grid md:grid-cols-2 gap-4 no-print">
       <section class="bg-white p-4 rounded-2xl shadow-sm">
         <h2 class="font-semibold mb-3">我方</h2>
-        <select id="aBeast" class="w-full mb-2 border rounded-lg p-2"><option value="">六獸</option><option>青龍</option><option>朱雀</option><option>勾陳</option><option>螣蛇</option><option>白虎</option><option>玄武</option></select>
-        <select id="aKin" class="w-full mb-2 border rounded-lg p-2"><option value="">六親</option><option>父母</option><option>兄弟</option><option>子孫</option><option>妻財</option><option>官鬼</option></select>
-        <select id="aBranch" class="w-full border rounded-lg p-2"><option value="">地支</option><option>子</option><option>丑</option><option>寅</option><option>卯</option><option>辰</option><option>巳</option><option>午</option><option>未</option><option>申</option><option>酉</option><option>戌</option><option>亥</option></select>
+        <select id="aBeast" class="w-full mb-2 border rounded-lg p-2">
+          <option value="">六獸</option><option>青龍</option><option>朱雀</option><option>勾陳</option><option>螣蛇</option><option>白虎</option><option>玄武</option>
+        </select>
+        <select id="aKin" class="w-full mb-2 border rounded-lg p-2">
+          <option value="">六親</option><option>父母</option><option>兄弟</option><option>子孫</option><option>妻財</option><option>官鬼</option>
+        </select>
+        <select id="aBranch" class="w-full border rounded-lg p-2">
+          <option value="">地支</option><option>子</option><option>丑</option><option>寅</option><option>卯</option><option>辰</option><option>巳</option><option>午</option><option>未</option><option>申</option><option>酉</option><option>戌</option><option>亥</option>
+        </select>
       </section>
 
       <section id="sectionB" class="bg-white p-4 rounded-2xl shadow-sm">
         <h2 class="font-semibold mb-3">對方</h2>
-        <select id="bBeast" class="w-full mb-2 border rounded-lg p-2"><option value="">六獸</option><option>青龍</option><option>朱雀</option><option>勾陳</option><option>螣蛇</option><option>白虎</option><option>玄武</option></select>
-        <select id="bKin" class="w-full mb-2 border rounded-lg p-2"><option value="">六親</option><option>父母</option><option>兄弟</option><option>子孫</option><option>妻財</option><option>官鬼</option></select>
-        <select id="bBranch" class="w-full border rounded-lg p-2"><option value="">地支</option><option>子</option><option>丑</option><option>寅</option><option>卯</option><option>辰</option><option>巳</option><option>午</option><option>未</option><option>申</option><option>酉</option><option>戌</option><option>亥</option></select>
+        <select id="bBeast" class="w-full mb-2 border rounded-lg p-2">
+          <option value="">六獸</option><option>青龍</option><option>朱雀</option><option>勾陳</option><option>螣蛇</option><option>白虎</option><option>玄武</option>
+        </select>
+        <select id="bKin" class="w-full mb-2 border rounded-lg p-2">
+          <option value="">六親</option><option>父母</option><option>兄弟</option><option>子孫</option><option>妻財</option><option>官鬼</option>
+        </select>
+        <select id="bBranch" class="w-full border rounded-lg p-2">
+          <option value="">地支</option><option>子</option><option>丑</option><option>寅</option><option>卯</option><option>辰</option><option>巳</option><option>午</option><option>未</option><option>申</option><option>酉</option><option>戌</option><option>亥</option>
+        </select>
       </section>
     </div>
 
@@ -62,7 +81,6 @@
         <button class="preset px-3 py-1.5 rounded-full bg-slate-100">性愛</button>
       </div>
       <input id="context" class="w-full border rounded-lg p-2" placeholder="輸入情境…" />
-      <!-- 性愛深入分析 -->
       <div id="sexOptions" class="hidden mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
         <p class="font-semibold text-red-700 mb-2">性愛深入分析選項：</p>
         <div class="flex flex-wrap gap-3">
@@ -76,26 +94,20 @@
 
     <!-- 動作列 -->
     <div class="flex flex-wrap items-center gap-3 no-print">
-      <button id="go" class="px-4 py-2 rounded-xl bg-indigo-600 text-white">一鍵分析</button>
+      <button id="go" class="px-4 py-2 rounded-xl text-white" style="background:#6366f1">一鍵分析</button>
       <button id="print" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-800">列印 / 匯出 PDF</button>
       <label class="px-3 py-2 rounded-lg bg-slate-200 text-slate-700 cursor-pointer">
-        匯入背景圖片
-        <input type="file" id="bgUpload" accept="image/*" class="hidden">
+        匯入背景圖片<input type="file" id="bgUpload" accept="image/*" class="hidden">
       </label>
       <button id="clearBg" class="px-3 py-2 rounded-lg bg-red-100 text-red-700">清除背景</button>
       <select id="theme" class="border rounded-lg p-2">
-        <option value="indigo">主題色：藍紫</option>
-        <option value="red">紅色</option>
-        <option value="green">綠色</option>
-        <option value="yellow">黃色</option>
-        <option value="purple">紫色</option>
-        <option value="black">黑色</option>
+        <option value="indigo">藍紫</option><option value="red">紅色</option><option value="green">綠色</option><option value="yellow">黃色</option><option value="purple">紫色</option><option value="black">黑色</option>
       </select>
       <span id="status" class="text-sm text-slate-600"></span>
     </div>
 
     <!-- 結果 -->
-    <section id="result" class="print-card"></section>
+    <section id="result"></section>
     <div id="chart" class="mt-4"></div>
   </div>
 
@@ -104,9 +116,8 @@
     const $$ = s => document.querySelectorAll(s);
     let analysisMode = 'dual';
     let radarChart = null;
-    let themeColor = "#6366f1"; // 預設 indigo
+    let themeColor = "#6366f1"; // 預設藍紫
 
-    // 模式切換
     function setAnalysisMode(mode) {
       analysisMode = mode;
       $('#sectionB').style.display = (mode==='single') ? 'none' : 'block';
@@ -114,7 +125,6 @@
     $('#modeSingle').onclick = () => setAnalysisMode('single');
     $('#modeDual').onclick = () => setAnalysisMode('dual');
 
-    // 情境按鈕
     $$('.preset').forEach(b => b.onclick = () => {
       $('#context').value = b.textContent;
       toggleSexOptions();
@@ -124,7 +134,6 @@
       else $('#sexOptions').classList.add('hidden');
     }
 
-    // 取得選項
     function getSelections(){
       const sexDetail = Array.from($$('.sex-detail:checked')).map(i=>i.value);
       return {
@@ -136,14 +145,12 @@
       };
     }
 
-    // 結果渲染
     function renderResult(data){
       let html = `<div class="card"><h3 class="text-xl font-bold mb-2" style="color:${themeColor}">${data.text || ''}</h3></div>`;
       if(data.sections){
         data.sections.forEach(sec=>{
           if(sec.items){
-            html += `<div class="card"><h4 class="font-semibold mb-1">${sec.title}</h4>
-              <ul class="list-disc pl-5 space-y-1">${sec.items.map(i=>`<li>${i}</li>`).join("")}</ul></div>`;
+            html += `<div class="card"><h4 class="font-semibold mb-1">${sec.title}</h4><ul class="list-disc pl-5 space-y-1">${sec.items.map(i=>`<li>${i}</li>`).join("")}</ul></div>`;
           } else {
             html += `<div class="card"><h4 class="font-semibold mb-1">${sec.title}</h4><p>${sec.content}</p></div>`;
           }
@@ -153,7 +160,6 @@
       if(data.scores){ renderScores(data.scores); renderRadar(data.scores); }
     }
 
-    // 分數條
     function renderScores(scores){
       let html = `<div class="card"><h4 class="font-semibold mb-2">六維度分數</h4>`;
       for(let k in scores){
@@ -165,7 +171,6 @@
       $('#result').innerHTML += html;
     }
 
-    // 雷達圖
     function renderRadar(scores){
       const wrap = document.getElementById('chart'); wrap.innerHTML = '';
       const labels = Object.keys(scores); const data = Object.values(scores);
@@ -179,7 +184,6 @@
       });
     }
 
-    // 一鍵分析
     $('#go').onclick = async () => {
       const sel = getSelections();
       if(sel.mode==='dual'){
@@ -217,9 +221,7 @@
     function setTheme(color){
       const map={indigo:"#6366f1",red:"#ef4444",green:"#22c55e",yellow:"#f59e0b",purple:"#8b5cf6",black:"#0f172a"};
       themeColor=map[color]||"#6366f1";
-      document.querySelectorAll('button').forEach(btn=>{
-        if(btn.id==='go') btn.style.backgroundColor=themeColor;
-      });
+      $('#go').style.backgroundColor=themeColor;
     }
     $('#theme').onchange = e=>setTheme(e.target.value);
 

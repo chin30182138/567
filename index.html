@@ -26,53 +26,8 @@
     <!-- 頁首 -->
     <header class="no-print">
       <h1 class="text-2xl font-bold">仙人指路神獸七十二型人格｜一鍵分析</h1>
-      <p class="text-slate-500 text-sm">前端測試版：假資料 + 分數條 + 雷達圖 + 列印 + 背景自訂</p>
+      <p class="text-slate-500 text-sm">完整前端測試版：假資料 + 分數條 + 雷達圖 + 列印 + 背景自訂</p>
     </header>
-
-    <!-- 選單 -->
-    <div class="grid md:grid-cols-2 gap-4 no-print">
-      <!-- 我方 -->
-      <section class="bg-white p-4 rounded-2xl shadow-sm">
-        <h2 class="font-semibold mb-3">我方</h2>
-        <select id="aBeast" class="w-full mb-2 border rounded-lg p-2">
-          <option value="">六獸</option>
-          <option>青龍</option><option>朱雀</option><option>勾陳</option>
-          <option>螣蛇</option><option>白虎</option><option>玄武</option>
-        </select>
-        <select id="aKin" class="w-full mb-2 border rounded-lg p-2">
-          <option value="">六親</option>
-          <option>父母</option><option>兄弟</option><option>子孫</option>
-          <option>妻財</option><option>官鬼</option>
-        </select>
-        <select id="aBranch" class="w-full border rounded-lg p-2">
-          <option value="">地支</option>
-          <option>子</option><option>丑</option><option>寅</option><option>卯</option>
-          <option>辰</option><option>巳</option><option>午</option><option>未</option>
-          <option>申</option><option>酉</option><option>戌</option><option>亥</option>
-        </select>
-      </section>
-
-      <!-- 對方 -->
-      <section class="bg-white p-4 rounded-2xl shadow-sm">
-        <h2 class="font-semibold mb-3">對方</h2>
-        <select id="bBeast" class="w-full mb-2 border rounded-lg p-2">
-          <option value="">六獸</option>
-          <option>青龍</option><option>朱雀</option><option>勾陳</option>
-          <option>螣蛇</option><option>白虎</option><option>玄武</option>
-        </select>
-        <select id="bKin" class="w-full mb-2 border rounded-lg p-2">
-          <option value="">六親</option>
-          <option>父母</option><option>兄弟</option><option>子孫</option>
-          <option>妻財</option><option>官鬼</option>
-        </select>
-        <select id="bBranch" class="w-full border rounded-lg p-2">
-          <option value="">地支</option>
-          <option>子</option><option>丑</option><option>寅</option><option>卯</option>
-          <option>辰</option><option>巳</option><option>午</option><option>未</option>
-          <option>申</option><option>酉</option><option>戌</option><option>亥</option>
-        </select>
-      </section>
-    </div>
 
     <!-- 情境 -->
     <section class="bg-white p-4 rounded-2xl shadow-sm space-y-2 no-print">
@@ -124,7 +79,7 @@
       });
     }
 
-    // 假資料（測試用）
+    // 假資料
     const demo = {
       scores:{ fit:80, comm:70, pace:60, account:75, trust:65, innov:85 },
       tags:["激情","契合","探索","安全感"]
@@ -135,12 +90,8 @@
       document.getElementById('status').textContent = '分析中…';
       setTimeout(()=>{
         document.getElementById('result').innerHTML = `
-          <h3 class="text-lg font-semibold">朱雀子 × 朱雀子 - 火焰交錯，激情如烈焰燃燒</h3>
+          <h3 class="text-lg font-semibold">朱雀子 × 朱雀子 - 火焰交錯</h3>
           <p>雙方皆擅長誘惑與掌控，性愛如同炙熱舞蹈，充滿張力與衝擊。</p>
-          <ul class="list-disc pl-5 space-y-1">
-            <li>情愛指數：10/10</li>
-            <li>互動模式：挑逗對決、火焰誘惑、快速激情戰</li>
-          </ul>
         `;
         const s = demo.scores;
         const row = (label,key,color)=>`<div class="score"><b>${label}</b><div class="bar"><i style="width:${s[key]}%;background:${color}"></i></div><em>${s[key]}</em></div>`;
@@ -166,16 +117,11 @@
       const w = window.open('', '_blank');
       const chartImg = (radarChart && radarChart.canvas) ? radarChart.canvas.toDataURL('image/png') : '';
       w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>列印</title>
-        <style>
-          body{font-family:sans-serif;padding:20px;}
-          h1{font-size:20px;margin-bottom:10px;}
-          .card{border:1px solid #ddd;border-radius:8px;padding:10px;margin:10px 0;}
-          ul{margin:0 0 0 20px;}
-        </style></head><body>
+        <style>body{font-family:sans-serif;padding:20px;}h1{font-size:20px;margin-bottom:10px;}</style></head><body>
         <h1>分析報告</h1>
-        <div class="card">${document.getElementById('result').innerHTML}</div>
-        <div class="card">${document.getElementById('scoresWrap').innerHTML}</div>
-        ${chartImg ? `<div class="card"><img src="${chartImg}" style="max-width:400px;"></div>` : ''}
+        <div>${document.getElementById('result').innerHTML}</div>
+        <div>${document.getElementById('scoresWrap').innerHTML}</div>
+        ${chartImg ? `<div><img src="${chartImg}" style="max-width:400px;"></div>` : ''}
         <script>window.onload=()=>window.print()</script>
       </body></html>`);
       w.document.close();

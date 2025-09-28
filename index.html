@@ -7,7 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <style>
-    body { transition: background 0.5s ease; }
+    body { transition: background 0.5s ease; background-size: cover; background-attachment: fixed; }
     @media print { @page { margin: 14mm; } .no-print{display:none!important;} body{background:#fff!important;} }
     .scores{display:grid;grid-template-columns:1fr;gap:8px;margin-top:6px}
     .score{display:flex;align-items:center;gap:10px;font-size:13px;color:#334155}
@@ -19,14 +19,14 @@
     .tag{background:#eef2ff;color:#3730a3;padding:4px 10px;border-radius:9999px;font-size:12px}
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800">
+<body class="text-slate-800">
 
   <div class="max-w-5xl mx-auto p-6 space-y-5">
 
     <!-- 頁首 -->
     <header class="no-print">
       <h1 class="text-2xl font-bold">仙人指路神獸七十二型人格｜一鍵分析</h1>
-      <p class="text-slate-500 text-sm">完整前端測試版：假資料 + 分數條 + 雷達圖 + 列印 + 背景自訂</p>
+      <p class="text-slate-500 text-sm">支援分數條、雷達圖、列印 / 背景自訂</p>
     </header>
 
     <!-- 情境 -->
@@ -79,37 +79,65 @@
       });
     }
 
-    // 假資料
-    const demo = {
-      scores:{ fit:80, comm:70, pace:60, account:75, trust:65, innov:85 },
-      tags:["激情","契合","探索","安全感"]
-    };
+    // 分析按鈕
+    document.getElementById('go').onclick = async () => {
+      const context = document.getElementById('context').value.trim();
+      if (!context) { alert("請輸入或選擇情境"); return; }
 
-    // 一鍵分析
-    document.getElementById('go').onclick = () => {
       document.getElementById('status').textContent = '分析中…';
-      setTimeout(()=>{
-        document.getElementById('result').innerHTML = `
-          <h3 class="text-lg font-semibold">朱雀子 × 朱雀子 - 火焰交錯</h3>
-          <p>雙方皆擅長誘惑與掌控，性愛如同炙熱舞蹈，充滿張力與衝擊。</p>
-        `;
-        const s = demo.scores;
-        const row = (label,key,color)=>`<div class="score"><b>${label}</b><div class="bar"><i style="width:${s[key]}%;background:${color}"></i></div><em>${s[key]}</em></div>`;
-        document.getElementById('scoresWrap').innerHTML = `
-          <h3 class="text-lg font-semibold mt-4">六維度分數</h3>
-          <div class="scores">
-            ${row('契合 fit','fit','#22c55e')}
-            ${row('溝通 comm','comm','#06b6d4')}
-            ${row('節奏 pace','pace','#f59e0b')}
-            ${row('權責 account','account','#8b5cf6')}
-            ${row('信任 trust','trust','#ef4444')}
-            ${row('創新 innov','innov','#6366f1')}
-          </div>
-          <div class="tags">${demo.tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>
-        `;
-        renderRadar(demo.scores);
+      document.getElementById('result').innerHTML = '';
+      document.getElementById('scoresWrap').innerHTML = '';
+      document.getElementById('chart').innerHTML = '';
+
+      try {
+        const res = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            aBeast:"朱雀", aKin:"子孫", aBranch:"子",
+            bBeast:"朱雀", bKin:"父母", bBranch:"子",
+            context
+          })
+        });
+        const data = await res.json();
+        let plain = data.text || "";
+        
+        // 抓出 JSON 區塊
+        const jsonBlock = plain.match(/```json([\\s\\S]*?)```/i);
+        let scores = null, tags = [];
+        if (jsonBlock){
+          try {
+            const parsed = JSON.parse(jsonBlock[1]);
+            scores = parsed.scores; tags = parsed.tags || [];
+          } catch(e){}
+          plain = plain.replace(jsonBlock[0],'').trim();
+        }
+
+        document.getElementById('result').innerHTML = plain.replace(/\\n/g,"<br>");
+        
+        if(scores){
+          const s = scores;
+          const row = (label,key,color)=>`<div class="score"><b>${label}</b><div class="bar"><i style="width:${s[key]}%;background:${color}"></i></div><em>${s[key]}</em></div>`;
+          document.getElementById('scoresWrap').innerHTML = `
+            <h3 class="text-lg font-semibold mt-4">六維度分數</h3>
+            <div class="scores">
+              ${row('契合 fit','fit','#22c55e')}
+              ${row('溝通 comm','comm','#06b6d4')}
+              ${row('節奏 pace','pace','#f59e0b')}
+              ${row('權責 account','account','#8b5cf6')}
+              ${row('信任 trust','trust','#ef4444')}
+              ${row('創新 innov','innov','#6366f1')}
+            </div>
+            ${tags.length ? `<div class="tags">${tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>` : ''}
+          `;
+          renderRadar(scores);
+        }
         document.getElementById('status').textContent = '✅ 完成';
-      }, 1000);
+      } catch (e) {
+        console.error(e);
+        document.getElementById('status').textContent = '❌ 錯誤';
+        document.getElementById('result').textContent = 'API 呼叫失敗';
+      }
     };
 
     // 列印

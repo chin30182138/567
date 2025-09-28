@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>仙人指路神獸七十二型人格 - 分析報告 (V7.9)</title>
+    <title>仙人指路神獸七十二型人格 - 分析報告 (V8.1)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
@@ -95,9 +95,23 @@
         </header>
 
         <header class="space-y-1 no-print">
-            <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 (V7.9)</h1>
-            <p class="text-slate-500 text-sm">支援個性分析、人際分析與性愛劇本｜**分析深度大擴充**</p>
+            <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 (V8.1)</h1>
+            <p class="text-slate-500 text-sm">✨ **已接入 OpenAI API，提供即時、深度分析**</p>
         </header>
+        
+        <section class="bg-violet-50 p-4 rounded-xl shadow space-y-2 no-print">
+            <h2 class="font-semibold text-violet-700">⚙️ OpenAI API Key 設定</h2>
+            <input type="text" id="apiKey" class="w-full border rounded-lg p-2 bg-white" placeholder="請在此輸入您的 OpenAI API Key (sk-...) " />
+            <div class="flex items-center gap-3 mt-2">
+                <label for="modelSelect" class="text-sm">選擇模型:</label>
+                <select id="modelSelect" class="p-1 border rounded-lg text-sm">
+                    <option value="gpt-4o-mini">gpt-4o-mini (推薦)</option>
+                    <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+                </select>
+            </div>
+            <p class="text-xs text-violet-600">此 Key 只會儲存在您的瀏覽器本地，不會被上傳。請注意 API 費用。</p>
+        </section>
+
 
         <div class="flex gap-4 flex-wrap no-print">
             <button id="modePersonality" class="px-4 py-2 rounded-lg bg-indigo-600 text-white">個性分析</button>
@@ -241,16 +255,18 @@
         let currentScores = null; 
         let currentChartType = 'radar'; 
         
-        // V7.8 修正：精簡雙人模式的情境列表，只保留最上層的「性愛」
+        // OpenAI API 端點
+        const OPENAI_API_ENDPOINT = 'https://api.openai.com/v1/chat/completions';
+
+        // 情境列表 (保持不變)
         const PRESETS = {
             'personality': ['基礎個性', '職涯優勢', '情緒管理', '人際關係'],
             'single': ['年度目標協調', '績效回饋會議', '跨部門協作', '壓期交付專案', '人際關係協調'],
             'dual': [
                 '年度目標協調', '績效回饋會議', '跨部門協作', '壓期交付專案', '人際關係協調',
-                '性愛' // 只保留「性愛」作為觸發細節的總開關
+                '性愛' 
             ]
         };
-        // V7.8 修正：性愛細節的觸發關鍵字也只留下「性愛」
         const SEX_CONTEXTS = ['性愛'];
 
 
@@ -263,13 +279,13 @@
             let progress = 10;
             progressInterval = setInterval(() => {
                 if (progress < 90) {
-                    progress += Math.floor(Math.random() * 5);
+                    progress += Math.floor(Math.random() * 2) + 1;
                     progress = Math.min(progress, 90);
                     $('#progress').style.width = progress + '%';
                     $('#status').textContent = `分析中... (${progress}%)`;
                 }
-            }, 1000); 
-            $('#status').textContent = '分析中...';
+            }, 500); 
+            $('#status').textContent = '等待 API 回覆...';
         }
 
         function stopProgressBar(isSuccess = true) {
@@ -286,7 +302,7 @@
         }
         // --- 進度條控制函式結束 ---
 
-        // --- 模式切換邏輯 ---
+        // --- 模式切換邏輯 (保持不變) ---
         function setAnalysisMode(mode){
             analysisMode = mode;
             const modes = {
@@ -313,7 +329,7 @@
             toggleSexOptions(); 
         }
 
-        // 載入情境按鈕
+        // 載入情境按鈕 (保持不變)
         function loadPresets(mode) {
             const container = $('#presetContainer');
             container.innerHTML = ''; 
@@ -332,7 +348,7 @@
             $('#context').value = '';
         }
 
-        // --- 情境輸入/預設邏輯 (只認「性愛」) ---
+        // 性愛細節區塊開關 (保持不變)
         function toggleSexOptions(){
             const context = $('#context').value;
             const isSexContext = SEX_CONTEXTS.includes(context);
@@ -359,6 +375,7 @@
         function formatOutput(text){
             if(!text) return {html:'<p class="text-slate-500">無分析結果。</p>', scores:null, tags:[]};
             
+            // 嘗試找到 JSON 區塊
             const jsonBlock = text.match(/```json\s*([\s\S]*?)\s*```/i);
             let scores=null,tags=[];
             let cleanText = text; 
@@ -367,8 +384,10 @@
                 try{ 
                     const j=JSON.parse(jsonBlock[1]); 
                     scores=j.scores||{}; 
+                    // 兼容兩種 tag 格式
                     tags=Array.isArray(j.tags) ? j.tags : Object.values(j.tags || {}).flat().filter(t => typeof t === 'string' && t.trim() !== '');
                     
+                    // 清除文本中的 JSON 區塊
                     cleanText = text.replace(jsonBlock[0],'').trim(); 
                 }catch(e){
                     console.error("JSON解析失敗", e);
@@ -377,6 +396,7 @@
             
             let html = markdownConverter.makeHtml(cleanText);
 
+            // 清理可能殘留的標題或段落
             html = html.replace(/<p>[\s]*JSON[\s]*輸出[\s]*<\/p>/gi, '')
                        .replace(/<h[1-6]>[\s]*JSON[\s]*輸出[\s]*<\/h[1-6]>/gi, '')
                        .replace(/<p>\s*<\/p>/gi, ''); 
@@ -483,6 +503,17 @@
         
         // --- 核心事件監聽和初始化 ---
         document.addEventListener('DOMContentLoaded', () => {
+            // 從 LocalStorage 載入 API Key
+            const savedApiKey = localStorage.getItem('openai_api_key');
+            if (savedApiKey) {
+                $('#apiKey').value = savedApiKey;
+            }
+            
+            // API Key 輸入監聽
+            $('#apiKey').addEventListener('input', (e) => {
+                localStorage.setItem('openai_api_key', e.target.value);
+            });
+            
             // 設定報告時間
             $('#reportTime').textContent = new Date().toLocaleDateString('zh-TW', {
                 year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
@@ -502,19 +533,14 @@
                 const current = $('#sexDetailInput').value.trim();
                 const detail = b.dataset.detail;
                 
-                // 將當前輸入框內容轉換為陣列，過濾空字符串
                 let existingDetails = current.split('；').map(d => d.trim()).filter(d => d);
                 
-                // 檢查是否已存在
                 if(existingDetails.includes(detail)) {
-                    // 如果已存在，則移除它
                     existingDetails = existingDetails.filter(d => d !== detail);
                 } else {
-                    // 如果不存在，則添加它
                     existingDetails.push(detail);
                 }
                 
-                // 重新組合，並更新輸入框
                 $('#sexDetailInput').value = existingDetails.join('；');
             });
 
@@ -573,14 +599,18 @@
             };
             updateBackground(); 
 
-            // V7.9 核心邏輯：一鍵分析 (報告文本大擴充)
+            // V8.1 核心邏輯：一鍵分析 (呼叫 OpenAI API)
             $('#go').onclick = async () => {
-                const payload=getPayload();
+                const payload = getPayload();
+                const apiKey = $('#apiKey').value.trim();
+                const model = $('#modelSelect').value;
                 let errorMessage = '';
+                
                 const aComplete = payload.aBeast && payload.aKin && payload.aBranch;
                 const bComplete = payload.bBeast && payload.bKin && payload.bBranch;
 
-                if (!aComplete) { errorMessage = '請選滿我方「六獸、六親、地支」'; }
+                if (!apiKey) { errorMessage = '請先輸入您的 OpenAI API Key！'; }
+                else if (!aComplete) { errorMessage = '請選滿我方「六獸、六親、地支」'; }
                 else if (payload.mode === 'dual' && !bComplete) { errorMessage = '雙人分析請選滿對方「六獸、六親、地支」'; }
                 else if (payload.mode !== 'personality' && !payload.context) { errorMessage = '請輸入或選擇情境'; }
                 else if (payload.context === '性愛' && !payload.sexDetail) { errorMessage = '您選擇了性愛情境，請點選或輸入細節按鈕，以供 AI 參考建議。'; }
@@ -592,184 +622,56 @@
                 renderChart(null, currentChartType); 
                 $('#webScoresAndTags').innerHTML = '';
                 startProgressBar();
-
-                // 模擬延遲
-                await new Promise(resolve => setTimeout(resolve, 1500)); 
-
-                let rawText;
                 
-                const combinedA = `${payload.aBeast}-${payload.aKin}-${payload.aBranch}`;
-                const combinedB = `${payload.bBeast}-${payload.bKin}-${payload.bBranch}`;
-                const detailA = `${payload.aBeast} ${payload.aKin} ${payload.aBranch}`;
-                const detailB = `${payload.bBeast} ${payload.bKin} ${payload.bBranch}`;
+                const prompt = generateOpenAIPrompt(payload);
 
+                try {
+                    const response = await fetch(OPENAI_API_ENDPOINT, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`
+                        },
+                        body: JSON.stringify({
+                            model: model,
+                            messages: [
+                                { role: "system", content: "你是一位精通中國古代《神獸七十二型人格》理論的資深分析師。你的任務是根據用戶提供的『六獸-六親-地支』組合和情境，輸出深度且具體的分析報告。報告必須專業、嚴謹，並且字數至少 800 字。對於雙人模式（特別是性愛），報告必須充滿細節和針對性建議，絕對不能保守或簡略。**輸出格式嚴格遵循 markdown，並且報告結尾必須包含一個獨立的 JSON 區塊，列出六維度分數和標籤。**" },
+                                { role: "user", content: prompt }
+                            ],
+                            temperature: 0.7,
+                            max_tokens: 3000, 
+                            // 啟用 JSON 模式可以提高 JSON 輸出準確性，但 gpt-3.5-turbo 可能不完全支持，因此先用普通模式
+                        })
+                    });
 
-                if (payload.mode === 'personality') {
-                    // 個性分析模擬報告 (V7.9 擴充)
-                    rawText = `
-## ${combinedA} 個性分析報告 (主題：${payload.context || '基礎個性'})
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(`API 請求失敗: ${response.status} ${response.statusText}. 詳細: ${errorData.error ? errorData.error.message : '未知錯誤'}`);
+                    }
 
-### 核心特質：神獸原力與六親底色
-**神獸本源：${payload.aBeast}** 的特性帶來了**長遠的規劃能力、極致的穩定性與不容動搖的原則**。他們是團隊中的「錨」，決策時會從大局觀和永續性出發，極度厭惡朝令夕改。
-**六親底色：${payload.aKin}** 則代表了此人對**傳統知識、規則權威或安全感**的深層看重。這使得他們在面對變動時，傾向於尋求過往成功的經驗或既有的權威指引，以確保每一步都踏實可靠。
-**地支動能：${payload.aBranch}** 地支特徵為其穩固的個性注入了**內在的情緒動能和特定的社交傾向**。這股動能影響著他們展現穩定性的方式——可能是安靜沉穩的內向累積，也可能是帶著明確目標的外向執行。
+                    const data = await response.json();
+                    
+                    if (!data.choices || data.choices.length === 0) {
+                        throw new Error("API 回應格式錯誤或內容空白。");
+                    }
+                    
+                    const rawText = data.choices[0].message.content;
 
-### 職涯發展深度解析
-#### 1. 優勢領域與潛力
-* **戰略穩定性**：極適合擔任需要長期穩定、遵循嚴謹規章的職位，例如**風控總監、資深法律顧問、系統架構師、金融合規**。他們能有效地識別並緩衝潛在風險。
-* **深度耕耘**：在單一領域進行深入研究和積累是他們的強項，能成為某個專業領域的「活字典」和絕對權威。
-
-#### 2. 挑戰、盲點與成長建議
-* **變革阻力**：由於對既有系統的信任過高，面對市場快速變動或強制創新壓力時，會展現出明顯的**抗拒和適應不良**。
-* **人際壁壘**：表達情感和支持較為內斂且間接，容易被誤解為冷漠或不關心。
-* **成長建議**：建議刻意參與**敏捷管理**或**跨功能團隊**，練習在保持核心穩定的前提下，進行小步快跑的試錯與迭代。同時，應學習主動使用**肯定和具體的語言**來表達對同事的支持，而非僅僅默默執行。
-
-#### 3. 情緒管理與壓力應對
-* **壓力表現**：極度壓力下，他們傾向於**退回內殼**，變得固執己見，並可能對外界的批評產生防禦性反彈。
-* **釋放機制**：最有效的釋放機制是**獨自進行結構化的活動**，如長距離跑步、園藝、或完成一個複雜的拼圖，讓身體的穩定性引導心緒回歸平靜。
-`;
-                    $('#webScoresAndTags').innerHTML = '<p class="text-sm text-slate-500 pt-3">個性分析著重於文本解讀，無六維度分數。</p>';
-
-                } else if (payload.mode === 'dual' && payload.context === '性愛') {
-                    // 性愛報告：根據細節給予結構化內容 (V7.9 擴充)
-                    const sexDetails = payload.sexDetail || '無細節指定';
-                    rawText = `
-## 慾望耦合分析與私密劇本 (主題：性愛，細節：${sexDetails})
-
-### 雙方情感連結與角色慾望解讀
-**我方 (${detailA})**：在私密領域傾向於展現**絕對的掌控慾**與**儀式化情節**。其需求核心是**被認可為欲望的主宰**，並從伴侶的完全交付中獲得極致的滿足感。
-**對方 (${detailB})**：表現出極高的**感性回應度**與**被引導的渴望**。他們在安全感極高的前提下，能徹底放下心防，渴望被強勢且明確的慾望流動所引領和探索。
-
-**契合度總結**：雙方的**信任 (Trust)** 分數極高，**契合 (Fit)** 分數近乎完美。這預示著雙方具備探索**高張力情節**的基礎，可以將心理遊戲和身體探索帶入極致深度。
-
-### 🎭 AI 深度劇本建議與執行指南
-針對您選擇的細節：**${sexDetails}**，我們推薦以下執行方向：
-
-#### 1. 情境設置與張力營造 (Scenario & Tension)
-* **場景應用**: 假設選擇了 **「摩天大樓」** 或 **「地下賭場」**。應以極致的對比感來創造張力——在奢華、公開或高風險的環境中進行私密行為，能極大地放大禁忌與刺激感。
-* **心理預熱**: 建議將**「心理掌控」**作為前戲核心。透過**語音催眠**和特定的關鍵詞，讓對方在精神上完全臣服，將身體感官的反應視為一種對主導者的絕對回饋。
-* **建議對話引導**：主導方需不斷提出引導式問句，例如：「你現在最渴望的是什麼？大聲說出來。」或「你是否願意將所有的感受權都交給我？」
-
-#### 2. 核心技巧與體位流動 (Technique & Flow)
-* **開場策略**: 避開直接的肢體接觸，先以**感官剝奪**（如眼罩）來強化其他感官的敏感度。接著以**深度擁抱交合**為起點，強調長時間、慢速的親密摩擦，累積最純粹的**情感張力**。
-* **節奏轉變**: 當張力累積至頂點，應迅速轉入**野性攻防**的節奏。體位可選擇需要雙方高度配合的**高難度、深進入體位**，如站立或某些側臥變形，以強化身體上的**權力與配合感**。
-* **極致體驗**: 結合**震動棒**或**束縛配件**進行側翼/輔助刺激，將快感流引導至**極端快感**的邊緣，在最高峰時利用心理控制工具給予短暫的控制停頓，再釋放。
-
-#### 3. 專屬配備與禁忌元素融合
-* **玩具配置**: 束縛配件不必是痛苦的，應是**儀式性的**。例如絲綢、皮革，象徵身份和角色的固定。
-* **劇本核心**：整個過程應圍繞**「臣服」**和**「渴望」**這兩個核心主題。讓對方主動表達對慾望的臣服，才是這場遊戲的終極高潮。
-
-JSON 輸出
-\`\`\`json
-{
-  "scores": {
-    "fit": 95,
-    "comm": 88,
-    "pace": 85,
-    "account": 75,
-    "trust": 97,
-    "innov": 90
-  },
-  "tags": [
-    "情感極致連結",
-    "權力遊戲適配",
-    "節奏變化豐富",
-    "慾望主導強烈",
-    "適合深度探索",
-    "高難度體位建議"
-  ]
-}
-\`\`\`
-`;
-                } else if (payload.mode === 'dual') {
-                    // 模擬情境：跨部門協作 (V7.9 擴充)
-                    rawText = `
-## 跨部門協作深度分析報告 (情境：${payload.context})
-
-### 雙方溝通模式與協作契合度
-**我方 (${detailA})**：在職場中，傾向於以**長遠規劃**和**穩重**的方式主導核心討論。他們極度重視**結構、傳統流程和風險最小化**。這使得我方在前期調研和基礎確立上極為可靠。
-**對方 (${detailB})**：充滿了**活力**和**急切的行動力**。他們追求**立即的成果、快速決策和高效的執行**。在項目衝刺階段，對方的效率能帶來巨大的推進力。
-
-**核心衝突點**：我方的謹慎（求穩）與對方的急進（求快）是主要的**節奏衝突**。若未能有效磨合，將導致我方拖延決策，而對方則可能因超前執行而產生錯誤，使專案的**節奏 (Pace)** 評分低於平均。
-
-### 潛在風險與專業解決方案
-#### 1. 節奏衝突與執行偏差 (Pace: 55%)
-* **風險描述**：我方對細節的過度檢查與對方的快速決策之間存在鴻溝。這容易導致版本迭代混亂或關鍵風險點被忽略。
-* **解決方案**：
-    * **專案分區**：將專案清晰劃分為「我方負責的**穩定區塊**（如：合約審核、系統架構）」和「對方負責的**快速區塊**（如：市場調研、前端開發）」。
-    * **效率指標**：雙方需建立共同且**客觀的「效率」指標**，而非僅憑主觀感受。例如：將回饋週期標準化至 4 小時內。
-
-#### 2. 信任與創新困境 (Trust: 60%, Innov: 58%)
-* **風險描述**：我方可能會質疑對方的決策速度和其可行性，認為對方在冒險；對方則可能認為我方過於保守，阻礙進度。這種不信任感會阻礙**創新 (Innov)**。
-* **解決方案**：
-    * **中立審核機制**：設立一個由第三方或中立管理層組成的**審核節點**，專門協調雙方在資源分配和風險控制上的分歧。
-    * **小規模試驗**：鼓勵對方在**低風險、小範圍**進行快速的原型試驗 (MVP)，透過具體數據來緩解我方對風險的擔憂，用結果建立信任。
-
-#### 3. 權責與責任歸屬 (Account: 80%)
-* **優勢描述**：雙方在各自負責的領域都擁有強烈的**責任感**，這使得**權責**分數較高。
-* **建議**：利用此優勢，將協作中的**權責地圖**提前繪製，確保每一個決定都有清晰的責任人，避免模糊地帶。
-
-JSON 輸出
-\`\`\`json
-{
-  "scores": {
-    "fit": 68,
-    "comm": 75,
-    "pace": 55,
-    "account": 80,
-    "trust": 60,
-    "innov": 58
-  },
-  "tags": [
-    "穩定性強",
-    "行動力高",
-    "節奏不合",
-    "需第三方協調",
-    "權責需劃分",
-    "溝通模式差異大"
-  ]
-}
-\`\`\`
-`;
-                } else {
-                    // 模擬情境：單人情境 (V7.9 擴充)
-                    rawText = `
-## ${payload.context || '年度目標協調'} 單人情境分析報告 (主體：${combinedA})
-
-### 核心行為模式總結與情緒動態
-${combinedA} 在此情境下，展現出高度的**溝通 (comm)** 意願和潛在的**契合 (fit)** 價值。他們的核心需求是：**透過清晰的界線來確保效率與穩定性**。
-* **優勢展現**: 樂於進行結構化的協商，能夠提出有條理的論點，並在協調中扮演穩定情緒的角色。
-* **潛在風險**: 傾向於在確認所有細節都完美符合預期後才行動。如果協調過程混亂或情緒化，會導致其效率大幅下降。
-
-### 建議策略：從目標到執行的精準引導
-#### 1. 優先事項與預期管理
-* **策略一：具體化目標**：必須先與團隊定義好彼此的**最終目標和里程碑**，且這些目標必須是 SMART (具體、可衡量、可達成、相關、有時限) 的。模糊不清的目標會讓我方產生焦慮。
-* **策略二：界線設定**：利用其高**權責 (account)** 傾向，在協調初期即清晰劃分**「誰負責什麼」**、**「決策權在哪裡」**，這能極大地提高我方在情境中的舒適度和參與感。
-
-#### 2. 情緒與節奏管理
-* **策略三：分階段推進**：避免在達成一致前，過早地陷入瑣碎的細節爭論。應採用**『先大綱、後細節』**的協調節奏，先確認核心方向，再由我方負責將細節『定型』。
-* **策略四：賦予掌控感**：在壓力較大的協調中，適時允許我方主導議程或提供書面總結。透過**掌控資訊**來幫助其管理內在的壓力。
-
-#### 3. 創新與長遠發展
-* **策略五：可控式創新**：鼓勵團隊成員嘗試尋找既有框架之外的新方法時，需將創新提案**包裝成一個『低風險的實驗』**，而不是一個『全面的推翻』。這能讓具有穩定傾向的 ${payload.aBeast} 更容易接受變革。
-`;
-                    $('#webScoresAndTags').innerHTML = '<p class="text-sm text-slate-500 pt-3">單人情境著重於策略建議，無六維度分數。</p>';
-                }
-
-
-                try{
-                    const formatted=formatOutput(rawText);
+                    const formatted = formatOutput(rawText);
                     
                     $('#result').innerHTML=formatted.html;
-                    if (payload.mode === 'dual') {
+                    if (payload.mode === 'dual' && formatted.scores) {
                          $('#webScoresAndTags').innerHTML=formatted.webScoresHTML;
                     }
 
                     renderChart(formatted.scores, currentChartType); 
                     
                     stopProgressBar(true);
-                }catch(e){ 
-                    $('#result').innerHTML=`<p class="text-red-600">❌ **分析失敗**：${String(e.message || e)}。</p>`; 
+
+                } catch (e) { 
+                    const errorMsg = e.message || e;
+                    console.error("API 調用或解析失敗:", errorMsg);
+                    $('#result').innerHTML=`<p class="text-red-600">❌ **分析失敗**：${errorMsg}。</p><p class="text-sm text-slate-500">請檢查 API Key 是否正確、帳號是否有足夠配額，或選擇更快的模型 (如 gpt-3.5-turbo)。</p>`; 
                     renderChart(null, currentChartType);
                     stopProgressBar(false);
                 }
@@ -777,8 +679,9 @@ ${combinedA} 在此情境下，展現出高度的**溝通 (comm)** 意願和潛�
 
             // 列印/PDF 按鈕... 
             $('#print').onclick = () => {
-                 if (!currentScores && analysisMode === 'dual') {
-                    alert("請先完成分析再列印報告！");
+                 // 只有雙人模式強制要求分數，單人和個性模式沒有分數也能列印
+                 if (analysisMode === 'dual' && !currentScores) { 
+                    alert("請先完成雙人分析並獲得分數後再列印報告！");
                     return;
                 }
                 $('.print-header').style.display = 'block';
@@ -792,6 +695,65 @@ ${combinedA} 在此情境下，展現出高度的**溝通 (comm)** 意願和潛�
             };
         });
         
+        // --- 根據模式生成 OpenAI 專屬指令 Prompt ---
+        function generateOpenAIPrompt(payload) {
+            const { mode, aBeast, aKin, aBranch, bBeast, bKin, bBranch, context, sexDetail } = payload;
+            const detailA = `${aBeast} ${aKin} ${aBranch}`;
+            const detailB = `${bBeast} ${bKin} ${bBranch}`;
+            
+            let prompt = `請針對以下參數進行專業、深入的『神獸七十二型人格』分析。報告必須極度詳細，長度請超過 800 字，並包含具體、可操作的建議。報告必須用 Markdown 格式呈現，並在結尾嚴格輸出一個 JSON 區塊。
+
+---
+### **報告參數**
+`;
+
+            if (mode === 'personality') {
+                prompt += `
+- **模式**: 個性深度分析
+- **分析主體**: ${detailA}
+- **分析主題**: ${context || '基礎個性深度解讀'}
+
+### **輸出要求 (個性分析)**
+1. **結構**: 必須包含『核心特質與神獸原力解讀』、『職涯發展與潛能規劃』、『情緒管理與應對機制』等至少三個專業子標題。
+2. **深度**: 針對六獸、六親和地支的交會影響進行詳細論述，特別強調其潛在的盲點和成長建議。
+3. **JSON 輸出**: **不**需要六維度分數 (scores)，但必須列出 5 個以上關鍵**特質標籤 (tags)**。
+`;
+            } else if (mode === 'single') {
+                prompt += `
+- **模式**: 單人情境應對策略分析
+- **分析主體**: ${detailA}
+- **情境**: ${context}
+
+### **輸出要求 (單人情境)**
+1. **結構**: 必須包含『核心行為模式與情緒動態』、『情境應對優勢與風險預警』、『建議策略：從目標到執行的精準引導』等至少三個專業子標題。
+2. **深度**: 分析該人格組合在特定情境中會遇到的挑戰，並提供具體、三步驟以上的解決方案或步驟。
+3. **JSON 輸出**: **不**需要六維度分數 (scores)，但必須列出 5 個以上關鍵**應對標籤 (tags)**。
+`;
+            } else if (mode === 'dual') {
+                prompt += `
+- **模式**: 雙人關係或協作分析
+- **我方 (A)**: ${detailA}
+- **對方 (B)**: ${detailB}
+- **情境**: ${context}
+${sexDetail ? `- **性愛細節/偏好**: ${sexDetail}` : ''}
+
+### **輸出要求 (雙人分析)**
+1. **結構**: 必須包含『雙方溝通模式與契合度解讀』、『潛在衝突點與深度解決方案』等專業子標題。
+2. **深度**:
+    * **職場**: 必須詳述雙方在『節奏、溝通、信任』上的差異，並提供具體協作流程優化建議。
+    * **性愛 (若適用)**: 報告名稱改為『慾望耦合分析與私密劇本』。內容必須**極度詳細、大膽且不保守**，圍繞性愛細節提供**情境設置、心理引導、核心技巧、體位流動和專屬配備**等五個維度的具體劇本。
+3. **JSON 輸出**: **必須**提供六維度分數 (scores) 和 5 個以上關鍵**關係標籤 (tags)**。
+   - **六維度**: 契合 (fit), 溝通 (comm), 節奏 (pace), 權責 (account), 信任 (trust), 創新 (innov)。分數範圍 0-100。
+`;
+            }
+
+            prompt += `
+---
+請現在開始輸出分析報告。
+`;
+            return prompt;
+        }
+
     </script>
 </body>
 </html>

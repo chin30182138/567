@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>仙人指路神獸七十二型人格 - 分析報告 (V8.1)</title>
+    <title>仙人指路神獸七十二型人格 - 分析報告 (V9.0)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
@@ -95,21 +95,20 @@
         </header>
 
         <header class="space-y-1 no-print">
-            <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 (V8.1)</h1>
-            <p class="text-slate-500 text-sm">✨ **已接入 OpenAI API，提供即時、深度分析**</p>
+            <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 (V9.0)</h1>
+            <p class="text-slate-500 text-sm">✨ **最終安全版：API Key 已隱藏於 Vercel 後台**</p>
         </header>
         
-        <section class="bg-violet-50 p-4 rounded-xl shadow space-y-2 no-print">
-            <h2 class="font-semibold text-violet-700">⚙️ OpenAI API Key 設定</h2>
-            <input type="text" id="apiKey" class="w-full border rounded-lg p-2 bg-white" placeholder="請在此輸入您的 OpenAI API Key (sk-...) " />
+        <section class="bg-emerald-50 p-4 rounded-xl shadow space-y-2 no-print">
+            <h2 class="font-semibold text-emerald-700">✅ API 狀態</h2>
+            <p class="text-sm text-emerald-600">本應用程式現在透過 Vercel 後台的環境變數連接 OpenAI API。您的 Key 已安全隱藏，無需手動輸入。</p>
             <div class="flex items-center gap-3 mt-2">
-                <label for="modelSelect" class="text-sm">選擇模型:</label>
-                <select id="modelSelect" class="p-1 border rounded-lg text-sm">
+                <label for="modelSelect" class="text-sm">分析模型:</label>
+                <select id="modelSelect" class="p-1 border rounded-lg text-sm bg-white">
                     <option value="gpt-4o-mini">gpt-4o-mini (推薦)</option>
-                    <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+                    <option value="gpt-3.5-turbo">gpt-3.5-turbo (更快)</option>
                 </select>
             </div>
-            <p class="text-xs text-violet-600">此 Key 只會儲存在您的瀏覽器本地，不會被上傳。請注意 API 費用。</p>
         </section>
 
 
@@ -255,8 +254,8 @@
         let currentScores = null; 
         let currentChartType = 'radar'; 
         
-        // OpenAI API 端點
-        const OPENAI_API_ENDPOINT = 'https://api.openai.com/v1/chat/completions';
+        // V9.0: 將 API 呼叫導向 Vercel Serverless Function
+        const API_PROXY_ENDPOINT = '/api/analyze'; 
 
         // 情境列表 (保持不變)
         const PRESETS = {
@@ -270,7 +269,7 @@
         const SEX_CONTEXTS = ['性愛'];
 
 
-        // --- 進度條控制函式 ---
+        // --- 進度條控制函式 (保持不變) ---
         let progressInterval = null;
         function startProgressBar() {
             if (progressInterval) clearInterval(progressInterval);
@@ -285,20 +284,27 @@
                     $('#status').textContent = `分析中... (${progress}%)`;
                 }
             }, 500); 
-            $('#status').textContent = '等待 API 回覆...';
+            $('#status').textContent = '等待伺服器分析...';
         }
 
-        function stopProgressBar(isSuccess = true) {
+        function stopProgressBar(isSuccess = true, errorDetail = '') {
             if (progressInterval) {
                 clearInterval(progressInterval);
                 progressInterval = null;
             }
             $('#progress').style.width = isSuccess ? '100%' : '0%';
+            
+            if (isSuccess) {
+                $('#status').textContent = '✅ 完成';
+            } else {
+                $('#status').textContent = `❌ 失敗: ${errorDetail}`;
+            }
+
             setTimeout(() => {
                 $('#progressBar').classList.add('hidden');
                 $('#progress').style.width = '0%';
-            }, 1500); 
-            $('#status').textContent = isSuccess ? '✅ 完成' : '❌ 失敗';
+                if (!isSuccess) $('#status').textContent = ''; // 清除錯誤訊息
+            }, 3000); 
         }
         // --- 進度條控制函式結束 ---
 
@@ -503,16 +509,6 @@
         
         // --- 核心事件監聽和初始化 ---
         document.addEventListener('DOMContentLoaded', () => {
-            // 從 LocalStorage 載入 API Key
-            const savedApiKey = localStorage.getItem('openai_api_key');
-            if (savedApiKey) {
-                $('#apiKey').value = savedApiKey;
-            }
-            
-            // API Key 輸入監聽
-            $('#apiKey').addEventListener('input', (e) => {
-                localStorage.setItem('openai_api_key', e.target.value);
-            });
             
             // 設定報告時間
             $('#reportTime').textContent = new Date().toLocaleDateString('zh-TW', {
@@ -599,18 +595,16 @@
             };
             updateBackground(); 
 
-            // V8.1 核心邏輯：一鍵分析 (呼叫 OpenAI API)
+            // V9.0 核心邏輯：一鍵分析 (呼叫 Vercel Serverless Function)
             $('#go').onclick = async () => {
                 const payload = getPayload();
-                const apiKey = $('#apiKey').value.trim();
                 const model = $('#modelSelect').value;
                 let errorMessage = '';
                 
                 const aComplete = payload.aBeast && payload.aKin && payload.aBranch;
                 const bComplete = payload.bBeast && payload.bKin && payload.bBranch;
 
-                if (!apiKey) { errorMessage = '請先輸入您的 OpenAI API Key！'; }
-                else if (!aComplete) { errorMessage = '請選滿我方「六獸、六親、地支」'; }
+                if (!aComplete) { errorMessage = '請選滿我方「六獸、六親、地支」'; }
                 else if (payload.mode === 'dual' && !bComplete) { errorMessage = '雙人分析請選滿對方「六獸、六親、地支」'; }
                 else if (payload.mode !== 'personality' && !payload.context) { errorMessage = '請輸入或選擇情境'; }
                 else if (payload.context === '性愛' && !payload.sexDetail) { errorMessage = '您選擇了性愛情境，請點選或輸入細節按鈕，以供 AI 參考建議。'; }
@@ -623,36 +617,30 @@
                 $('#webScoresAndTags').innerHTML = '';
                 startProgressBar();
                 
-                const prompt = generateOpenAIPrompt(payload);
+                const prompt = generateOpenAIPrompt(payload); // 仍然需要生成 Prompt 內容
 
                 try {
-                    const response = await fetch(OPENAI_API_ENDPOINT, {
+                    const response = await fetch(API_PROXY_ENDPOINT, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${apiKey}`
                         },
                         body: JSON.stringify({
                             model: model,
-                            messages: [
-                                { role: "system", content: "你是一位精通中國古代《神獸七十二型人格》理論的資深分析師。你的任務是根據用戶提供的『六獸-六親-地支』組合和情境，輸出深度且具體的分析報告。報告必須專業、嚴謹，並且字數至少 800 字。對於雙人模式（特別是性愛），報告必須充滿細節和針對性建議，絕對不能保守或簡略。**輸出格式嚴格遵循 markdown，並且報告結尾必須包含一個獨立的 JSON 區塊，列出六維度分數和標籤。**" },
-                                { role: "user", content: prompt }
-                            ],
-                            temperature: 0.7,
-                            max_tokens: 3000, 
-                            // 啟用 JSON 模式可以提高 JSON 輸出準確性，但 gpt-3.5-turbo 可能不完全支持，因此先用普通模式
+                            prompt: prompt, // 將 Prompt 傳給後端 Function
+                            payload: payload // 可選：將原始參數也傳給後端備用
                         })
                     });
 
                     if (!response.ok) {
                         const errorData = await response.json().catch(() => ({}));
-                        throw new Error(`API 請求失敗: ${response.status} ${response.statusText}. 詳細: ${errorData.error ? errorData.error.message : '未知錯誤'}`);
+                        throw new Error(errorData.detail || errorData.error || `API 代理請求失敗 (HTTP ${response.status})`);
                     }
 
                     const data = await response.json();
                     
                     if (!data.choices || data.choices.length === 0) {
-                        throw new Error("API 回應格式錯誤或內容空白。");
+                        throw new Error("伺服器返回內容格式錯誤或內容空白。請檢查 Vercel logs。");
                     }
                     
                     const rawText = data.choices[0].message.content;
@@ -671,9 +659,9 @@
                 } catch (e) { 
                     const errorMsg = e.message || e;
                     console.error("API 調用或解析失敗:", errorMsg);
-                    $('#result').innerHTML=`<p class="text-red-600">❌ **分析失敗**：${errorMsg}。</p><p class="text-sm text-slate-500">請檢查 API Key 是否正確、帳號是否有足夠配額，或選擇更快的模型 (如 gpt-3.5-turbo)。</p>`; 
+                    $('#result').innerHTML=`<p class="text-red-600">❌ **分析失敗**：${errorMsg}。</p><p class="text-sm text-slate-500">請檢查 Vercel 後台的 **環境變數 (OPENAI_API_KEY)** 是否設置正確，或檢查 Vercel logs。</p>`; 
                     renderChart(null, currentChartType);
-                    stopProgressBar(false);
+                    stopProgressBar(false, '請檢查 Vercel Key');
                 }
             };
 
@@ -695,7 +683,7 @@
             };
         });
         
-        // --- 根據模式生成 OpenAI 專屬指令 Prompt ---
+        // --- 根據模式生成 OpenAI 專屬指令 Prompt (保持不變) ---
         function generateOpenAIPrompt(payload) {
             const { mode, aBeast, aKin, aBranch, bBeast, bKin, bBranch, context, sexDetail } = payload;
             const detailA = `${aBeast} ${aKin} ${aBranch}`;

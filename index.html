@@ -1,225 +1,186 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>仙人指路神獸七十二型人格｜一鍵分析</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>仙人指路神獸七十二型人格 一鍵分析</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    body { background:#f8fafc; }
+    .card { background:#fff; border-radius:1rem; padding:1.5rem; box-shadow:0 2px 8px rgba(0,0,0,0.08); }
+    .score { display:flex; align-items:center; gap:10px; margin-top:6px; font-size:14px; }
+    .bar { flex:1; height:10px; background:#e2e8f0; border-radius:9999px; overflow:hidden; }
+    .bar > i { display:block; height:100%; background:#6366f1; }
+    .score b { width:90px; display:inline-block; }
+    .score em { width:40px; text-align:right; font-style:normal; }
+  </style>
 </head>
-<body class="bg-gray-50 min-h-screen">
+<body class="text-slate-800">
+  <div class="max-w-6xl mx-auto p-6 space-y-6">
 
-  <!-- 頂部選單 -->
-  <nav class="bg-indigo-700 text-white px-6 py-3 flex justify-between items-center shadow">
-    <div class="text-lg font-bold">仙人指路分析系統</div>
-    <div class="space-x-4">
-      <a href="#" class="hover:underline">首頁</a>
-      <a href="#" class="hover:underline">分析工具</a>
-      <a href="#" class="hover:underline">課程簡介</a>
-      <a href="#" class="hover:underline">聯絡我們</a>
+    <!-- 標題 -->
+    <header class="flex justify-between items-center">
+      <h1 class="text-2xl font-bold">仙人指路神獸七十二型人格｜一鍵分析</h1>
+      <div class="flex gap-2">
+        <input type="color" id="bgColor" title="背景顏色">
+        <input type="file" id="bgImg" accept="image/*" title="上傳背景圖">
+      </div>
+    </header>
+
+    <!-- 模式切換 -->
+    <div class="flex gap-4">
+      <button id="modeSingle" class="px-4 py-2 rounded-xl bg-indigo-600 text-white">單人分析</button>
+      <button id="modeDual" class="px-4 py-2 rounded-xl bg-slate-200">雙人分析</button>
     </div>
-  </nav>
 
-  <main class="p-6 space-y-6">
+    <!-- 我方 / 對方 -->
+    <div class="grid md:grid-cols-2 gap-4">
+      <!-- 我方 -->
+      <section class="card">
+        <h2 class="font-semibold mb-3">我方 <span id="labelA" class="text-sm text-slate-500">(分析主體)</span></h2>
+        <select id="aBeast" class="w-full mb-2 border rounded-lg p-2">
+          <option value="">六獸</option>
+          <option>青龍</option><option>朱雀</option><option>勾陳</option>
+          <option>螣蛇</option><option>白虎</option><option>玄武</option>
+        </select>
+        <select id="aKin" class="w-full mb-2 border rounded-lg p-2">
+          <option value="">六親</option>
+          <option>父母</option><option>兄弟</option><option>子孫</option>
+          <option>妻財</option><option>官鬼</option>
+        </select>
+        <select id="aBranch" class="w-full border rounded-lg p-2">
+          <option value="">地支</option>
+          <option>子</option><option>丑</option><option>寅</option><option>卯</option>
+          <option>辰</option><option>巳</option><option>午</option><option>未</option>
+          <option>申</option><option>酉</option><option>戌</option><option>亥</option>
+        </select>
+      </section>
 
-    <!-- 情境區 -->
-    <section class="bg-white shadow rounded-lg p-4">
-      <h2 class="text-lg font-semibold mb-2">情境</h2>
-      <div class="flex flex-wrap gap-2 mb-3">
-        <button class="preset px-3 py-1 bg-gray-200 rounded">年度目標協調</button>
-        <button class="preset px-3 py-1 bg-gray-200 rounded">績效回饋會議</button>
-        <button class="preset px-3 py-1 bg-gray-200 rounded">跨部門協作</button>
-        <button class="preset px-3 py-1 bg-gray-200 rounded">壓期交付專案</button>
-        <button class="preset px-3 py-1 bg-gray-200 rounded">人際關係協調</button>
-        <button class="preset px-3 py-1 bg-gray-200 rounded">愛情</button>
-        <button class="preset px-3 py-1 bg-gray-200 rounded">性愛</button>
+      <!-- 對方 -->
+      <section id="sectionB" class="card">
+        <h2 class="font-semibold mb-3">對方</h2>
+        <select id="bBeast" class="w-full mb-2 border rounded-lg p-2">
+          <option value="">六獸</option>
+          <option>青龍</option><option>朱雀</option><option>勾陳</option>
+          <option>螣蛇</option><option>白虎</option><option>玄武</option>
+        </select>
+        <select id="bKin" class="w-full mb-2 border rounded-lg p-2">
+          <option value="">六親</option>
+          <option>父母</option><option>兄弟</option><option>子孫</option>
+          <option>妻財</option><option>官鬼</option>
+        </select>
+        <select id="bBranch" class="w-full border rounded-lg p-2">
+          <option value="">地支</option>
+          <option>子</option><option>丑</option><option>寅</option><option>卯</option>
+          <option>辰</option><option>巳</option><option>午</option><option>未</option>
+          <option>申</option><option>酉</option><option>戌</option><option>亥</option>
+        </select>
+      </section>
+    </div>
+
+    <!-- 情境 -->
+    <section class="card space-y-2">
+      <h2 class="font-semibold">情境</h2>
+      <div class="flex gap-2 flex-wrap">
+        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">人際關係</button>
+        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">性愛</button>
       </div>
-      <input id="context" type="text" placeholder="輸入情境..." 
-             class="w-full border rounded px-3 py-2"/>
+      <input id="context" class="w-full border rounded-lg p-2" placeholder="輸入情境…" />
     </section>
 
-    <!-- 分析模式切換 -->
-    <section class="bg-white shadow rounded-lg p-4 flex gap-4 items-center">
-      <label><input type="radio" name="mode" value="personality" checked> 人格分析</label>
-      <label><input type="radio" name="mode" value="sex"> 性愛分析</label>
+    <!-- 操作 -->
+    <div class="flex gap-3">
+      <button id="go" class="px-4 py-2 rounded-xl bg-indigo-600 text-white">一鍵分析</button>
+      <button id="print" class="px-4 py-2 rounded-xl bg-slate-200">列印 / 匯出 PDF</button>
+      <span id="status" class="text-sm text-slate-600"></span>
+    </div>
+
+    <!-- 結果 -->
+    <section class="card">
+      <div id="result" class="prose max-w-none text-[15px]"></div>
+      <div id="chart" class="mt-4"></div>
     </section>
 
-    <!-- 性愛選項 -->
-    <section id="sexOptions" class="bg-white shadow rounded-lg p-4 hidden">
-      <h2 class="text-lg font-semibold mb-3">性愛分析選項</h2>
-      <div class="flex flex-wrap gap-3 mb-3">
-        <label><input type="checkbox" class="sex-check" value="score"> 情愛指數</label>
-        <label><input type="checkbox" class="sex-check" value="mode"> 互動模式</label>
-        <label><input type="checkbox" class="sex-check" value="risk"> 雷點分析</label>
-        <label><input type="checkbox" class="sex-check" value="script"> 劇本推薦</label>
-        <label><input type="checkbox" class="sex-check" value="position"> 體位推薦</label>
-        <label><input type="checkbox" class="sex-check" value="toys"> 玩具推薦</label>
-        <label><input type="checkbox" class="sex-check" value="scene"> 場景推薦</label>
-      </div>
-      <button id="selectAllSex" class="px-3 py-1 bg-gray-300 rounded">全選</button>
-    </section>
+  </div>
 
-    <!-- 操作區 -->
-    <section class="bg-white shadow rounded-lg p-4 flex flex-wrap gap-3 items-center">
-      <button id="analyzeBtn" class="px-4 py-2 bg-indigo-600 text-white rounded">一鍵分析</button>
-      <button onclick="window.print()" class="px-4 py-2 bg-gray-200 rounded">列印 / 匯出 PDF</button>
-      <input type="color" id="bgColor" title="選擇背景顏色" class="w-10 h-10 cursor-pointer">
-      <input type="file" id="bgImg" accept="image/*" class="cursor-pointer">
-    </section>
+<script>
+const $ = s => document.querySelector(s);
+let radarChart = null;
 
-    <!-- 分析結果 -->
-    <section id="result" class="bg-white shadow rounded-lg p-6 space-y-6">
-      <p class="text-gray-500">這裡會顯示分析結果...</p>
-    </section>
-  </main>
+// 模式切換
+function setAnalysisMode(mode) {
+  if(mode==='single'){
+    $('#sectionB').style.display='none';
+    $('#labelA').textContent='(分析主體)';
+  } else {
+    $('#sectionB').style.display='block';
+    $('#labelA').textContent='';
+  }
+}
+document.getElementById('modeSingle').onclick=()=>setAnalysisMode('single');
+document.getElementById('modeDual').onclick=()=>setAnalysisMode('dual');
 
-  <!-- 腳本 -->
-  <script>
-    // 背景設定
-    document.getElementById('bgColor').oninput = e => {
-      document.body.style.background = e.target.value;
-    };
-    document.getElementById('bgImg').onchange = e => {
-      const file = e.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = ev => {
-        document.body.style.backgroundImage = `url(${ev.target.result})`;
-        document.body.style.backgroundSize = 'cover';
-        document.body.style.backgroundAttachment = 'fixed';
-      };
-      reader.readAsDataURL(file);
-    };
+// 預設情境按鈕
+document.querySelectorAll('.preset').forEach(b=>{
+  b.onclick=()=>{ $('#context').value=b.textContent; };
+});
 
-    // 情境預設按鈕
-    document.querySelectorAll('.preset').forEach(b =>
-      b.onclick = () => {
-        document.getElementById('context').value = b.textContent;
-      }
-    );
+// 背景設定
+document.getElementById('bgColor').oninput = e => {
+  document.body.style.background = e.target.value;
+};
+document.getElementById('bgImg').onchange = e => {
+  const file = e.target.files[0];
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    document.body.style.backgroundImage = `url(${ev.target.result})`;
+    document.body.style.backgroundSize = 'cover';
+    document.body.style.backgroundAttachment = 'fixed';
+  };
+  reader.readAsDataURL(file);
+};
 
-    // 模式切換
-    document.querySelectorAll('input[name="mode"]').forEach(r => {
-      r.onchange = e => {
-        document.getElementById('sexOptions').classList.toggle('hidden', e.target.value !== 'sex');
-      };
-    });
+// 分數 + 雷達
+function renderRadar(scores){
+  const wrap=document.getElementById('chart');
+  wrap.innerHTML='';
+  if(!scores) return;
+  const canvas=document.createElement('canvas'); wrap.appendChild(canvas);
+  if(radarChart) radarChart.destroy();
+  radarChart=new Chart(canvas.getContext('2d'),{
+    type:'radar',
+    data:{ labels:['契合','溝通','節奏','權責','信任','創新'],
+      datasets:[{label:'六維度',data:Object.values(scores),fill:true,
+        backgroundColor:'rgba(99,102,241,0.15)',
+        borderColor:'rgba(99,102,241,1)',
+        pointBackgroundColor:'rgba(99,102,241,1)'}]},
+    options:{scales:{r:{suggestedMin:0,suggestedMax:100,ticks:{stepSize:20}}},
+    plugins:{legend:{display:false}}}
+  });
+}
 
-    // 性愛全選
-    document.getElementById('selectAllSex').onclick = () => {
-      document.querySelectorAll('.sex-check').forEach(c => c.checked = true);
-    };
-
-    // 假數據
-    const fakeScores = { fit: 82, comm: 75, pace: 68, account: 80, trust: 72, innov: 85 };
-
-    // 性愛分析模板
-    const sexTemplates = {
-      score: `
-        <h4 class="font-bold">情愛指數</h4>
-        <p>9.2/10（激情與默契並存，火熱又不失細膩）</p>
-      `,
-      mode: `
-        <h4 class="font-bold">互動模式</h4>
-        <ul class="list-disc pl-6">
-          <li>一方主導挑逗，另一方靈活應對，節奏充滿遊戲感。</li>
-          <li>性愛過程如舞蹈般交錯，兼具張力與情感連結。</li>
-        </ul>
-      `,
-      risk: `
-        <h4 class="font-bold">雷點分析</h4>
-        <p>雙方皆偏好掌控，若缺乏溝通，可能導致性愛變成競爭。</p>
-      `,
-      script: `
-        <h4 class="font-bold">最佳性愛劇本推薦</h4>
-        <ul class="list-disc pl-6">
-          <li>挑逗對決：輪流掌控節奏，考驗彼此耐力。</li>
-          <li>視覺誘惑：善用服裝與燈光，增強張力。</li>
-          <li>情境調情：前戲延長，堆疊期待與快感。</li>
-        </ul>
-      `,
-      position: `
-        <h4 class="font-bold">推薦體位</h4>
-        <ul class="list-disc pl-6">
-          <li>交錯後入（Entwined Rear Entry）：靈活切換主導。</li>
-          <li>蓮花交合（Lotus Position）：提升親密度與深度。</li>
-          <li>站立交合（Standing Sex）：適合急速與激情。</li>
-        </ul>
-      `,
-      toys: `
-        <h4 class="font-bold">推薦玩具</h4>
-        <ul class="list-disc pl-6">
-          <li>震動指環：挑戰快感極限。</li>
-          <li>語音控制震動器：增添互動與主導感。</li>
-          <li>情趣蠟燭：營造氛圍並強化情慾。</li>
-        </ul>
-      `,
-      scene: `
-        <h4 class="font-bold">推薦性愛場景</h4>
-        <ul class="list-disc pl-6">
-          <li>隱密酒吧 VIP 沙發區：帶來禁忌與刺激。</li>
-          <li>私人遊戲室：將性愛化為一場挑戰。</li>
-          <li>舞蹈室鏡前：放大肢體交錯的視覺震撼。</li>
-        </ul>
-      `
-    };
-
-    // 分析
-    document.getElementById('analyzeBtn').onclick = () => {
-      const ctx = document.getElementById('context').value || "未輸入情境";
-      const mode = document.querySelector('input[name="mode"]:checked').value;
-      const resultBox = document.getElementById('result');
-
-      if (mode === 'personality') {
-        // 百分比條
-        let bars = Object.entries(fakeScores).map(([k,v]) => `
-          <div class="mb-2">
-            <div class="flex justify-between text-sm">
-              <span>${k.toUpperCase()}</span><span>${v}%</span>
-            </div>
-            <div class="w-full bg-gray-200 h-3 rounded">
-              <div class="h-3 bg-indigo-500 rounded" style="width:${v}%"></div>
-            </div>
-          </div>
-        `).join('');
-
-        // 結果區
-        resultBox.innerHTML = `
-          <h3 class="text-xl font-bold mb-2">人格分析結果</h3>
-          <p>情境：<span class="font-semibold">${ctx}</span></p>
-          <div class="mt-4">${bars}</div>
-          <canvas id="radarChart" class="mt-6"></canvas>
-        `;
-
-        // 雷達圖
-        new Chart(document.getElementById('radarChart'), {
-          type: 'radar',
-          data: {
-            labels: ["契合度","溝通","節奏","責任感","信任","創新"],
-            datasets: [{
-              label: "分析分數",
-              data: Object.values(fakeScores),
-              backgroundColor: "rgba(99,102,241,0.2)",
-              borderColor: "rgba(99,102,241,1)",
-              pointBackgroundColor: "rgba(99,102,241,1)"
-            }]
-          },
-          options: {
-            scales: { r: { suggestedMin: 0, suggestedMax: 100 } }
-          }
-        });
-      } else {
-        // 性愛分析
-        const checks = [...document.querySelectorAll('.sex-check:checked')].map(c => c.value);
-        resultBox.innerHTML = `
-          <h3 class="text-xl font-bold mb-2">性愛分析結果</h3>
-          <p>情境：<span class="font-semibold">${ctx}</span></p>
-          <div class="space-y-4 mt-4">
-            ${checks.length ? checks.map(c => sexTemplates[c]).join('') : "<p>請至少選擇一項分析</p>"}
-          </div>
-        `;
-      }
-    };
-  </script>
+// 模擬 API
+document.getElementById('go').onclick=()=>{
+  $('#status').textContent='分析中…';
+  setTimeout(()=>{
+    const scores={fit:78,comm:72,pace:65,account:70,trust:68,innov:80};
+    $('#result').innerHTML=`
+      <h3 class="text-lg font-semibold">分析結果</h3>
+      <p>這是一個模擬的分析內容，顯示人格與互動的特徵。</p>
+      <div class="score"><b>契合</b><div class="bar"><i style="width:${scores.fit}%"></i></div><em>${scores.fit}</em></div>
+      <div class="score"><b>溝通</b><div class="bar"><i style="width:${scores.comm}%"></i></div><em>${scores.comm}</em></div>
+      <div class="score"><b>節奏</b><div class="bar"><i style="width:${scores.pace}%"></i></div><em>${scores.pace}</em></div>
+      <div class="score"><b>權責</b><div class="bar"><i style="width:${scores.account}%"></i></div><em>${scores.account}</em></div>
+      <div class="score"><b>信任</b><div class="bar"><i style="width:${scores.trust}%"></i></div><em>${scores.trust}</em></div>
+      <div class="score"><b>創新</b><div class="bar"><i style="width:${scores.innov}%"></i></div><em>${scores.innov}</em></div>
+    `;
+    renderRadar(scores);
+    $('#status').textContent='✅ 完成';
+  },1000);
+};
+setAnalysisMode('dual');
+</script>
 </body>
 </html>

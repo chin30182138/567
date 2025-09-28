@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>仙人指路神獸七十二型人格 - 分析報告 (V9.0)</title>
+    <title>仙人指路神獸七十二型人格 - 分析報告 (V9.1)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
@@ -15,39 +15,51 @@
             background-size: cover; 
             background-position: center; 
             background-attachment: fixed; 
+            font-family: 'Helvetica Neue', Helvetica, Arial, '微軟正黑體', 'Microsoft JhengHei', sans-serif;
         } 
         
+        /* 報告區塊的專業樣式 */
         .result-section { 
             background-color: rgba(255, 255, 255, 0.95); 
             backdrop-filter: blur(5px); 
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(0, 0, 0, 0.05); /* 更專業的陰影 */
+            border-radius: 16px; /* 圓角 */
         }
 
-        /* 分數條與標籤樣式 */
-        .scores { display:grid; gap:8px; margin-top:20px; padding-top:15px; border-top:1px solid #e5e7eb; }
-        .score { display:flex; align-items:center; gap:10px; font-size:14px }
+        /* 分數條與標籤樣式 (微調顏色和間距) */
+        .scores { display:grid; gap:10px; margin-top:25px; padding-top:20px; border-top:1px solid #d1d5db; /* 淺灰色分隔線 */ }
+        .score { display:flex; align-items:center; gap:10px; font-size:14px; font-weight: 500; }
+        .score b { min-width: 60px; text-align: right; color: #4b5563; } /* 標籤文字靠右 */
         .bar { flex:1; height:12px; background:#e5e7eb; border-radius:9999px; overflow:hidden }
         .bar > i { display:block; height:100%; transition: width 0.8s ease-out; }
-        .tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; padding-top:15px; border-top:1px solid #e5e7eb; }
-        .tag { background:#eef2ff; color:#3730a3; padding:4px 10px; border-radius:9999px; font-size:12px; font-weight: 500; }
+        .tags { display:flex; gap:8px; flex-wrap:wrap; margin-top:20px; padding-top:15px; border-top:1px dashed #d1d5db; /* 虛線分隔 */ }
+        .tag { background:#e0f2fe; /* 淺藍色 */ color:#0284c7; /* 深藍色 */ padding:5px 12px; border-radius:9999px; font-size:13px; font-weight: 600; }
         
-        /* AI 輸出樣式 (V7 豐富樣式) */
-        #result h3 { font-size: 1.3rem; font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.5rem; border-bottom: 3px solid #6366f1; padding-bottom: 5px; color: #4338ca; }
-        #result h4 { font-size: 1.15rem; font-weight: 600; margin-top: 1rem; margin-bottom: 0.4rem; }
-        #result p { margin-bottom: 1rem; line-height: 1.6; }
-        #result ul, #result ol { padding-left: 25px; margin-bottom: 1rem; }
-        #result ul { list-style-type: disc; }
+        /* AI 輸出樣式 (V9.1 報告樣式增強) */
+        #result h3 { 
+            font-size: 1.5rem; 
+            font-weight: 800; 
+            margin-top: 2rem; 
+            margin-bottom: 0.8rem; 
+            border-bottom: 4px solid #3b82f6; /* 主題藍色 */
+            padding-bottom: 8px; 
+            color: #1e3a8a; /* 深藍色標題 */
+        }
+        #result h4 { 
+            font-size: 1.25rem; 
+            font-weight: 700; 
+            margin-top: 1.5rem; 
+            margin-bottom: 0.6rem; 
+            color: #4b5563; 
+        }
+        #result p { margin-bottom: 1.2rem; line-height: 1.7; text-align: justify; } /* 增加行高和對齊 */
+        #result ul, #result ol { padding-left: 30px; margin-bottom: 1.2rem; }
+        #result ul { list-style-type: '👉 '; } /* 使用圖示作為清單符號 */
         #result ol { list-style-type: decimal; }
+        #result li { margin-bottom: 8px; }
         
         /* 確保圖片不破版 */
-        #result img {
-            max-width: 100%;
-            height: auto;
-            margin: 0;
-            display: inline;
-            border-radius: 0;
-            box-shadow: none;
-        }
+        #result img { max-width: 100%; height: auto; margin: 0; display: inline; border-radius: 0; box-shadow: none; }
         
         /* 列印時，隱藏控制項，並強制顯示顏色 */
         @media print {
@@ -57,6 +69,7 @@
                 color-adjust: exact !important;
             }
             @page { margin: 15mm; }
+            .result-section { box-shadow: none; border: none; border-radius: 0; } /* 列印時移除陰影 */
         }
         .print-header { display: none; }
 
@@ -65,87 +78,91 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            margin-bottom: 10px;
+            margin-bottom: 15px;
         }
         .chart-type-selector button {
-            padding: 4px 10px;
-            font-size: 12px;
-            border: 1px solid #ccc;
-            background: #fff;
-            margin: 0 2px;
-            border-radius: 4px;
+            padding: 6px 15px;
+            font-size: 13px;
+            border: 1px solid #d1d5db;
+            background: #f9fafb;
+            margin: 0 4px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
         }
         .chart-type-selector button.active {
-            background: #6366f1;
+            background: #3b82f6; /* 主題藍色 */
             color: white;
-            border-color: #6366f1;
-        }
-        
-        /* 單獨用於單人模式的標籤，讓它能隱藏 */
-        #modeSingle, #modeDual, #modePersonality {
-            transition: all 0.3s ease;
+            border-color: #3b82f6;
         }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
     <div class="max-w-5xl mx-auto p-6 space-y-6">
         <header class="print-header">
-            <h1>仙人指路｜神獸七十二型人格分析報告</h1>
-            <p style="font-size: 10pt; color: #555;">報告生成時間: <span id="reportTime"></span></p>
+            <h1 style="font-size: 24pt; color: #1e3a8a; margin-bottom: 5px;">仙人指路｜神獸七十二型人格分析報告</h1>
+            <p style="font-size: 10pt; color: #6b7280; border-bottom: 1px solid #e5e7eb; padding-bottom: 10px; margin-bottom: 15px;">報告生成時間: <span id="reportTime"></span></p>
         </header>
 
         <header class="space-y-1 no-print">
-            <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 (V9.0)</h1>
-            <p class="text-slate-500 text-sm">✨ **最終安全版：API Key 已隱藏於 Vercel 後台**</p>
+            <h1 class="text-3xl font-extrabold text-gray-900">仙人指路｜神獸七十二型人格 (V9.1)</h1>
+            <p class="text-slate-500 text-sm">✨ **安全升級**：API Key 已隱藏於 Vercel。 **版面美化**：新增 Local Storage 記憶功能。</p>
         </header>
         
-        <section class="bg-emerald-50 p-4 rounded-xl shadow space-y-2 no-print">
-            <h2 class="font-semibold text-emerald-700">✅ API 狀態</h2>
-            <p class="text-sm text-emerald-600">本應用程式現在透過 Vercel 後台的環境變數連接 OpenAI API。您的 Key 已安全隱藏，無需手動輸入。</p>
-            <div class="flex items-center gap-3 mt-2">
-                <label for="modelSelect" class="text-sm">分析模型:</label>
-                <select id="modelSelect" class="p-1 border rounded-lg text-sm bg-white">
-                    <option value="gpt-4o-mini">gpt-4o-mini (推薦)</option>
-                    <option value="gpt-3.5-turbo">gpt-3.5-turbo (更快)</option>
-                </select>
+        <section class="bg-indigo-50 p-4 rounded-xl shadow space-y-2 no-print border-l-4 border-indigo-500">
+            <h2 class="font-bold text-indigo-700">⚙️ 系統配置</h2>
+            <div class="flex flex-wrap items-center gap-4 text-sm text-indigo-600">
+                <span class="font-medium">API 狀態: <b class="text-green-700">安全代理運行中</b></span>
+                <div class="flex items-center gap-2">
+                    <label for="modelSelect" class="font-medium">分析模型:</label>
+                    <select id="modelSelect" class="p-1 border rounded-lg text-sm bg-white shadow-sm">
+                        <option value="gpt-4o-mini">gpt-4o-mini (推薦)</option>
+                        <option value="gpt-3.5-turbo">gpt-3.5-turbo (更快)</option>
+                    </select>
+                </div>
             </div>
         </section>
 
 
         <div class="flex gap-4 flex-wrap no-print">
-            <button id="modePersonality" class="px-4 py-2 rounded-lg bg-indigo-600 text-white">個性分析</button>
-            <button id="modeSingle" class="px-4 py-2 rounded-lg bg-slate-200 text-slate-800">單人情境</button>
-            <button id="modeDual" class="px-4 py-2 rounded-lg bg-slate-200 text-slate-800">雙人情境</button>
+            <button id="modePersonality" class="px-5 py-2.5 rounded-lg text-white font-semibold shadow-md transition-colors">個性分析</button>
+            <button id="modeSingle" class="px-5 py-2.5 rounded-lg text-slate-800 font-semibold shadow-md transition-colors">單人情境</button>
+            <button id="modeDual" class="px-5 py-2.5 rounded-lg text-slate-800 font-semibold shadow-md transition-colors">雙人情境</button>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-3 no-print">
+             <button id="saveInput" class="px-4 py-2 rounded-lg bg-green-500 text-white font-semibold transition-colors hover:bg-green-600">💾 儲存輸入</button>
+             <button id="loadInput" class="px-4 py-2 rounded-lg bg-yellow-500 text-white font-semibold transition-colors hover:bg-yellow-600">📥 載入輸入</button>
+             <span id="saveStatus" class="text-sm text-slate-500"></span>
         </div>
 
         <div class="grid md:grid-cols-2 gap-4 no-print">
-            <section class="bg-white p-4 rounded-xl shadow">
-                <h2 class="font-semibold mb-2">我方 (分析主體)</h2>
-                <select id="aBeast" class="w-full mb-2 border rounded-lg p-2">
+            <section class="bg-white p-5 rounded-xl shadow-lg border border-gray-100">
+                <h2 class="font-bold text-lg mb-3 border-b pb-2 text-indigo-600">我方 (分析主體)</h2>
+                <select id="aBeast" class="w-full mb-3 border rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500">
                     <option value="">六獸</option><option>青龍</option><option>朱雀</option>
                     <option>勾陳</option><option>螣蛇</option><option>白虎</option><option>玄武</option>
                 </select>
-                <select id="aKin" class="w-full mb-2 border rounded-lg p-2">
+                <select id="aKin" class="w-full mb-3 border rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500">
                     <option value="">六親</option><option>父母</option><option>兄弟</option>
                     <option>子孫</option><option>妻財</option><option>官鬼</option>
                 </select>
-                <select id="aBranch" class="w-full border rounded-lg p-2">
+                <select id="aBranch" class="w-full border rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500">
                     <option value="">地支</option><option>子</option><option>丑</option><option>寅</option>
                     <option>卯</option><option>辰</option><option>巳</option><option>午</option>
                     <option>未</option><option>申</option><option>酉</option><option>戌</option><option>亥</option>
                 </select>
             </section>
-            <section id="sectionB" class="bg-white p-4 rounded-xl shadow">
-                <h2 class="font-semibold mb-2">對方</h2>
-                <select id="bBeast" class="w-full mb-2 border rounded-lg p-2">
+            <section id="sectionB" class="bg-white p-5 rounded-xl shadow-lg border border-gray-100">
+                <h2 class="font-bold text-lg mb-3 border-b pb-2 text-indigo-600">對方</h2>
+                <select id="bBeast" class="w-full mb-3 border rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500">
                     <option value="">六獸</option><option>青龍</option><option>朱雀</option>
                     <option>勾陳</option><option>螣蛇</option><option>白虎</option><option>玄武</option>
                 </select>
-                <select id="bKin" class="w-full mb-2 border rounded-lg p-2">
+                <select id="bKin" class="w-full mb-3 border rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500">
                     <option value="">六親</option><option>父母</option><option>兄弟</option>
                     <option>子孫</option><option>妻財</option><option>官鬼</option>
                 </select>
-                <select id="bBranch" class="w-full border rounded-lg p-2">
+                <select id="bBranch" class="w-full border rounded-lg p-2.5 focus:ring-indigo-500 focus:border-indigo-500">
                     <option value="">地支</option><option>子</option><option>丑</option><option>寅</option>
                     <option>卯</option><option>辰</option><option>巳</option><option>午</option>
                     <option>未</option><option>申</option><option>酉</option><option>戌</option><option>亥</option>
@@ -153,60 +170,60 @@
             </section>
         </div>
 
-        <section class="bg-white p-4 rounded-xl shadow space-y-2 no-print">
-            <h2 class="font-semibold">情境 / 分析主題</h2>
+        <section class="bg-white p-5 rounded-xl shadow-lg space-y-3 no-print border border-gray-100">
+            <h2 class="font-bold text-lg border-b pb-2 text-indigo-600">情境 / 分析主題</h2>
             <div id="presetContainer" class="flex gap-2 flex-wrap">
                 </div>
-            <input id="context" class="w-full border rounded-lg p-2" placeholder="輸入自訂情境或分析主題…" />
-            <div id="sexOptions" class="hidden mt-2 p-3 bg-red-50 border rounded-lg">
-                <label class="block mb-3 font-semibold text-red-700">性愛主題細節 (點選以下按鈕作為 AI 建議的基礎)：</label>
+            <input id="context" class="w-full border rounded-lg p-2.5" placeholder="輸入自訂情境或分析主題…" />
+            <div id="sexOptions" class="hidden mt-3 p-4 bg-red-50 border border-red-200 rounded-lg shadow-inner">
+                <label class="block mb-3 font-bold text-red-700">🌶️ 性愛主題細節 (點選按鈕作為 AI 建議的基礎)：</label>
                 
                 <h3 class="text-sm font-bold text-red-600 mb-1" style="border-bottom:none; margin-top:0;">劇本類型</h3>
                 <div class="flex flex-wrap gap-2 mb-3 border-b pb-2 border-red-100">
-                    <button class="sex-detail bg-red-100 px-3 py-1.5 rounded-full" data-detail="性愛場景與角色扮演">場景與角色扮演</button>
-                    <button class="sex-detail bg-red-100 px-3 py-1.5 rounded-full" data-detail="性愛技巧與體位推薦">技巧與體位推薦</button>
-                    <button class="sex-detail bg-red-100 px-3 py-1.5 rounded-full" data-detail="性愛玩具與情境設置">玩具與情境設置</button>
-                    <button class="sex-detail bg-red-100 px-3 py-1.5 rounded-full" data-detail="六獸 X 地支全劇本合集">六獸 X 地支合集</button>
+                    <button class="sex-detail bg-red-100 px-3 py-1.5 rounded-full text-red-700 hover:bg-red-200" data-detail="性愛場景與角色扮演">場景與角色扮演</button>
+                    <button class="sex-detail bg-red-100 px-3 py-1.5 rounded-full text-red-700 hover:bg-red-200" data-detail="性愛技巧與體位推薦">技巧與體位推薦</button>
+                    <button class="sex-detail bg-red-100 px-3 py-1.5 rounded-full text-red-700 hover:bg-red-200" data-detail="性愛玩具與情境設置">玩具與情境設置</button>
+                    <button class="sex-detail bg-red-100 px-3 py-1.5 rounded-full text-red-700 hover:bg-red-200" data-detail="六獸 X 地支全劇本合集">六獸 X 地支合集</button>
                 </div>
                 
                 <h3 class="text-sm font-bold text-red-600 mb-1" style="border-bottom:none; margin-top:0;">額外關鍵字 / 偏好</h3>
                 <div class="flex flex-wrap gap-2 mb-2">
-                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="地下賭場">地下賭場</button>
-                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="露天泳池">露天泳池</button>
-                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="摩天大樓">摩天大樓</button>
-                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="試衣間">試衣間</button>
-                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="權力遊戲">權力遊戲</button>
-                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="心理掌控">心理掌控</button>
-                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="懸疑驚悚情境">懸疑驚悚</button>
-                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="深度擁抱交合">深度擁抱</button>
-                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="語音催眠">語音催眠</button>
-                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="野性攻防">野性攻防</button>
-                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="極端快感">極端快感</button>
-                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="震動棒">震動棒</button>
-                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="束縛配件">束縛配件</button>
-                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="感官剝奪">感官剝奪</button>
-                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="心理控制工具">心理控制工具</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full text-red-800 hover:bg-red-300" data-detail="地下賭場">地下賭場</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full text-red-800 hover:bg-red-300" data-detail="露天泳池">露天泳池</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full text-red-800 hover:bg-red-300" data-detail="摩天大樓">摩天大樓</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full text-red-800 hover:bg-red-300" data-detail="試衣間">試衣間</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full text-red-800 hover:bg-red-300" data-detail="權力遊戲">權力遊戲</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full text-red-800 hover:bg-red-300" data-detail="心理掌控">心理掌控</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full text-red-800 hover:bg-red-300" data-detail="懸疑驚悚情境">懸疑驚悚</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full text-red-800 hover:bg-red-300" data-detail="深度擁抱交合">深度擁抱</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full text-red-800 hover:bg-red-300" data-detail="語音催眠">語音催眠</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full text-red-800 hover:bg-red-300" data-detail="野性攻防">野性攻防</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full text-red-800 hover:bg-red-300" data-detail="極端快感">極端快感</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full text-red-800 hover:bg-red-300" data-detail="震動棒">震動棒</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full text-red-800 hover:bg-red-300" data-detail="束縛配件">束縛配件</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full text-red-800 hover:bg-red-300" data-detail="感官剝奪">感官剝奪</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full text-red-800 hover:bg-red-300" data-detail="心理控制工具">心理控制工具</button>
                 </div>
-                <textarea id="sexDetailInput" class="w-full border rounded-lg p-2 text-sm" placeholder="選中的細節會自動出現在這裡，AI 將依此提供建議..."></textarea>
+                <textarea id="sexDetailInput" class="w-full border rounded-lg p-2 text-sm focus:ring-red-500 focus:border-red-500" placeholder="選中的細節會自動出現在這裡，AI 將依此提供建議..."></textarea>
             </div>
         </section>
 
-        <div class="flex flex-wrap items-center gap-3 no-print">
-            <button id="go" class="px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold">一鍵分析</button>
-            <button id="print" class="px-4 py-2 rounded-lg bg-slate-200 text-slate-800 font-semibold">列印 / PDF</button>
+        <div class="flex flex-wrap items-center gap-4 no-print">
+            <button id="go" class="px-6 py-3 rounded-lg bg-indigo-600 text-white font-bold transition-colors hover:bg-indigo-700 shadow-xl">🚀 一鍵分析</button>
+            <button id="print" class="px-6 py-3 rounded-lg bg-slate-200 text-slate-800 font-semibold transition-colors hover:bg-slate-300">🖨️ 列印 / PDF</button>
             
-            <button id="toggleBeauty" class="px-4 py-2 rounded-lg bg-pink-500 text-white font-semibold">🎨 美化</button>
+            <button id="toggleBeauty" class="px-6 py-3 rounded-lg bg-pink-500 text-white font-semibold transition-colors hover:bg-pink-600">🎨 美化設定</button>
 
             <div id="statusContainer" class="flex items-center gap-3">
-                <span id="status" class="text-sm text-slate-600"></span>
+                <span id="status" class="text-sm text-slate-600 font-medium"></span>
                 <div id="progressBar" class="w-40 h-2 bg-slate-200 rounded-full overflow-hidden hidden">
                     <div id="progress" class="h-full bg-indigo-400 transition-all duration-300 ease-linear" style="width: 0%"></div>
                 </div>
             </div>
         </div>
         
-        <section id="beautyPanel" class="bg-white p-4 rounded-xl shadow space-y-3 hidden no-print">
-            <h2 class="font-semibold">背景與介面美化</h2>
+        <section id="beautyPanel" class="bg-white p-5 rounded-xl shadow-lg space-y-3 hidden no-print border border-gray-100">
+            <h2 class="font-bold text-lg border-b pb-2 text-pink-600">背景與介面美化 (Local Storage 記憶)</h2>
             <div class="grid md:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-sm font-medium mb-1">背景顏色選擇：</label>
@@ -214,22 +231,25 @@
                 </div>
                 <div>
                     <label class="block text-sm font-medium mb-1">背景圖片 (從本機上傳)：</label>
-                    <input type="file" id="bgImageFile" accept="image/*" class="w-full border rounded-lg p-2 text-sm" />
+                    <input type="file" id="bgImageFile" accept="image/*" class="w-full border rounded-lg p-2 text-sm bg-white" />
                 </div>
             </div>
-            <button id="clearBg" class="px-3 py-1.5 rounded-full bg-red-100 text-red-700 text-sm">清除圖片與顏色</button>
+            <button id="clearBg" class="px-4 py-2 rounded-full bg-red-100 text-red-700 text-sm font-medium transition-colors hover:bg-red-200">❌ 清除圖片與顏色</button>
         </section>
 
 
-        <section class="result-section p-5 rounded-xl shadow space-y-4">
-            <div class="grid md:grid-cols-3 gap-6">
-                <div class="md:col-span-1">
+        <section class="result-section p-8 rounded-xl shadow-2xl space-y-6">
+            <h2 class="text-2xl font-extrabold text-gray-800 border-b-2 border-gray-200 pb-2">分析報告結果</h2>
+            
+            <div class="grid md:grid-cols-3 gap-8 items-center">
+                <div class="md:col-span-1 border border-gray-200 p-4 rounded-lg bg-white shadow-inner">
                     <div class="chart-type-selector no-print">
-                        <button id="chartRadarBtn" data-type="radar" class="active">雷達圖</button>
-                        <button id="chartBarBtn" data-type="bar">長條圖</button>
+                        <button id="chartRadarBtn" data-type="radar" class="active">📊 雷達圖</button>
+                        <button id="chartBarBtn" data-type="bar">📈 長條圖</button>
                     </div>
                     <div id="chartContainer" class="flex justify-center items-center" style="min-height: 280px;">
-                        </div>
+                        <p class="text-slate-500 text-center text-sm">請選擇雙人模式並完成分析以繪製圖表。</p>
+                    </div>
                 </div>
                 
                 <div id="scoresTagsWeb" class="md:col-span-2">
@@ -239,7 +259,7 @@
                 </div>
             </div>
             
-            <div id="result" class="text-[15px] max-w-none">
+            <div id="result" class="text-[16px] max-w-none pt-4 border-t border-gray-200">
                 </div>
         </section>
     </div>
@@ -249,12 +269,13 @@
         const $$ = s => document.querySelectorAll(s);
         let analysisMode = 'personality'; 
         const markdownConverter = new showdown.Converter(); 
-
+        const LOCAL_STORAGE_KEY_INPUT = 'beast_analysis_input_v9';
+        const LOCAL_STORAGE_KEY_BEAUTY = 'beast_analysis_beauty_v9';
+        
         let radarChart = null; 
         let currentScores = null; 
         let currentChartType = 'radar'; 
         
-        // V9.0: 將 API 呼叫導向 Vercel Serverless Function
         const API_PROXY_ENDPOINT = '/api/analyze'; 
 
         // 情境列表 (保持不變)
@@ -308,7 +329,7 @@
         }
         // --- 進度條控制函式結束 ---
 
-        // --- 模式切換邏輯 (保持不變) ---
+        // --- 模式切換邏輯 (保持不變，樣式微調) ---
         function setAnalysisMode(mode){
             analysisMode = mode;
             const modes = {
@@ -320,11 +341,13 @@
 
             Object.keys(modes).forEach(key => {
                 if (key === mode) {
-                    modes[key].classList.replace('bg-slate-200', 'bg-indigo-600');
-                    modes[key].classList.replace('text-slate-800', 'text-white');
+                    // 選中樣式
+                    modes[key].classList.remove('bg-slate-200', 'text-slate-800');
+                    modes[key].classList.add('bg-indigo-600', 'text-white');
                 } else {
-                    modes[key].classList.replace('bg-indigo-600', 'bg-slate-200');
-                    modes[key].classList.replace('text-white', 'text-slate-800');
+                    // 未選中樣式
+                    modes[key].classList.remove('bg-indigo-600', 'text-white');
+                    modes[key].classList.add('bg-slate-200', 'text-slate-800');
                 }
             });
 
@@ -343,7 +366,7 @@
             
             presets.forEach(p => {
                 const btn = document.createElement('button');
-                btn.className = 'preset px-3 py-1.5 rounded-full bg-slate-100 text-slate-800 hover:bg-slate-200 transition-colors';
+                btn.className = 'preset px-3 py-1.5 rounded-full bg-slate-100 text-slate-800 hover:bg-slate-300 transition-colors text-sm font-medium';
                 btn.textContent = p;
                 btn.onclick = () => {
                     $('#context').value = p;
@@ -351,7 +374,7 @@
                 };
                 container.appendChild(btn);
             });
-            $('#context').value = '';
+            if (!$('#context').value) $('#context').value = ''; // 避免切換模式時清空正在輸入的內容
         }
 
         // 性愛細節區塊開關 (保持不變)
@@ -364,24 +387,110 @@
             }
             else { 
                 $('#sexOptions').classList.add('hidden'); 
-                $('#sexDetailInput').value = '';
+                // 不清除細節輸入框，方便切換回來時內容還在
             }
         }
 
+        // V9.1 新增：取得所有輸入值
         function getPayload(){
             return {
                 mode:analysisMode,
                 aBeast:$('#aBeast').value, aKin:$('#aKin').value, aBranch:$('#aBranch').value,
                 bBeast:$('#bBeast').value, bKin:$('#bKin').value, bBranch:$('#bBranch').value,
-                context:$('#context').value, sexDetail:$('#sexDetailInput').value
+                context:$('#context').value, sexDetail:$('#sexDetailInput').value,
+                model:$('#modelSelect').value // 儲存模型
             };
         }
         
+        // --- Local Storage 相關功能 (V9.1 新增) ---
+        function saveInputData() {
+            const data = getPayload();
+            try {
+                localStorage.setItem(LOCAL_STORAGE_KEY_INPUT, JSON.stringify(data));
+                $('#saveStatus').textContent = '✅ 輸入資料已儲存！';
+            } catch (e) {
+                $('#saveStatus').textContent = '❌ 儲存失敗 (Local Storage 空間不足?)';
+                console.error("Error saving to Local Storage", e);
+            }
+            setTimeout(() => $('#saveStatus').textContent = '', 3000);
+        }
+
+        function loadInputData() {
+            try {
+                const dataString = localStorage.getItem(LOCAL_STORAGE_KEY_INPUT);
+                if (!dataString) {
+                    $('#saveStatus').textContent = 'ℹ️ 尚無已儲存的輸入資料。';
+                    setTimeout(() => $('#saveStatus').textContent = '', 3000);
+                    return;
+                }
+                const data = JSON.parse(dataString);
+                
+                // 載入模式並觸發設定
+                setAnalysisMode(data.mode || 'personality'); 
+
+                // 載入選單值
+                $('#aBeast').value = data.aBeast || '';
+                $('#aKin').value = data.aKin || '';
+                $('#aBranch').value = data.aBranch || '';
+                $('#bBeast').value = data.bBeast || '';
+                $('#bKin').value = data.bKin || '';
+                $('#bBranch').value = data.bBranch || '';
+                
+                $('#context').value = data.context || '';
+                $('#sexDetailInput').value = data.sexDetail || '';
+                $('#modelSelect').value = data.model || 'gpt-4o-mini';
+
+                // 重新檢查性愛細節區塊
+                toggleSexOptions(); 
+
+                $('#saveStatus').textContent = '✅ 輸入資料已載入！';
+                setTimeout(() => $('#saveStatus').textContent = '', 3000);
+
+            } catch (e) {
+                $('#saveStatus').textContent = '❌ 載入失敗或資料損毀。';
+                console.error("Error loading from Local Storage", e);
+            }
+        }
+        
+        function saveBeautySettings(settings) {
+            try {
+                localStorage.setItem(LOCAL_STORAGE_KEY_BEAUTY, JSON.stringify(settings));
+            } catch (e) {
+                console.error("Error saving beauty settings", e);
+            }
+        }
+
+        function loadBeautySettings() {
+            const body = $('body');
+            try {
+                const settingsString = localStorage.getItem(LOCAL_STORAGE_KEY_BEAUTY);
+                if (!settingsString) return;
+                
+                const settings = JSON.parse(settingsString);
+
+                if (settings.bgColor) {
+                    $('#bgColor').value = settings.bgColor;
+                    body.style.backgroundColor = settings.bgColor;
+                }
+                
+                if (settings.bgImage) {
+                    body.style.backgroundImage = `url('${settings.bgImage}')`;
+                    body.style.backgroundSize = 'cover';
+                    body.style.backgroundPosition = 'center';
+                    body.style.backgroundAttachment = 'fixed';
+                    body.classList.remove('bg-slate-50'); 
+                }
+
+            } catch (e) {
+                console.error("Error loading beauty settings", e);
+            }
+        }
+
+
         // --- 格式化輸出函式 (保持不變) ---
         function formatOutput(text){
             if(!text) return {html:'<p class="text-slate-500">無分析結果。</p>', scores:null, tags:[]};
             
-            // 嘗試找到 JSON 區塊
             const jsonBlock = text.match(/```json\s*([\s\S]*?)\s*```/i);
             let scores=null,tags=[];
             let cleanText = text; 
@@ -390,10 +499,8 @@
                 try{ 
                     const j=JSON.parse(jsonBlock[1]); 
                     scores=j.scores||{}; 
-                    // 兼容兩種 tag 格式
                     tags=Array.isArray(j.tags) ? j.tags : Object.values(j.tags || {}).flat().filter(t => typeof t === 'string' && t.trim() !== '');
                     
-                    // 清除文本中的 JSON 區塊
                     cleanText = text.replace(jsonBlock[0],'').trim(); 
                 }catch(e){
                     console.error("JSON解析失敗", e);
@@ -402,7 +509,6 @@
             
             let html = markdownConverter.makeHtml(cleanText);
 
-            // 清理可能殘留的標題或段落
             html = html.replace(/<p>[\s]*JSON[\s]*輸出[\s]*<\/p>/gi, '')
                        .replace(/<h[1-6]>[\s]*JSON[\s]*輸出[\s]*<\/h[1-6]>/gi, '')
                        .replace(/<p>\s*<\/p>/gi, ''); 
@@ -410,20 +516,21 @@
             let scoresHTML = '';
             if(scores && Object.keys(scores).length > 0){
                 const clamp=v=>Math.max(0,Math.min(100,Number(v)||0));
-                const row=(l,k,c)=>`<div class="score"><b>${l}</b><div class="bar"><i style="width:${clamp(scores[k])}%;background:${c}"></i></div><em>${clamp(scores[k])}</em></div>`;
+                const row=(l,k,c)=>`<div class="score"><b>${l}</b><div class="bar"><i style="width:${clamp(scores[k])}%;background:${c}"></i></div><em>${clamp(scores[k])}%</em></div>`;
                 
                 scoresHTML=`
-                    <h3 style="border-bottom:none; margin-top:0;">六維度分數</h3>
+                    <h3 class="text-xl font-bold text-indigo-700" style="border-bottom:none; margin-top:0; padding-bottom:0;">六維度分數</h3>
+                    <p class="text-sm text-gray-500 mb-2">關係契合度的六個關鍵維度得分 (0-100)</p>
                     <div class="scores">
-                        ${row('契合 fit','fit','#22c55e')}
-                        ${row('溝通 comm','comm','#06b6d4')}
-                        ${row('節奏 pace','pace','#f59e0b')}
-                        ${row('權責 account','account','#8b5cf6')}
-                        ${row('信任 trust','trust','#ef4444')}
-                        ${row('創新 innov','innov','#6366f1')}
+                        ${row('契合度','fit','#22c55e')}
+                        ${row('溝通力','comm','#06b6d4')}
+                        ${row('節奏感','pace','#f59e0b')}
+                        ${row('權責性','account','#8b5cf6')}
+                        ${row('信任度','trust','#ef4444')}
+                        ${row('創新性','innov','#6366f1')}
                     </div>`;
                     
-                if(Array.isArray(tags) && tags.length > 0) scoresHTML+=`<div class="tags">${tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>`;
+                if(Array.isArray(tags) && tags.length > 0) scoresHTML+=`<h3 class="text-lg font-bold text-indigo-700 mt-4" style="border-bottom:none; padding-bottom:0;">關鍵標籤</h3><div class="tags">${tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>`;
             }
             
             return {html: html, scores, tags, webScoresHTML: scoresHTML};
@@ -441,21 +548,19 @@
             }
             wrap.innerHTML = ''; 
 
-            if(analysisMode === 'personality' || analysisMode === 'single' || !scores || Object.keys(scores).length === 0) {
-                 wrap.style.display = 'none';
-                 scoresTagsWeb.style.display = 'none';
+            if(analysisMode !== 'dual' || !scores || Object.keys(scores).length === 0) {
+                 wrap.innerHTML = '<p class="text-slate-500 text-center text-sm p-4">圖表只在**雙人分析**模式中根據 AI 提供的 JSON 分數繪製。</p>';
+                 scoresTagsWeb.innerHTML = '<p class="text-slate-500">選擇六獸、六親、地支和情境後，點擊「一鍵分析」開始。</p>';
                  chartTypeSelector.style.display = 'none';
                  return;
             }
             
-            wrap.style.display = 'flex';
-            scoresTagsWeb.style.display = 'block';
             chartTypeSelector.style.display = 'flex';
 
             currentScores = scores; 
             currentChartType = type; 
 
-            const labels=['契合 fit','溝通 comm','節奏 pace','權責 account','信任 trust','創新 innov'];
+            const labels=['契合度','溝通力','節奏感','權責性','信任度','創新性'];
             const data=[scores.fit,scores.comm,scores.pace,scores.account,scores.trust,scores.innov];
             const colors=['#22c55e','#06b6d4','#f59e0b','#8b5cf6','#ef4444','#6366f1'];
             
@@ -470,14 +575,14 @@
                         datasets: [{
                             label: '六維度分析',
                             data: data,
-                            backgroundColor: type === 'bar' ? colors : 'rgba(99,102,241,0.2)', 
-                            borderColor: type === 'bar' ? colors : 'rgba(99,102,241,1)',
+                            backgroundColor: type === 'bar' ? colors : 'rgba(59,130,246,0.3)', 
+                            borderColor: type === 'bar' ? colors : 'rgba(59,130,246,1)',
                             borderWidth: type === 'bar' ? 1 : 2,
                             fill: type === 'radar',
-                            pointBackgroundColor:'rgba(99,102,241,1)',
+                            pointBackgroundColor:'rgba(59,130,246,1)',
                             pointBorderColor:'#fff',
                             pointHoverBackgroundColor:'#fff',
-                            pointHoverBorderColor:'rgba(99,102,241,1)'
+                            pointHoverBorderColor:'rgba(59,130,246,1)'
                         }]
                     },
                     options: {
@@ -503,12 +608,15 @@
 
             } catch (e) {
                 console.error("Chart.js 繪製失敗:", e);
-                wrap.innerHTML = '<p class="text-red-500 text-sm p-4">圖表繪製失敗。請檢查 F12 控制台錯誤。</p>';
+                wrap.innerHTML = '<p class="text-red-500 text-sm p-4">圖表繪製失敗。</p>';
             }
         }
         
         // --- 核心事件監聽和初始化 ---
         document.addEventListener('DOMContentLoaded', () => {
+            
+            // 載入美化設定
+            loadBeautySettings();
             
             // 設定報告時間
             $('#reportTime').textContent = new Date().toLocaleDateString('zh-TW', {
@@ -520,11 +628,15 @@
             $('#modeSingle').onclick = () => setAnalysisMode('single');
             $('#modeDual').onclick = () => setAnalysisMode('dual');
             setAnalysisMode('personality'); 
+            
+            // 輸入儲存/載入
+            $('#saveInput').onclick = saveInputData;
+            $('#loadInput').onclick = loadInputData;
 
             // 情境輸入 oninput
             $('#context').oninput = toggleSexOptions;
             
-            // 性愛細節按鈕 (V7.8 統一邏輯：點擊添加/移除)
+            // 性愛細節按鈕
             $$('.sex-detail').forEach(b => b.onclick = () => { 
                 const current = $('#sexDetailInput').value.trim();
                 const detail = b.dataset.detail;
@@ -556,16 +668,22 @@
                 $('#beautyPanel').classList.toggle('hidden');
             };
 
-            // --- 背景設定功能 ---
+            // --- 背景設定功能 (V9.1: 增加 Local Storage 儲存) ---
             const body = $('body');
             const bgColorInput = $('#bgColor');
             const bgImageFile = $('#bgImageFile');
             const clearBgBtn = $('#clearBg');
             
+            const getBeautySettings = () => ({
+                 bgColor: bgColorInput.value,
+                 bgImage: body.style.backgroundImage.match(/url\(['"]?([^'"]+)['"]?\)/)?.[1] || null 
+            });
+
             const updateBackground = () => {
                 const color = bgColorInput.value || '#f1f5f9';
                 body.style.backgroundColor = color;
                 body.classList.remove('bg-slate-50'); 
+                saveBeautySettings(getBeautySettings());
             };
 
             bgColorInput.oninput = updateBackground;
@@ -579,10 +697,12 @@
                         body.style.backgroundSize = 'cover';
                         body.style.backgroundPosition = 'center';
                         body.style.backgroundAttachment = 'fixed';
+                        saveBeautySettings(getBeautySettings()); // 儲存 Base64 圖片字串
                     };
                     reader.readAsDataURL(file);
                 } else {
                      body.style.backgroundImage = 'none';
+                     saveBeautySettings(getBeautySettings());
                 }
             };
 
@@ -592,15 +712,17 @@
                 body.style.backgroundImage = 'none';
                 body.style.backgroundColor = '#f1f5f9';
                 body.classList.add('bg-slate-50'); 
+                saveBeautySettings({}); // 清除 Local Storage 記錄
             };
-            updateBackground(); 
-
+            
             // V9.0 核心邏輯：一鍵分析 (呼叫 Vercel Serverless Function)
             $('#go').onclick = async () => {
                 const payload = getPayload();
-                const model = $('#modelSelect').value;
+                const model = payload.model;
                 let errorMessage = '';
                 
+                // 忽略了詳細的輸入檢查，直接假設已在 V9.0 中完成
+
                 const aComplete = payload.aBeast && payload.aKin && payload.aBranch;
                 const bComplete = payload.bBeast && payload.bKin && payload.bBranch;
 
@@ -609,7 +731,6 @@
                 else if (payload.mode !== 'personality' && !payload.context) { errorMessage = '請輸入或選擇情境'; }
                 else if (payload.context === '性愛' && !payload.sexDetail) { errorMessage = '您選擇了性愛情境，請點選或輸入細節按鈕，以供 AI 參考建議。'; }
 
-
                 if (errorMessage) { alert(errorMessage); return; }
 
                 $('#result').innerHTML='<p class="text-slate-500">正在等待 AI 分析...</p>'; 
@@ -617,19 +738,13 @@
                 $('#webScoresAndTags').innerHTML = '';
                 startProgressBar();
                 
-                const prompt = generateOpenAIPrompt(payload); // 仍然需要生成 Prompt 內容
+                const prompt = generateOpenAIPrompt(payload);
 
                 try {
                     const response = await fetch(API_PROXY_ENDPOINT, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            model: model,
-                            prompt: prompt, // 將 Prompt 傳給後端 Function
-                            payload: payload // 可選：將原始參數也傳給後端備用
-                        })
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ model: model, prompt: prompt, payload: payload })
                     });
 
                     if (!response.ok) {
@@ -648,7 +763,9 @@
                     const formatted = formatOutput(rawText);
                     
                     $('#result').innerHTML=formatted.html;
-                    if (payload.mode === 'dual' && formatted.scores) {
+                    
+                    // V9.1: 無論單人/雙人，都繪製圖表和分數，單人模式下因為 JSON 無 scores 所以不會繪製。
+                    if (formatted.scores) {
                          $('#webScoresAndTags').innerHTML=formatted.webScoresHTML;
                     }
 

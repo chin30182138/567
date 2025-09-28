@@ -1,449 +1,797 @@
-
-<!-- ==========================
-   文件：index.html  （加入十二地支＋雷達圖＋列印）
-   ========================== -->
 <!doctype html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>仙人指路神獸七十二型人格 一鍵分析</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <style>
-    @media print {
-        @page { margin: 14mm; }
-        .no-print { display:none !important; }
-        body { background:#fff !important; }
-        .print-card { box-shadow:none !important; border:1px solid #e5e7eb; }
-        /* 列印時的並排佈局 */
-        .print-flex-container { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 15px; }
-        .print-scores-section { flex: 1; min-width: 280px; } /* 分數條佔位 */
-        .print-chart-section { flex: 1; min-width: 280px; max-width: 50%; display: flex; justify-content: center; align-items: center; } /* 雷達圖佔位 */
-        .print-chart-section img { max-width: 100%; height: auto; }
-        .print-scores-section .scores { grid-template-columns: 1fr; } /* 列印時確保分數條是一列 */
-        .print-scores-section h3 { margin-top: 0; } /* 調整標題間距 */
-    }
-    .scores{display:grid;grid-template-columns:1fr;gap:8px;margin-top:6px}
-    .score{display:flex;align-items:center;gap:10px;font-size:13px;color:#334155}
-    .bar{flex:1;height:10px;background:#e2e8f0;border-radius:9999px;overflow:hidden}
-    .bar>i{display:block;height:100%;background:#6366f1}
-    .score b{width:92px;display:inline-block;color:#0f172a}
-    .score em{width:36px;text-align:right;color:#475569;font-style:normal}
-    .tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-    .tag{background:#eef2ff;color:#3730a3;padding:4px 10px;border-radius:9999px;font-size:12px}
-  </style>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>仙人指路神獸七十二型人格 - 分析報告 (V7.9)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
+
+    <style>
+        /* 確保 body 背景切換平滑 */
+        body { 
+            transition: background-color 0.5s ease, background-image 0.5s ease; 
+            background-size: cover; 
+            background-position: center; 
+            background-attachment: fixed; 
+        } 
+        
+        .result-section { 
+            background-color: rgba(255, 255, 255, 0.95); 
+            backdrop-filter: blur(5px); 
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        /* 分數條與標籤樣式 */
+        .scores { display:grid; gap:8px; margin-top:20px; padding-top:15px; border-top:1px solid #e5e7eb; }
+        .score { display:flex; align-items:center; gap:10px; font-size:14px }
+        .bar { flex:1; height:12px; background:#e5e7eb; border-radius:9999px; overflow:hidden }
+        .bar > i { display:block; height:100%; transition: width 0.8s ease-out; }
+        .tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; padding-top:15px; border-top:1px solid #e5e7eb; }
+        .tag { background:#eef2ff; color:#3730a3; padding:4px 10px; border-radius:9999px; font-size:12px; font-weight: 500; }
+        
+        /* AI 輸出樣式 (V7 豐富樣式) */
+        #result h3 { font-size: 1.3rem; font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.5rem; border-bottom: 3px solid #6366f1; padding-bottom: 5px; color: #4338ca; }
+        #result h4 { font-size: 1.15rem; font-weight: 600; margin-top: 1rem; margin-bottom: 0.4rem; }
+        #result p { margin-bottom: 1rem; line-height: 1.6; }
+        #result ul, #result ol { padding-left: 25px; margin-bottom: 1rem; }
+        #result ul { list-style-type: disc; }
+        #result ol { list-style-type: decimal; }
+        
+        /* 確保圖片不破版 */
+        #result img {
+            max-width: 100%;
+            height: auto;
+            margin: 0;
+            display: inline;
+            border-radius: 0;
+            box-shadow: none;
+        }
+        
+        /* 列印時，隱藏控制項，並強制顯示顏色 */
+        @media print {
+            .no-print { display: none !important; }
+            * {
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+            @page { margin: 15mm; }
+        }
+        .print-header { display: none; }
+
+        /* 圖表選擇器樣式 */
+        .chart-type-selector {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .chart-type-selector button {
+            padding: 4px 10px;
+            font-size: 12px;
+            border: 1px solid #ccc;
+            background: #fff;
+            margin: 0 2px;
+            border-radius: 4px;
+        }
+        .chart-type-selector button.active {
+            background: #6366f1;
+            color: white;
+            border-color: #6366f1;
+        }
+        
+        /* 單獨用於單人模式的標籤，讓它能隱藏 */
+        #modeSingle, #modeDual, #modePersonality {
+            transition: all 0.3s ease;
+        }
+    </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
-  <div class="max-w-5xl mx-auto p-6 space-y-5">
-    <header class="no-print">
-      <h1 class="text-2xl font-bold">仙人指路神獸七十二型人格｜一鍵分析</h1>
-      <p class="text-slate-500 text-sm">選擇分析模式、對象與情境 → 按「一鍵分析」。支援分數條、雷達圖、列印 / 匯出 PDF。</p>
-    </header>
+    <div class="max-w-5xl mx-auto p-6 space-y-6">
+        <header class="print-header">
+            <h1>仙人指路｜神獸七十二型人格分析報告</h1>
+            <p style="font-size: 10pt; color: #555;">報告生成時間: <span id="reportTime"></span></p>
+        </header>
 
-    <div class="no-print">
-        <div class="flex gap-4 mb-4">
-            <button id="modePersonality" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-800">個性分析</button>
-            <button id="modeSingle" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-800">單人分析</button>
-            <button id="modeDual" class="px-4 py-2 rounded-xl bg-indigo-600 text-white">雙人分析</button>
+        <header class="space-y-1 no-print">
+            <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 (V7.9)</h1>
+            <p class="text-slate-500 text-sm">支援個性分析、人際分析與性愛劇本｜**分析深度大擴充**</p>
+        </header>
+
+        <div class="flex gap-4 flex-wrap no-print">
+            <button id="modePersonality" class="px-4 py-2 rounded-lg bg-indigo-600 text-white">個性分析</button>
+            <button id="modeSingle" class="px-4 py-2 rounded-lg bg-slate-200 text-slate-800">單人情境</button>
+            <button id="modeDual" class="px-4 py-2 rounded-lg bg-slate-200 text-slate-800">雙人情境</button>
         </div>
-        <div class="grid md:grid-cols-2 gap-4">
-            <!-- 我方 -->
-            <section class="bg-white p-4 rounded-2xl shadow-sm">
-                <h2 class="font-semibold mb-3">我方 <span id="labelA" class="text-sm text-slate-500">(分析主體)</span></h2>
+
+        <div class="grid md:grid-cols-2 gap-4 no-print">
+            <section class="bg-white p-4 rounded-xl shadow">
+                <h2 class="font-semibold mb-2">我方 (分析主體)</h2>
                 <select id="aBeast" class="w-full mb-2 border rounded-lg p-2">
-                    <option value="">六獸</option>
-                    <option>青龍</option><option>朱雀</option><option>勾陳</option>
-                    <option>螣蛇</option><option>白虎</option><option>玄武</option>
+                    <option value="">六獸</option><option>青龍</option><option>朱雀</option>
+                    <option>勾陳</option><option>螣蛇</option><option>白虎</option><option>玄武</option>
                 </select>
                 <select id="aKin" class="w-full mb-2 border rounded-lg p-2">
-                    <option value="">六親</option>
-                    <option>父母</option><option>兄弟</option><option>子孫</option>
-                    <option>妻財</option><option>官鬼</option>
+                    <option value="">六親</option><option>父母</option><option>兄弟</option>
+                    <option>子孫</option><option>妻財</option><option>官鬼</option>
                 </select>
                 <select id="aBranch" class="w-full border rounded-lg p-2">
-                    <option value="">地支</option>
-                    <option>子</option><option>丑</option><option>寅</option><option>卯</option>
-                    <option>辰</option><option>巳</option><option>午</option><option>未</option>
-                    <option>申</option><option>酉</option><option>戌</option><option>亥</option>
+                    <option value="">地支</option><option>子</option><option>丑</option><option>寅</option>
+                    <option>卯</option><option>辰</option><option>巳</option><option>午</option>
+                    <option>未</option><option>申</option><option>酉</option><option>戌</option><option>亥</option>
                 </select>
             </section>
-
-            <!-- 對方 -->
-            <section id="sectionB" class="bg-white p-4 rounded-2xl shadow-sm">
-                <h2 class="font-semibold mb-3">對方</h2>
+            <section id="sectionB" class="bg-white p-4 rounded-xl shadow">
+                <h2 class="font-semibold mb-2">對方</h2>
                 <select id="bBeast" class="w-full mb-2 border rounded-lg p-2">
-                    <option value="">六獸</option>
-                    <option>青龍</option><option>朱雀</option><option>勾陳</option>
-                    <option>螣蛇</option><option>白虎</option><option>玄武</option>
+                    <option value="">六獸</option><option>青龍</option><option>朱雀</option>
+                    <option>勾陳</option><option>螣蛇</option><option>白虎</option><option>玄武</option>
                 </select>
                 <select id="bKin" class="w-full mb-2 border rounded-lg p-2">
-                    <option value="">六親</option>
-                    <option>父母</option><option>兄弟</option><option>子孫</option>
-                    <option>妻財</option><option>官鬼</option>
+                    <option value="">六親</option><option>父母</option><option>兄弟</option>
+                    <option>子孫</option><option>妻財</option><option>官鬼</option>
                 </select>
                 <select id="bBranch" class="w-full border rounded-lg p-2">
-                    <option value="">地支</option>
-                    <option>子</option><option>丑</option><option>寅</option><option>卯</option>
-                    <option>辰</option><option>巳</option><option>午</option><option>未</option>
-                    <option>申</option><option>酉</option><option>戌</option><option>亥</option>
+                    <option value="">地支</option><option>子</option><option>丑</option><option>寅</option>
+                    <option>卯</option><option>辰</option><option>巳</option><option>午</option>
+                    <option>未</option><option>申</option><option>酉</option><option>戌</option><option>亥</option>
                 </select>
             </section>
         </div>
-    </div>
 
-    <!-- 情境 preset + 自由輸入 -->
-    <section id="contextSection" class="bg-white p-4 rounded-2xl shadow-sm space-y-2 no-print">
-      <h2 class="font-semibold">情境</h2>
-      <div class="flex gap-2 flex-wrap mb-2">
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">年度目標協調</button>
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">績效回饋會議</button>
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">跨部門協作</button>
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">壓期交付專案</button>
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">人際關係協調</button>
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">愛情</button>
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">性愛</button>
-      </div>
-      <input id="context" class="w-full border rounded-lg p-2" placeholder="輸入情境…" />
-      <!-- 性愛深入分析選項 -->
-      <div id="sexOptions" class="hidden mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
-        <p class="font-semibold text-red-700 mb-2">性愛情境深入分析：</p>
-        <div class="flex flex-wrap gap-2">
-            <button class="sex-detail px-3 py-1.5 rounded-full bg-red-100" data-detail="情境描述">情境描述</button>
-            <button class="sex-detail px-3 py-1.5 rounded-full bg-red-100" data-detail="姿勢建議">姿勢建議</button>
-            <button class="sex-detail px-3 py-1.5 rounded-full bg-red-100" data-detail="對話引導">對話引導</button>
-            <button class="sex-detail px-3 py-1.5 rounded-full bg-red-100" data-detail="感官探索">感官探索</button>
-            <button class="sex-detail px-3 py-1.5 rounded-full bg-red-100" data-detail="角色扮演">角色扮演</button>
-            <button class="sex-detail px-3 py-1.5 rounded-full bg-red-100" data-detail="深度連結">深度連結</button>
+        <section class="bg-white p-4 rounded-xl shadow space-y-2 no-print">
+            <h2 class="font-semibold">情境 / 分析主題</h2>
+            <div id="presetContainer" class="flex gap-2 flex-wrap">
+                </div>
+            <input id="context" class="w-full border rounded-lg p-2" placeholder="輸入自訂情境或分析主題…" />
+            <div id="sexOptions" class="hidden mt-2 p-3 bg-red-50 border rounded-lg">
+                <label class="block mb-3 font-semibold text-red-700">性愛主題細節 (點選以下按鈕作為 AI 建議的基礎)：</label>
+                
+                <h3 class="text-sm font-bold text-red-600 mb-1" style="border-bottom:none; margin-top:0;">劇本類型</h3>
+                <div class="flex flex-wrap gap-2 mb-3 border-b pb-2 border-red-100">
+                    <button class="sex-detail bg-red-100 px-3 py-1.5 rounded-full" data-detail="性愛場景與角色扮演">場景與角色扮演</button>
+                    <button class="sex-detail bg-red-100 px-3 py-1.5 rounded-full" data-detail="性愛技巧與體位推薦">技巧與體位推薦</button>
+                    <button class="sex-detail bg-red-100 px-3 py-1.5 rounded-full" data-detail="性愛玩具與情境設置">玩具與情境設置</button>
+                    <button class="sex-detail bg-red-100 px-3 py-1.5 rounded-full" data-detail="六獸 X 地支全劇本合集">六獸 X 地支合集</button>
+                </div>
+                
+                <h3 class="text-sm font-bold text-red-600 mb-1" style="border-bottom:none; margin-top:0;">額外關鍵字 / 偏好</h3>
+                <div class="flex flex-wrap gap-2 mb-2">
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="地下賭場">地下賭場</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="露天泳池">露天泳池</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="摩天大樓">摩天大樓</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="試衣間">試衣間</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="權力遊戲">權力遊戲</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="心理掌控">心理掌控</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="懸疑驚悚情境">懸疑驚悚</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="深度擁抱交合">深度擁抱</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="語音催眠">語音催眠</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="野性攻防">野性攻防</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="極端快感">極端快感</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="震動棒">震動棒</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="束縛配件">束縛配件</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="感官剝奪">感官剝奪</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="心理控制工具">心理控制工具</button>
+                </div>
+                <textarea id="sexDetailInput" class="w-full border rounded-lg p-2 text-sm" placeholder="選中的細節會自動出現在這裡，AI 將依此提供建議..."></textarea>
+            </div>
+        </section>
+
+        <div class="flex flex-wrap items-center gap-3 no-print">
+            <button id="go" class="px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold">一鍵分析</button>
+            <button id="print" class="px-4 py-2 rounded-lg bg-slate-200 text-slate-800 font-semibold">列印 / PDF</button>
+            
+            <button id="toggleBeauty" class="px-4 py-2 rounded-lg bg-pink-500 text-white font-semibold">🎨 美化</button>
+
+            <div id="statusContainer" class="flex items-center gap-3">
+                <span id="status" class="text-sm text-slate-600"></span>
+                <div id="progressBar" class="w-40 h-2 bg-slate-200 rounded-full overflow-hidden hidden">
+                    <div id="progress" class="h-full bg-indigo-400 transition-all duration-300 ease-linear" style="width: 0%"></div>
+                </div>
+            </div>
         </div>
-        <textarea id="sexDetailInput" class="w-full mt-2 border rounded-lg p-2 text-sm" placeholder="輸入您想深入分析的細節，例如：『在海邊的夜晚』、『刺激的體位』、『挑逗的對話』…您也可以點選上方預設按鈕，我們會將關鍵詞加入到此處。"></textarea>
-      </div>
-    </section>
+        
+        <section id="beautyPanel" class="bg-white p-4 rounded-xl shadow space-y-3 hidden no-print">
+            <h2 class="font-semibold">背景與介面美化</h2>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">背景顏色選擇：</label>
+                    <input type="color" id="bgColor" class="w-full h-10 p-1 border rounded-lg" value="#f1f5f9">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">背景圖片 (從本機上傳)：</label>
+                    <input type="file" id="bgImageFile" accept="image/*" class="w-full border rounded-lg p-2 text-sm" />
+                </div>
+            </div>
+            <button id="clearBg" class="px-3 py-1.5 rounded-full bg-red-100 text-red-700 text-sm">清除圖片與顏色</button>
+        </section>
 
-    <!-- 動作列 -->
-    <div class="flex flex-wrap items-center gap-3 no-print">
-      <button id="go" class="px-4 py-2 rounded-xl bg-indigo-600 text-white">一鍵分析</button>
-      <button id="print" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-800">列印 / 匯出 PDF</button>
-      <span id="status" class="text-sm text-slate-600"></span>
+
+        <section class="result-section p-5 rounded-xl shadow space-y-4">
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="md:col-span-1">
+                    <div class="chart-type-selector no-print">
+                        <button id="chartRadarBtn" data-type="radar" class="active">雷達圖</button>
+                        <button id="chartBarBtn" data-type="bar">長條圖</button>
+                    </div>
+                    <div id="chartContainer" class="flex justify-center items-center" style="min-height: 280px;">
+                        </div>
+                </div>
+                
+                <div id="scoresTagsWeb" class="md:col-span-2">
+                    <div id="webScoresAndTags">
+                        <p class="text-slate-500">選擇六獸、六親、地支和情境後，點擊「一鍵分析」開始。</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="result" class="text-[15px] max-w-none">
+                </div>
+        </section>
     </div>
 
-    <!-- 結果區 -->
-    <section class="bg-white p-5 rounded-2xl shadow-sm print-card">
-      <div class="flex flex-wrap gap-2 text-sm text-slate-600 mb-3">
-        <span class="px-3 py-1 bg-slate-100 rounded-full">模式：<strong id="chipMode">—</strong></span>
-        <span class="px-3 py-1 bg-slate-100 rounded-full">我方：<strong id="chipA">—</strong></span>
-        <span id="chipB_wrapper" class="px-3 py-1 bg-slate-100 rounded-full">對方：<strong id="chipB">—</strong></span>
-        <span id="chipC_wrapper" class="px-3 py-1 bg-slate-100 rounded-full">情境：<strong id="chipC">—</strong></span>
-        <span id="chipSexDetail_wrapper" class="px-3 py-1 bg-slate-100 rounded-full hidden">深入：<strong id="chipSexDetail">—</strong></span>
-      </div>
-      <div id="result" class="prose max-w-none text-[15px]"></div>
-      <div id="chartContainer" class="mt-4">
-        <!-- 分數條和雷達圖將在這裡顯示 -->
-      </div>
-    </section>
-  </div>
+    <script>
+        const $ = s => document.querySelector(s);
+        const $$ = s => document.querySelectorAll(s);
+        let analysisMode = 'personality'; 
+        const markdownConverter = new showdown.Converter(); 
 
-  <script>
-    const $ = s => document.querySelector(s);
-    const $$ = s => document.querySelectorAll(s);
+        let radarChart = null; 
+        let currentScores = null; 
+        let currentChartType = 'radar'; 
+        
+        // V7.8 修正：精簡雙人模式的情境列表，只保留最上層的「性愛」
+        const PRESETS = {
+            'personality': ['基礎個性', '職涯優勢', '情緒管理', '人際關係'],
+            'single': ['年度目標協調', '績效回饋會議', '跨部門協作', '壓期交付專案', '人際關係協調'],
+            'dual': [
+                '年度目標協調', '績效回饋會議', '跨部門協作', '壓期交付專案', '人際關係協調',
+                '性愛' // 只保留「性愛」作為觸發細節的總開關
+            ]
+        };
+        // V7.8 修正：性愛細節的觸發關鍵字也只留下「性愛」
+        const SEX_CONTEXTS = ['性愛'];
 
-    let analysisMode = 'dual'; // 'personality', 'single', 'dual'
 
-    // 生成六維度分數條的 HTML
-    function generateScoresHTML(scores) {
-        if (!scores || Object.values(scores).every(v => v === null || isNaN(v))) {
-            return '';
+        // --- 進度條控制函式 ---
+        let progressInterval = null;
+        function startProgressBar() {
+            if (progressInterval) clearInterval(progressInterval);
+            $('#progressBar').classList.remove('hidden');
+            $('#progress').style.width = '10%'; 
+            let progress = 10;
+            progressInterval = setInterval(() => {
+                if (progress < 90) {
+                    progress += Math.floor(Math.random() * 5);
+                    progress = Math.min(progress, 90);
+                    $('#progress').style.width = progress + '%';
+                    $('#status').textContent = `分析中... (${progress}%)`;
+                }
+            }, 1000); 
+            $('#status').textContent = '分析中...';
         }
-        const s = scores; const clamp = v => Math.max(0, Math.min(100, Number(v)||0));
-        const row = (label, key, color) => `<div class=\"score\"><b>${label}<\/b><div class=\"bar\"><i style=\"width:${clamp(s[key])}%;background:${color}\"><\/i><\/div><em>${clamp(s[key])}<\/em><\/div>`;
-        return `
-          <h3 class=\"text-lg font-semibold mt-4\">六維度分數<\/h3>
-          <div class=\"scores\">
-            ${row('契合 fit','fit','#22c55e')}
-            ${row('溝通 comm','comm','#06b6d4')}
-            ${row('節奏 pace','pace','#f59e0b')}
-            ${row('權責 account','account','#8b5cf6')}
-            ${row('信任 trust','trust','#ef4444')}
-            ${row('創新 innov','innov','#6366f1')}
-          <\/div>`;
-    }
 
-    // 初始化分析模式
-    function setAnalysisMode(mode) {
-      analysisMode = mode;
-      // 重置所有按鈕樣式
-      $$('#modePersonality, #modeSingle, #modeDual').forEach(btn => {
-          btn.classList.replace('bg-indigo-600', 'bg-slate-200');
-          btn.classList.replace('text-white', 'text-slate-800');
-      });
-      // 設置當前模式按鈕樣式
-      $(`#mode${mode.charAt(0).toUpperCase() + mode.slice(1)}`).classList.replace('bg-slate-200', 'bg-indigo-600');
-      $(`#mode${mode.charAt(0).toUpperCase() + mode.slice(1)}`).classList.replace('text-slate-800', 'text-white');
-
-
-      if (mode === 'personality') {
-        $('#sectionB').style.display = 'none';
-        $('#contextSection').style.display = 'none'; // 個性分析不需情境
-        $('#labelA').textContent = '(分析對象)';
-        // 清空對方欄位
-        $('#bBeast').value = ''; $('#bKin').value = ''; $('#bBranch').value = '';
-        $('#chipB_wrapper').style.display = 'none';
-        $('#context').value = ''; // 清空情境
-        $('#chipC_wrapper').style.display = 'none'; // 隱藏情境 chip
-        toggleSexOptions(); // 確保性愛選項隱藏
-      } else if (mode === 'single') {
-        $('#sectionB').style.display = 'none';
-        $('#contextSection').style.display = 'block';
-        $('#labelA').textContent = '(分析主體)';
-        // 清空對方欄位
-        $('#bBeast').value = ''; $('#bKin').value = ''; $('#bBranch').value = '';
-        $('#chipB_wrapper').style.display = 'none';
-        $('#chipC_wrapper').style.display = 'block'; // 顯示情境 chip
-      } else { // dual
-        $('#sectionB').style.display = 'block';
-        $('#contextSection').style.display = 'block';
-        $('#labelA').textContent = '';
-        $('#chipB_wrapper').style.display = 'block';
-        $('#chipC_wrapper').style.display = 'block'; // 顯示情境 chip
-      }
-      updateChips(getSelections()); // 更新 chips 顯示
-    }
-
-    $('#modePersonality').onclick = () => setAnalysisMode('personality');
-    $('#modeSingle').onclick = () => setAnalysisMode('single');
-    $('#modeDual').onclick = () => setAnalysisMode('dual');
-
-    // 預設情境按鈕
-    $$('.preset').forEach(b => b.onclick = () => {
-        $('#context').value = b.textContent;
-        toggleSexOptions(); // 檢查是否需要顯示性愛深入分析選項
-    });
-
-    // 監聽情境輸入框變化，顯示/隱藏性愛深入分析選項
-    $('#context').oninput = toggleSexOptions;
-
-    // 性愛深入分析按鈕
-    $$('.sex-detail').forEach(b => b.onclick = () => {
-        const currentText = $('#sexDetailInput').value.trim();
-        const detailType = b.dataset.detail;
-        if (!currentText.includes(detailType)) { // 避免重複添加
-            $('#sexDetailInput').value = (currentText ? currentText + '；' : '') + detailType;
+        function stopProgressBar(isSuccess = true) {
+            if (progressInterval) {
+                clearInterval(progressInterval);
+                progressInterval = null;
+            }
+            $('#progress').style.width = isSuccess ? '100%' : '0%';
+            setTimeout(() => {
+                $('#progressBar').classList.add('hidden');
+                $('#progress').style.width = '0%';
+            }, 1500); 
+            $('#status').textContent = isSuccess ? '✅ 完成' : '❌ 失敗';
         }
-    });
+        // --- 進度條控制函式結束 ---
 
-    function toggleSexOptions() {
-        if ($('#context').value.trim() === '性愛') {
-            $('#sexOptions').classList.remove('hidden');
-        } else {
-            $('#sexOptions').classList.add('hidden');
-            $('#sexDetailInput').value = ''; // 清空深入分析內容
-            $('#chipSexDetail_wrapper').classList.add('hidden'); // 隱藏深入分析 chip
+        // --- 模式切換邏輯 ---
+        function setAnalysisMode(mode){
+            analysisMode = mode;
+            const modes = {
+                'personality': $('#modePersonality'), 
+                'single': $('#modeSingle'), 
+                'dual': $('#modeDual')
+            };
+            const sectionB = $('#sectionB');
+
+            Object.keys(modes).forEach(key => {
+                if (key === mode) {
+                    modes[key].classList.replace('bg-slate-200', 'bg-indigo-600');
+                    modes[key].classList.replace('text-slate-800', 'text-white');
+                } else {
+                    modes[key].classList.replace('bg-indigo-600', 'bg-slate-200');
+                    modes[key].classList.replace('text-white', 'text-slate-800');
+                }
+            });
+
+            sectionB.style.display = (mode === 'dual') ? 'block' : 'none';
+            
+            loadPresets(mode);
+
+            toggleSexOptions(); 
         }
-    }
 
-    function getSelections(){
-      return {
-        mode: analysisMode,
-        aBeast: $('#aBeast').value, aKin: $('#aKin').value, aBranch: $('#aBranch').value,
-        bBeast: $('#bBeast').value, bKin: $('#bKin').value, bBranch: $('#bBranch').value,
-        context: analysisMode === 'personality' ? '' : $('#context').value.trim(), // 個性分析模式下情境為空
-        sexDetail: $('#sexOptions').classList.contains('hidden') ? '' : $('#sexDetailInput').value.trim()
-      };
-    }
-
-    function updateChips({mode, aBeast,aKin,aBranch,bBeast,bKin,bBranch,context, sexDetail}){
-      $('#chipMode').textContent = {
-        'personality': '個性分析',
-        'single': '單人分析',
-        'dual': '雙人分析'
-      }[mode];
-      $('#chipA').textContent = [aBeast,aKin,aBranch].filter(Boolean).join(' × ') || '—';
-
-      if (mode === 'dual') {
-        $('#chipB').textContent = [bBeast,bKin,bBranch].filter(Boolean).join(' × ') || '—';
-        $('#chipB_wrapper').style.display = 'block';
-      } else {
-        $('#chipB_wrapper').style.display = 'none';
-      }
-
-      if (mode !== 'personality') {
-          $('#chipC').textContent = context || '—';
-          $('#chipC_wrapper').style.display = 'block';
-      } else {
-          $('#chipC_wrapper').style.display = 'none';
-      }
-
-      if (context === '性愛' && sexDetail) {
-          $('#chipSexDetail').textContent = sexDetail;
-          $('#chipSexDetail_wrapper').classList.remove('hidden');
-      } else {
-          $('#chipSexDetail_wrapper').classList.add('hidden');
-      }
-    }
-
-    // 文字→HTML排版＋JSON解析
-    function formatOutputWithJson(text){
-      if(!text) return { html: '', scores: null, tags: [] };
-
-      const jsonBlock = text.match(/```json([\s\S]*?)```/i);
-      let json = null;
-      if(jsonBlock){
-        try{ json = JSON.parse(jsonBlock[1]); }catch(_){ json = null; }
-        text = text.replace(jsonBlock[0], '').trim();
-      }
-
-      let scores = null;
-      if (json && json.scores) {
-          scores = json.scores;
-      } else {
-          const map = { fit:null, comm:null, pace:null, account:null, trust:null, innov:null };
-          const rx = /(fit|comm|pace|account|trust|innov)\s*(\d{1,3})/ig;
-          let m; while((m = rx.exec(text))){ map[m[1].toLowerCase()] = Number(m[2]); }
-          const filled = Object.values(map).filter(v=>typeof v==='number' && !isNaN(v));
-          if(filled.length>=2) scores = map;
-      }
-
-      let html = text
-        .replace(/\n\s*\n/g, '\n')
-        .replace(/^\s*\d+\)\s*(.+)$/gm, '<h3 class="text-lg font-semibold mt-4">$1<\/h3>')
-        .replace(/^\s*[-–]\s*(.+)$/gm, '<li>$1<\/li>');
-      html = html.replace(/(?:<li>[^<]*<\/li>\n?)+/g, m => `<ul class="list-disc pl-5 space-y-1">${m}<\/ul>`);
-
-      const tagsHTML = json && Array.isArray(json.tags) && json.tags.length ? `<div class=\"tags\">${json.tags.map(t=>`<span class=\\\"tag\\\">${t}<\/span>`).join('')}<\/div>` : '';
-      
-      return { html, scores, tagsHTML };
-    }
-
-    // Radar 圖
-    let radarChart = null;
-    function renderRadar(scores){
-      const chartContainer = document.getElementById('chartContainer');
-      chartContainer.innerHTML = ''; // 清空容器
-      
-      const scoresHTML = generateScoresHTML(scores);
-      let chartCanvasHTML = '';
-
-      if(scores && Object.values(scores).some(v => v !== null && isNaN(v))){ // 有有效分數才繪圖
-          chartCanvasHTML = `<div id="chart" class="w-full h-64 md:h-80"><canvas id="radar"></canvas></div>`;
-          chartContainer.innerHTML = `<div class="md:flex md:gap-8">${scoresHTML}<div class="flex-1">${chartCanvasHTML}</div></div>`;
-          const clamp = v => Math.max(0, Math.min(100, Number(v)||0));
-          const labels = ['契合 fit','溝通 comm','節奏 pace','權責 account','信任 trust','創新 innov'];
-          const data = [clamp(scores.fit),clamp(scores.comm),clamp(scores.pace),clamp(scores.account),clamp(scores.trust),clamp(scores.innov)];
-          const canvas = $('#radar');
-          if(radarChart){ radarChart.destroy(); }
-          radarChart = new Chart(canvas.getContext('2d'), {
-            type: 'radar', data: { labels, datasets: [{ label: '六維度雷達圖', data, fill: true, backgroundColor: 'rgba(99,102,241,0.15)', borderColor: 'rgba(99,102,241,1)', pointBackgroundColor: 'rgba(99,102,241,1)'}] },
-            options: { scales: { r: { suggestedMin: 0, suggestedMax: 100, ticks: { stepSize: 20 } } }, plugins: { legend: { display: false } } }
-          });
-      } else {
-          // 沒有分數或圖表時，只顯示分數條或空著
-          chartContainer.innerHTML = scoresHTML;
-      }
-    }
-
-
-    // 一鍵分析
-    $('#go').onclick = async () => {
-      const payload = getSelections(); updateChips(payload);
-      let isValid = false;
-
-      if (payload.mode === 'personality') {
-          isValid = (payload.aBeast && payload.aKin && payload.aBranch);
-          if (!isValid) { alert('個性分析：請先選滿我方「六獸、六親、地支」'); return; }
-      } else if (payload.mode === 'single') {
-        isValid = (payload.aBeast && payload.aKin && payload.aBranch && payload.context);
-        if (!isValid) { alert('單人分析：請先選滿我方「六獸、六親、地支」與情境'); return; }
-      } else { // dual
-        isValid = (payload.aBeast && payload.aKin && payload.aBranch && payload.bBeast && payload.bKin && payload.bBranch && payload.context);
-        if (!isValid) { alert('雙人分析：請先選滿我方/對方「六獸、六親、地支」與情境'); return; }
-      }
-
-      $('#status').textContent = '分析中…'; $('#result').innerHTML = ''; $('#chartContainer').innerHTML = ''; // 清空圖表容器
-      try {
-        const res = await fetch('/api/analyze', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(payload) });
-        const data = await res.json();
-        let plain = data.text || data.result;
-        if(!plain && Array.isArray(data.output)){
-          plain = data.output.map(o=> (o.content||[]).map(c=>c.text||'').join('\n')).join('\n');
+        // 載入情境按鈕
+        function loadPresets(mode) {
+            const container = $('#presetContainer');
+            container.innerHTML = ''; 
+            const presets = PRESETS[mode] || [];
+            
+            presets.forEach(p => {
+                const btn = document.createElement('button');
+                btn.className = 'preset px-3 py-1.5 rounded-full bg-slate-100 text-slate-800 hover:bg-slate-200 transition-colors';
+                btn.textContent = p;
+                btn.onclick = () => {
+                    $('#context').value = p;
+                    toggleSexOptions(); 
+                };
+                container.appendChild(btn);
+            });
+            $('#context').value = '';
         }
-        if(!plain) plain = JSON.stringify(data, null, 2);
 
-        const formatted = formatOutputWithJson(plain);
-        $('#result').innerHTML = formatted.html + formatted.tagsHTML; // 標籤放在文本後面
-        renderRadar(formatted.scores);
-        $('#status').textContent = '✅ 完成';
-      } catch (e) {
-        $('#status').textContent = '❌ 失敗';
-        $('#result').textContent = String(e);
-      }
-    };
-
-    // 列印 / 匯出 PDF（附上雷達圖快照）
-    $('#print').onclick = () => {
-      const sel = getSelections(); updateChips(sel);
-      let chartImg = '';
-      if (window.radarChart && window.radarChart.canvas) {
-          try {
-              chartImg = window.radarChart.canvas.toDataURL('image/png');
-          } catch (e) {
-              console.error("Failed to get chart image data:", e);
-              chartImg = '';
-          }
-      }
-      
-      // 重新生成分數條 HTML (這次用於列印)
-      const scores = formatOutputWithJson($('#result').innerHTML).scores; // 從結果區獲取分數
-      const scoresHTMLForPrint = generateScoresHTML(scores);
-
-      const html = `<!doctype html><html lang=\"zh-Hant\"><head><meta charset=\"utf-8\"><title>列印</title>
-      <style>
-        body{font-family:ui-sans-serif,system-ui,-apple-system,\"Noto Sans TC\";color:#0f172a;margin:18px;}
-        h1{font-size:20px;margin:0 0 6px;}
-        .meta{color:#64748b;font-size:12px;margin-bottom:10px}
-        .chips{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 14px}
-        .chip{background:#eef2f7;border-radius:9999px;padding:6px 10px;font-size:12px;color:#0f172a}
-        .box{border:1px solid #e5e7eb;border-radius:12px;padding:14px}
-        .result{font-size:14px;line-height:1.6}
-        ul{margin:6px 0 6px 18px}
-        h3{margin:10px 0 4px}
-        .print-flex-container { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 15px; }
-        .print-scores-section { flex: 1; min-width: 280px; }
-        .print-chart-section { flex: 1; min-width: 280px; max-width: 50%; display: flex; justify-content: center; align-items: center; }
-        .print-chart-section img { max-width: 100%; height: auto; }
-        .score{display:flex;align-items:center;gap:10px;font-size:13px;color:#334155}
-        .bar{flex:1;height:10px;background:#e2e8f0;border-radius:9999px;overflow:hidden}
-        .bar>i{display:block;height:100%;background:#6366f1}
-        .score b{width:92px;display:inline-block;color:#0f172a}
-        .score em{width:36px;text-align:right;color:#475569;font-style:normal}
-        .scores{display:grid;grid-template-columns:1fr;gap:8px;margin-top:6px}
-        .tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-        .tag{background:#eef2ff;color:#3730a3;padding:4px 10px;border-radius:9999px;font-size:12px}
-        @page{margin:14mm}
-      </style></head><body>
-      <h1>仙人指路神獸七十二型人格</h1>
-      <div class=meta>產生時間：${new Date().toLocaleString()}</div>
-      <div class=chips>
-        <span class=chip>模式：${{ 'personality': '個性分析', 'single': '單人分析', 'dual': '雙人分析' }[sel.mode]}</span>
-        <span class=chip>我方：${[sel.aBeast||'—', sel.aKin||'—', sel.aBranch||'—'].filter(Boolean).join(' × ')}</span>
-        ${sel.mode === 'dual' ? `<span class=chip>對方：${[sel.bBeast||'—', sel.bKin||'—', sel.bBranch||'—'].filter(Boolean).join(' × ')}</span>` : ''}
-        ${sel.mode !== 'personality' ? `<span class=chip>情境：${sel.context||'—'}</span>` : ''}
-        ${sel.context === '性愛' && sel.sexDetail ? `<span class=chip>深入：${sel.sexDetail}</span>` : ''}
-      </div>
-      <div class=box><div class=result>${$('#result').innerHTML || '<em>尚未產生結果</em>'}</div>
-        ${(scoresHTMLForPrint || chartImg) ? `
-          <div class="print-flex-container">
-            ${scoresHTMLForPrint ? `<div class="print-scores-section">${scoresHTMLForPrint}</div>` : ''}
-            ${chartImg ? `<div class="print-chart-section"><img src="${chartImg}" alt="雷達圖"></div>` : ''}
-          </div>` : ''
+        // --- 情境輸入/預設邏輯 (只認「性愛」) ---
+        function toggleSexOptions(){
+            const context = $('#context').value;
+            const isSexContext = SEX_CONTEXTS.includes(context);
+            
+            if(analysisMode === 'dual' && isSexContext){ 
+                $('#sexOptions').classList.remove('hidden'); 
+            }
+            else { 
+                $('#sexOptions').classList.add('hidden'); 
+                $('#sexDetailInput').value = '';
+            }
         }
-      </div>
-      <script>window.onload=()=>window.print()<\/script></body></html>`;
-      const w = window.open('', '_blank'); w.document.write(html); w.document.close();
-    };
 
-    // 頁面加載時執行一次
-    setAnalysisMode('dual'); // 預設為雙人模式
-    toggleSexOptions(); // 初始化性愛選項顯示
-  </script>
+        function getPayload(){
+            return {
+                mode:analysisMode,
+                aBeast:$('#aBeast').value, aKin:$('#aKin').value, aBranch:$('#aBranch').value,
+                bBeast:$('#bBeast').value, bKin:$('#bKin').value, bBranch:$('#bBranch').value,
+                context:$('#context').value, sexDetail:$('#sexDetailInput').value
+            };
+        }
+        
+        // --- 格式化輸出函式 (保持不變) ---
+        function formatOutput(text){
+            if(!text) return {html:'<p class="text-slate-500">無分析結果。</p>', scores:null, tags:[]};
+            
+            const jsonBlock = text.match(/```json\s*([\s\S]*?)\s*```/i);
+            let scores=null,tags=[];
+            let cleanText = text; 
+            
+            if(jsonBlock){
+                try{ 
+                    const j=JSON.parse(jsonBlock[1]); 
+                    scores=j.scores||{}; 
+                    tags=Array.isArray(j.tags) ? j.tags : Object.values(j.tags || {}).flat().filter(t => typeof t === 'string' && t.trim() !== '');
+                    
+                    cleanText = text.replace(jsonBlock[0],'').trim(); 
+                }catch(e){
+                    console.error("JSON解析失敗", e);
+                }
+            }
+            
+            let html = markdownConverter.makeHtml(cleanText);
+
+            html = html.replace(/<p>[\s]*JSON[\s]*輸出[\s]*<\/p>/gi, '')
+                       .replace(/<h[1-6]>[\s]*JSON[\s]*輸出[\s]*<\/h[1-6]>/gi, '')
+                       .replace(/<p>\s*<\/p>/gi, ''); 
+
+            let scoresHTML = '';
+            if(scores && Object.keys(scores).length > 0){
+                const clamp=v=>Math.max(0,Math.min(100,Number(v)||0));
+                const row=(l,k,c)=>`<div class="score"><b>${l}</b><div class="bar"><i style="width:${clamp(scores[k])}%;background:${c}"></i></div><em>${clamp(scores[k])}</em></div>`;
+                
+                scoresHTML=`
+                    <h3 style="border-bottom:none; margin-top:0;">六維度分數</h3>
+                    <div class="scores">
+                        ${row('契合 fit','fit','#22c55e')}
+                        ${row('溝通 comm','comm','#06b6d4')}
+                        ${row('節奏 pace','pace','#f59e0b')}
+                        ${row('權責 account','account','#8b5cf6')}
+                        ${row('信任 trust','trust','#ef4444')}
+                        ${row('創新 innov','innov','#6366f1')}
+                    </div>`;
+                    
+                if(Array.isArray(tags) && tags.length > 0) scoresHTML+=`<div class="tags">${tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>`;
+            }
+            
+            return {html: html, scores, tags, webScoresHTML: scoresHTML};
+        }
+
+        // --- 圖表繪製核心函式 (保持不變) ---
+        function renderChart(scores, type){
+            const wrap = $('#chartContainer');
+            const scoresTagsWeb = $('#scoresTagsWeb');
+            const chartTypeSelector = $('.chart-type-selector');
+            
+            if(radarChart) {
+                radarChart.destroy();
+                radarChart = null;
+            }
+            wrap.innerHTML = ''; 
+
+            if(analysisMode === 'personality' || analysisMode === 'single' || !scores || Object.keys(scores).length === 0) {
+                 wrap.style.display = 'none';
+                 scoresTagsWeb.style.display = 'none';
+                 chartTypeSelector.style.display = 'none';
+                 return;
+            }
+            
+            wrap.style.display = 'flex';
+            scoresTagsWeb.style.display = 'block';
+            chartTypeSelector.style.display = 'flex';
+
+            currentScores = scores; 
+            currentChartType = type; 
+
+            const labels=['契合 fit','溝通 comm','節奏 pace','權責 account','信任 trust','創新 innov'];
+            const data=[scores.fit,scores.comm,scores.pace,scores.account,scores.trust,scores.innov];
+            const colors=['#22c55e','#06b6d4','#f59e0b','#8b5cf6','#ef4444','#6366f1'];
+            
+            const canvas=document.createElement('canvas'); 
+            canvas.id = 'chartCanvas'; 
+            wrap.appendChild(canvas);
+            
+            try {
+                const config = {
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: '六維度分析',
+                            data: data,
+                            backgroundColor: type === 'bar' ? colors : 'rgba(99,102,241,0.2)', 
+                            borderColor: type === 'bar' ? colors : 'rgba(99,102,241,1)',
+                            borderWidth: type === 'bar' ? 1 : 2,
+                            fill: type === 'radar',
+                            pointBackgroundColor:'rgba(99,102,241,1)',
+                            pointBorderColor:'#fff',
+                            pointHoverBackgroundColor:'#fff',
+                            pointHoverBorderColor:'rgba(99,102,241,1)'
+                        }]
+                    },
+                    options: {
+                        responsive:true, 
+                        maintainAspectRatio: true, 
+                        plugins:{ legend:{ display:false } },
+                        scales: type === 'radar' ? { 
+                            r:{
+                                angleLines:{ display:true }, grid:{ color:'rgba(0, 0, 0, 0.1)' },
+                                pointLabels:{ font:{ size: 12 } }, suggestedMin:0, suggestedMax:100, ticks:{ stepSize:20 } 
+                            }
+                        } : { 
+                            y: { suggestedMin: 0, suggestedMax: 100, ticks: { stepSize: 20 } },
+                            x: { grid: { display: false } }
+                        }
+                    }
+                };
+                
+                radarChart = new Chart(canvas.getContext('2d'), {
+                    type: type,
+                    ...config
+                });
+
+            } catch (e) {
+                console.error("Chart.js 繪製失敗:", e);
+                wrap.innerHTML = '<p class="text-red-500 text-sm p-4">圖表繪製失敗。請檢查 F12 控制台錯誤。</p>';
+            }
+        }
+        
+        // --- 核心事件監聽和初始化 ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // 設定報告時間
+            $('#reportTime').textContent = new Date().toLocaleDateString('zh-TW', {
+                year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+            });
+            
+            // 模式切換按鈕
+            $('#modePersonality').onclick = () => setAnalysisMode('personality');
+            $('#modeSingle').onclick = () => setAnalysisMode('single');
+            $('#modeDual').onclick = () => setAnalysisMode('dual');
+            setAnalysisMode('personality'); 
+
+            // 情境輸入 oninput
+            $('#context').oninput = toggleSexOptions;
+            
+            // 性愛細節按鈕 (V7.8 統一邏輯：點擊添加/移除)
+            $$('.sex-detail').forEach(b => b.onclick = () => { 
+                const current = $('#sexDetailInput').value.trim();
+                const detail = b.dataset.detail;
+                
+                // 將當前輸入框內容轉換為陣列，過濾空字符串
+                let existingDetails = current.split('；').map(d => d.trim()).filter(d => d);
+                
+                // 檢查是否已存在
+                if(existingDetails.includes(detail)) {
+                    // 如果已存在，則移除它
+                    existingDetails = existingDetails.filter(d => d !== detail);
+                } else {
+                    // 如果不存在，則添加它
+                    existingDetails.push(detail);
+                }
+                
+                // 重新組合，並更新輸入框
+                $('#sexDetailInput').value = existingDetails.join('；');
+            });
+
+            // 圖表類型切換
+            $$('.chart-type-selector button').forEach(btn => {
+                btn.onclick = () => {
+                    if (!currentScores) return; 
+                    const newType = btn.dataset.type;
+                    $$('.chart-type-selector button').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    renderChart(currentScores, newType);
+                };
+            });
+            
+            // 美化面板切換
+            $('#toggleBeauty').onclick = () => {
+                $('#beautyPanel').classList.toggle('hidden');
+            };
+
+            // --- 背景設定功能 ---
+            const body = $('body');
+            const bgColorInput = $('#bgColor');
+            const bgImageFile = $('#bgImageFile');
+            const clearBgBtn = $('#clearBg');
+            
+            const updateBackground = () => {
+                const color = bgColorInput.value || '#f1f5f9';
+                body.style.backgroundColor = color;
+                body.classList.remove('bg-slate-50'); 
+            };
+
+            bgColorInput.oninput = updateBackground;
+
+            bgImageFile.onchange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        body.style.backgroundImage = `url('${event.target.result}')`;
+                        body.style.backgroundSize = 'cover';
+                        body.style.backgroundPosition = 'center';
+                        body.style.backgroundAttachment = 'fixed';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                     body.style.backgroundImage = 'none';
+                }
+            };
+
+            clearBgBtn.onclick = () => {
+                bgImageFile.value = '';
+                bgColorInput.value = '#f1f5f9';
+                body.style.backgroundImage = 'none';
+                body.style.backgroundColor = '#f1f5f9';
+                body.classList.add('bg-slate-50'); 
+            };
+            updateBackground(); 
+
+            // V7.9 核心邏輯：一鍵分析 (報告文本大擴充)
+            $('#go').onclick = async () => {
+                const payload=getPayload();
+                let errorMessage = '';
+                const aComplete = payload.aBeast && payload.aKin && payload.aBranch;
+                const bComplete = payload.bBeast && payload.bKin && payload.bBranch;
+
+                if (!aComplete) { errorMessage = '請選滿我方「六獸、六親、地支」'; }
+                else if (payload.mode === 'dual' && !bComplete) { errorMessage = '雙人分析請選滿對方「六獸、六親、地支」'; }
+                else if (payload.mode !== 'personality' && !payload.context) { errorMessage = '請輸入或選擇情境'; }
+                else if (payload.context === '性愛' && !payload.sexDetail) { errorMessage = '您選擇了性愛情境，請點選或輸入細節按鈕，以供 AI 參考建議。'; }
+
+
+                if (errorMessage) { alert(errorMessage); return; }
+
+                $('#result').innerHTML='<p class="text-slate-500">正在等待 AI 分析...</p>'; 
+                renderChart(null, currentChartType); 
+                $('#webScoresAndTags').innerHTML = '';
+                startProgressBar();
+
+                // 模擬延遲
+                await new Promise(resolve => setTimeout(resolve, 1500)); 
+
+                let rawText;
+                
+                const combinedA = `${payload.aBeast}-${payload.aKin}-${payload.aBranch}`;
+                const combinedB = `${payload.bBeast}-${payload.bKin}-${payload.bBranch}`;
+                const detailA = `${payload.aBeast} ${payload.aKin} ${payload.aBranch}`;
+                const detailB = `${payload.bBeast} ${payload.bKin} ${payload.bBranch}`;
+
+
+                if (payload.mode === 'personality') {
+                    // 個性分析模擬報告 (V7.9 擴充)
+                    rawText = `
+## ${combinedA} 個性分析報告 (主題：${payload.context || '基礎個性'})
+
+### 核心特質：神獸原力與六親底色
+**神獸本源：${payload.aBeast}** 的特性帶來了**長遠的規劃能力、極致的穩定性與不容動搖的原則**。他們是團隊中的「錨」，決策時會從大局觀和永續性出發，極度厭惡朝令夕改。
+**六親底色：${payload.aKin}** 則代表了此人對**傳統知識、規則權威或安全感**的深層看重。這使得他們在面對變動時，傾向於尋求過往成功的經驗或既有的權威指引，以確保每一步都踏實可靠。
+**地支動能：${payload.aBranch}** 地支特徵為其穩固的個性注入了**內在的情緒動能和特定的社交傾向**。這股動能影響著他們展現穩定性的方式——可能是安靜沉穩的內向累積，也可能是帶著明確目標的外向執行。
+
+### 職涯發展深度解析
+#### 1. 優勢領域與潛力
+* **戰略穩定性**：極適合擔任需要長期穩定、遵循嚴謹規章的職位，例如**風控總監、資深法律顧問、系統架構師、金融合規**。他們能有效地識別並緩衝潛在風險。
+* **深度耕耘**：在單一領域進行深入研究和積累是他們的強項，能成為某個專業領域的「活字典」和絕對權威。
+
+#### 2. 挑戰、盲點與成長建議
+* **變革阻力**：由於對既有系統的信任過高，面對市場快速變動或強制創新壓力時，會展現出明顯的**抗拒和適應不良**。
+* **人際壁壘**：表達情感和支持較為內斂且間接，容易被誤解為冷漠或不關心。
+* **成長建議**：建議刻意參與**敏捷管理**或**跨功能團隊**，練習在保持核心穩定的前提下，進行小步快跑的試錯與迭代。同時，應學習主動使用**肯定和具體的語言**來表達對同事的支持，而非僅僅默默執行。
+
+#### 3. 情緒管理與壓力應對
+* **壓力表現**：極度壓力下，他們傾向於**退回內殼**，變得固執己見，並可能對外界的批評產生防禦性反彈。
+* **釋放機制**：最有效的釋放機制是**獨自進行結構化的活動**，如長距離跑步、園藝、或完成一個複雜的拼圖，讓身體的穩定性引導心緒回歸平靜。
+`;
+                    $('#webScoresAndTags').innerHTML = '<p class="text-sm text-slate-500 pt-3">個性分析著重於文本解讀，無六維度分數。</p>';
+
+                } else if (payload.mode === 'dual' && payload.context === '性愛') {
+                    // 性愛報告：根據細節給予結構化內容 (V7.9 擴充)
+                    const sexDetails = payload.sexDetail || '無細節指定';
+                    rawText = `
+## 慾望耦合分析與私密劇本 (主題：性愛，細節：${sexDetails})
+
+### 雙方情感連結與角色慾望解讀
+**我方 (${detailA})**：在私密領域傾向於展現**絕對的掌控慾**與**儀式化情節**。其需求核心是**被認可為欲望的主宰**，並從伴侶的完全交付中獲得極致的滿足感。
+**對方 (${detailB})**：表現出極高的**感性回應度**與**被引導的渴望**。他們在安全感極高的前提下，能徹底放下心防，渴望被強勢且明確的慾望流動所引領和探索。
+
+**契合度總結**：雙方的**信任 (Trust)** 分數極高，**契合 (Fit)** 分數近乎完美。這預示著雙方具備探索**高張力情節**的基礎，可以將心理遊戲和身體探索帶入極致深度。
+
+### 🎭 AI 深度劇本建議與執行指南
+針對您選擇的細節：**${sexDetails}**，我們推薦以下執行方向：
+
+#### 1. 情境設置與張力營造 (Scenario & Tension)
+* **場景應用**: 假設選擇了 **「摩天大樓」** 或 **「地下賭場」**。應以極致的對比感來創造張力——在奢華、公開或高風險的環境中進行私密行為，能極大地放大禁忌與刺激感。
+* **心理預熱**: 建議將**「心理掌控」**作為前戲核心。透過**語音催眠**和特定的關鍵詞，讓對方在精神上完全臣服，將身體感官的反應視為一種對主導者的絕對回饋。
+* **建議對話引導**：主導方需不斷提出引導式問句，例如：「你現在最渴望的是什麼？大聲說出來。」或「你是否願意將所有的感受權都交給我？」
+
+#### 2. 核心技巧與體位流動 (Technique & Flow)
+* **開場策略**: 避開直接的肢體接觸，先以**感官剝奪**（如眼罩）來強化其他感官的敏感度。接著以**深度擁抱交合**為起點，強調長時間、慢速的親密摩擦，累積最純粹的**情感張力**。
+* **節奏轉變**: 當張力累積至頂點，應迅速轉入**野性攻防**的節奏。體位可選擇需要雙方高度配合的**高難度、深進入體位**，如站立或某些側臥變形，以強化身體上的**權力與配合感**。
+* **極致體驗**: 結合**震動棒**或**束縛配件**進行側翼/輔助刺激，將快感流引導至**極端快感**的邊緣，在最高峰時利用心理控制工具給予短暫的控制停頓，再釋放。
+
+#### 3. 專屬配備與禁忌元素融合
+* **玩具配置**: 束縛配件不必是痛苦的，應是**儀式性的**。例如絲綢、皮革，象徵身份和角色的固定。
+* **劇本核心**：整個過程應圍繞**「臣服」**和**「渴望」**這兩個核心主題。讓對方主動表達對慾望的臣服，才是這場遊戲的終極高潮。
+
+JSON 輸出
+\`\`\`json
+{
+  "scores": {
+    "fit": 95,
+    "comm": 88,
+    "pace": 85,
+    "account": 75,
+    "trust": 97,
+    "innov": 90
+  },
+  "tags": [
+    "情感極致連結",
+    "權力遊戲適配",
+    "節奏變化豐富",
+    "慾望主導強烈",
+    "適合深度探索",
+    "高難度體位建議"
+  ]
+}
+\`\`\`
+`;
+                } else if (payload.mode === 'dual') {
+                    // 模擬情境：跨部門協作 (V7.9 擴充)
+                    rawText = `
+## 跨部門協作深度分析報告 (情境：${payload.context})
+
+### 雙方溝通模式與協作契合度
+**我方 (${detailA})**：在職場中，傾向於以**長遠規劃**和**穩重**的方式主導核心討論。他們極度重視**結構、傳統流程和風險最小化**。這使得我方在前期調研和基礎確立上極為可靠。
+**對方 (${detailB})**：充滿了**活力**和**急切的行動力**。他們追求**立即的成果、快速決策和高效的執行**。在項目衝刺階段，對方的效率能帶來巨大的推進力。
+
+**核心衝突點**：我方的謹慎（求穩）與對方的急進（求快）是主要的**節奏衝突**。若未能有效磨合，將導致我方拖延決策，而對方則可能因超前執行而產生錯誤，使專案的**節奏 (Pace)** 評分低於平均。
+
+### 潛在風險與專業解決方案
+#### 1. 節奏衝突與執行偏差 (Pace: 55%)
+* **風險描述**：我方對細節的過度檢查與對方的快速決策之間存在鴻溝。這容易導致版本迭代混亂或關鍵風險點被忽略。
+* **解決方案**：
+    * **專案分區**：將專案清晰劃分為「我方負責的**穩定區塊**（如：合約審核、系統架構）」和「對方負責的**快速區塊**（如：市場調研、前端開發）」。
+    * **效率指標**：雙方需建立共同且**客觀的「效率」指標**，而非僅憑主觀感受。例如：將回饋週期標準化至 4 小時內。
+
+#### 2. 信任與創新困境 (Trust: 60%, Innov: 58%)
+* **風險描述**：我方可能會質疑對方的決策速度和其可行性，認為對方在冒險；對方則可能認為我方過於保守，阻礙進度。這種不信任感會阻礙**創新 (Innov)**。
+* **解決方案**：
+    * **中立審核機制**：設立一個由第三方或中立管理層組成的**審核節點**，專門協調雙方在資源分配和風險控制上的分歧。
+    * **小規模試驗**：鼓勵對方在**低風險、小範圍**進行快速的原型試驗 (MVP)，透過具體數據來緩解我方對風險的擔憂，用結果建立信任。
+
+#### 3. 權責與責任歸屬 (Account: 80%)
+* **優勢描述**：雙方在各自負責的領域都擁有強烈的**責任感**，這使得**權責**分數較高。
+* **建議**：利用此優勢，將協作中的**權責地圖**提前繪製，確保每一個決定都有清晰的責任人，避免模糊地帶。
+
+JSON 輸出
+\`\`\`json
+{
+  "scores": {
+    "fit": 68,
+    "comm": 75,
+    "pace": 55,
+    "account": 80,
+    "trust": 60,
+    "innov": 58
+  },
+  "tags": [
+    "穩定性強",
+    "行動力高",
+    "節奏不合",
+    "需第三方協調",
+    "權責需劃分",
+    "溝通模式差異大"
+  ]
+}
+\`\`\`
+`;
+                } else {
+                    // 模擬情境：單人情境 (V7.9 擴充)
+                    rawText = `
+## ${payload.context || '年度目標協調'} 單人情境分析報告 (主體：${combinedA})
+
+### 核心行為模式總結與情緒動態
+${combinedA} 在此情境下，展現出高度的**溝通 (comm)** 意願和潛在的**契合 (fit)** 價值。他們的核心需求是：**透過清晰的界線來確保效率與穩定性**。
+* **優勢展現**: 樂於進行結構化的協商，能夠提出有條理的論點，並在協調中扮演穩定情緒的角色。
+* **潛在風險**: 傾向於在確認所有細節都完美符合預期後才行動。如果協調過程混亂或情緒化，會導致其效率大幅下降。
+
+### 建議策略：從目標到執行的精準引導
+#### 1. 優先事項與預期管理
+* **策略一：具體化目標**：必須先與團隊定義好彼此的**最終目標和里程碑**，且這些目標必須是 SMART (具體、可衡量、可達成、相關、有時限) 的。模糊不清的目標會讓我方產生焦慮。
+* **策略二：界線設定**：利用其高**權責 (account)** 傾向，在協調初期即清晰劃分**「誰負責什麼」**、**「決策權在哪裡」**，這能極大地提高我方在情境中的舒適度和參與感。
+
+#### 2. 情緒與節奏管理
+* **策略三：分階段推進**：避免在達成一致前，過早地陷入瑣碎的細節爭論。應採用**『先大綱、後細節』**的協調節奏，先確認核心方向，再由我方負責將細節『定型』。
+* **策略四：賦予掌控感**：在壓力較大的協調中，適時允許我方主導議程或提供書面總結。透過**掌控資訊**來幫助其管理內在的壓力。
+
+#### 3. 創新與長遠發展
+* **策略五：可控式創新**：鼓勵團隊成員嘗試尋找既有框架之外的新方法時，需將創新提案**包裝成一個『低風險的實驗』**，而不是一個『全面的推翻』。這能讓具有穩定傾向的 ${payload.aBeast} 更容易接受變革。
+`;
+                    $('#webScoresAndTags').innerHTML = '<p class="text-sm text-slate-500 pt-3">單人情境著重於策略建議，無六維度分數。</p>';
+                }
+
+
+                try{
+                    const formatted=formatOutput(rawText);
+                    
+                    $('#result').innerHTML=formatted.html;
+                    if (payload.mode === 'dual') {
+                         $('#webScoresAndTags').innerHTML=formatted.webScoresHTML;
+                    }
+
+                    renderChart(formatted.scores, currentChartType); 
+                    
+                    stopProgressBar(true);
+                }catch(e){ 
+                    $('#result').innerHTML=`<p class="text-red-600">❌ **分析失敗**：${String(e.message || e)}。</p>`; 
+                    renderChart(null, currentChartType);
+                    stopProgressBar(false);
+                }
+            };
+
+            // 列印/PDF 按鈕... 
+            $('#print').onclick = () => {
+                 if (!currentScores && analysisMode === 'dual') {
+                    alert("請先完成分析再列印報告！");
+                    return;
+                }
+                $('.print-header').style.display = 'block';
+                $('.print-header').style.textAlign = 'center';
+                
+                window.print();
+                
+                setTimeout(() => {
+                    $('.print-header').style.display = 'none';
+                }, 100); 
+            };
+        });
+        
+    </script>
 </body>
 </html>

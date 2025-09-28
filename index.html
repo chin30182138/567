@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>仙人指路神獸七十二型人格 - 分析報告 (V9.2)</title>
+    <title>仙人指路神獸七十二型人格 - 分析報告 (V9.3)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
@@ -22,18 +22,53 @@
         .result-section { 
             background-color: rgba(255, 255, 255, 0.95); 
             backdrop-filter: blur(5px); 
-            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(0, 0, 0, 0.05); /* 更專業的陰影 */
-            border-radius: 16px; /* 圓角 */
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1), 0 5px 15px rgba(0, 0, 0, 0.05);
+            border-radius: 16px;
+        }
+
+        /* V9.3: 進度條容器強制置中且浮動 */
+        #statusContainerFixed {
+            position: fixed; /* 保持在視窗中 */
+            top: 25%; /* 靠上三分之一位置 */
+            left: 50%;
+            transform: translateX(-50%); /* 水平置中 */
+            z-index: 50; /* 確保在最上層 */
+            padding: 15px 30px;
+            background-color: rgba(255, 255, 255, 0.95);
+            border-radius: 12px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+            display: none; /* 預設隱藏 */
+            flex-direction: column;
+            align-items: center;
+        }
+        #statusContainerFixed.active {
+            display: flex;
+        }
+        
+        /* 進度條樣式 */
+        #progressBar {
+            width: 300px; /* 增加寬度 */
+            height: 10px;
+            background: #e5e7eb;
+            border-radius: 9999px;
+            overflow: hidden;
+            margin-top: 10px;
+        }
+        #progress {
+            height: 100%;
+            background-color: #3b82f6; /* 主題藍色 */
+            transition: width 0.3s ease-linear;
         }
 
         /* 分數條與標籤樣式 (微調顏色和間距) */
-        .scores { display:grid; gap:10px; margin-top:25px; padding-top:20px; border-top:1px solid #d1d5db; /* 淺灰色分隔線 */ }
+        .scores { display:grid; gap:10px; margin-top:25px; padding-top:20px; border-top:1px solid #d1d5db; }
         .score { display:flex; align-items:center; gap:10px; font-size:14px; font-weight: 500; }
-        .score b { min-width: 60px; text-align: right; color: #4b5563; } /* 標籤文字靠右 */
+        .score b { min-width: 60px; text-align: right; color: #4b5563; }
         .bar { flex:1; height:12px; background:#e5e7eb; border-radius:9999px; overflow:hidden }
         .bar > i { display:block; height:100%; transition: width 0.8s ease-out; }
-        .tags { display:flex; gap:8px; flex-wrap:wrap; margin-top:20px; padding-top:15px; border-top:1px dashed #d1d5db; /* 虛線分隔 */ }
-        .tag { background:#e0f2fe; /* 淺藍色 */ color:#0284c7; /* 深藍色 */ padding:5px 12px; border-radius:9999px; font-size:13px; font-weight: 600; }
+        .tags { display:flex; gap:8px; flex-wrap:wrap; margin-top:20px; padding-top:15px; border-top:1px dashed #d1d5db; }
+        .tag { background:#e0f2fe; color:#0284c7; padding:5px 12px; border-radius:9999px; font-size:13px; font-weight: 600; }
         
         /* AI 輸出樣式 (報告樣式增強) */
         #result h3 { 
@@ -41,9 +76,9 @@
             font-weight: 800; 
             margin-top: 2rem; 
             margin-bottom: 0.8rem; 
-            border-bottom: 4px solid #3b82f6; /* 主題藍色 */
+            border-bottom: 4px solid #3b82f6;
             padding-bottom: 8px; 
-            color: #1e3a8a; /* 深藍色標題 */
+            color: #1e3a8a;
         }
         #result h4 { 
             font-size: 1.25rem; 
@@ -52,16 +87,14 @@
             margin-bottom: 0.6rem; 
             color: #4b5563; 
         }
-        #result p { margin-bottom: 1.2rem; line-height: 1.7; text-align: justify; } /* 增加行高和對齊 */
+        #result p { margin-bottom: 1.2rem; line-height: 1.7; text-align: justify; }
         #result ul, #result ol { padding-left: 30px; margin-bottom: 1.2rem; }
-        #result ul { list-style-type: '👉 '; } /* 使用圖示作為清單符號 */
+        #result ul { list-style-type: '👉 '; }
         #result ol { list-style-type: decimal; }
         #result li { margin-bottom: 8px; }
-        
-        /* 確保圖片不破版 */
         #result img { max-width: 100%; height: auto; margin: 0; display: inline; border-radius: 0; box-shadow: none; }
         
-        /* 列印時，隱藏控制項，並強制顯示顏色 */
+        /* 列印時，隱藏控制項 */
         @media print {
             .no-print { display: none !important; }
             * {
@@ -69,7 +102,7 @@
                 color-adjust: exact !important;
             }
             @page { margin: 15mm; }
-            .result-section { box-shadow: none; border: none; border-radius: 0; } /* 列印時移除陰影 */
+            .result-section { box-shadow: none; border: none; border-radius: 0; }
         }
         .print-header { display: none; }
 
@@ -90,7 +123,7 @@
             transition: all 0.2s ease;
         }
         .chart-type-selector button.active {
-            background: #3b82f6; /* 主題藍色 */
+            background: #3b82f6;
             color: white;
             border-color: #3b82f6;
         }
@@ -124,6 +157,13 @@
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
+    <div id="statusContainerFixed" class="hidden">
+        <span id="status" class="text-lg text-slate-700 font-bold">等待伺服器分析...</span>
+        <div id="progressBar" class="w-full">
+            <div id="progress" style="width: 0%"></div>
+        </div>
+    </div>
+    
     <div class="max-w-5xl mx-auto p-6 space-y-6">
         <header class="print-header">
             <h1 style="font-size: 24pt; color: #1e3a8a; margin-bottom: 5px;">仙人指路｜神獸七十二型人格分析報告</h1>
@@ -131,7 +171,7 @@
         </header>
 
         <header class="space-y-1 no-print flex justify-between items-center">
-            <h1 class="text-3xl font-extrabold text-gray-900">仙人指路｜神獸七十二型人格 (V9.2)</h1>
+            <h1 class="text-3xl font-extrabold text-gray-900">仙人指路｜神獸七十二型人格 (V9.3)</h1>
             <button id="openSettings" class="p-3 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors shadow-md">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -222,14 +262,7 @@
         <div class="flex flex-wrap items-center gap-4 no-print border-b pb-4 mb-4 border-gray-200">
             <button id="go" class="px-6 py-3 rounded-lg bg-indigo-600 text-white font-bold transition-colors hover:bg-indigo-700 shadow-xl">🚀 一鍵分析</button>
             <button id="print" class="px-6 py-3 rounded-lg bg-slate-200 text-slate-800 font-semibold transition-colors hover:bg-slate-300">🖨️ 列印 / PDF</button>
-
-            <div id="statusContainer" class="flex items-center gap-3">
-                <span id="status" class="text-sm text-slate-600 font-medium"></span>
-                <div id="progressBar" class="w-40 h-2 bg-slate-200 rounded-full overflow-hidden hidden">
-                    <div id="progress" class="h-full bg-indigo-400 transition-all duration-300 ease-linear" style="width: 0%"></div>
-                </div>
             </div>
-        </div>
         
         <section class="result-section p-8 rounded-xl shadow-2xl space-y-6">
             <h2 class="text-2xl font-extrabold text-gray-800 border-b-2 border-gray-200 pb-2">分析報告結果</h2>
@@ -324,7 +357,6 @@
         
         const API_PROXY_ENDPOINT = '/api/analyze'; 
 
-        // 情境列表 (保持不變)
         const PRESETS = {
             'personality': ['基礎個性', '職涯優勢', '情緒管理', '人際關係'],
             'single': ['年度目標協調', '績效回饋會議', '跨部門協作', '壓期交付專案', '人際關係協調'],
@@ -336,24 +368,30 @@
         const SEX_CONTEXTS = ['性愛'];
 
 
-        // --- 進度條控制函式 (V9.2: 獨立且更明顯) ---
+        // --- 進度條控制函式 (V9.3: 改為固定位置浮動) ---
         let progressInterval = null;
         function startProgressBar() {
             if (progressInterval) clearInterval(progressInterval);
-            $('#progressBar').classList.remove('hidden');
-            $('#progress').style.width = '10%'; 
-            let progress = 10;
+            
+            const fixedContainer = $('#statusContainerFixed');
+            const progressBar = $('#progressBar');
+            const progress = $('#progress');
+            const status = $('#status');
+            
+            fixedContainer.classList.add('active'); // 顯示浮動進度條
+            progressBar.classList.remove('hidden');
+            progress.style.width = '10%'; 
+            status.textContent = '等待伺服器分析...';
+
+            let currentProgress = 10;
             progressInterval = setInterval(() => {
-                if (progress < 90) {
-                    progress += Math.floor(Math.random() * 2) + 1;
-                    progress = Math.min(progress, 90);
-                    $('#progress').style.width = progress + '%';
-                    $('#status').textContent = `分析中... (${progress}%)`;
+                if (currentProgress < 90) {
+                    currentProgress += Math.floor(Math.random() * 2) + 1; // 隨機增加，看起來更真實
+                    currentProgress = Math.min(currentProgress, 90);
+                    progress.style.width = currentProgress + '%';
+                    status.textContent = `分析中... (${currentProgress}%)`;
                 }
             }, 500); 
-            $('#status').textContent = '等待伺服器分析...';
-            // V9.2: 讓進度條更貼近按鈕
-            $('#statusContainer').classList.remove('hidden'); 
         }
 
         function stopProgressBar(isSuccess = true, errorDetail = '') {
@@ -361,24 +399,29 @@
                 clearInterval(progressInterval);
                 progressInterval = null;
             }
-            $('#progress').style.width = isSuccess ? '100%' : '0%';
+            
+            const fixedContainer = $('#statusContainerFixed');
+            const progress = $('#progress');
+            const status = $('#status');
+            
+            progress.style.width = isSuccess ? '100%' : '0%';
             
             if (isSuccess) {
-                $('#status').textContent = '✅ 完成';
+                status.textContent = '✅ 完成，正在顯示報告...';
             } else {
-                $('#status').textContent = `❌ 失敗: ${errorDetail}`;
+                status.textContent = `❌ 分析失敗: ${errorDetail}`;
             }
 
+            // 保持顯示 3 秒後隱藏
             setTimeout(() => {
-                $('#progressBar').classList.add('hidden');
-                $('#progress').style.width = '0%';
-                if (!isSuccess) $('#status').textContent = ''; 
-                $('#statusContainer').classList.add('hidden'); // V9.2: 分析完成後隱藏容器
+                fixedContainer.classList.remove('active');
+                progress.style.width = '0%';
+                status.textContent = '';
             }, 3000); 
         }
         // --- 進度條控制函式結束 ---
 
-        // --- 模式切換邏輯 (保持不變，樣式微調) ---
+        // --- 模式切換邏輯 (保持不變) ---
         function setAnalysisMode(mode){
             analysisMode = mode;
             const modes = {
@@ -390,11 +433,9 @@
 
             Object.keys(modes).forEach(key => {
                 if (key === mode) {
-                    // 選中樣式
                     modes[key].classList.remove('bg-slate-200', 'text-slate-800');
                     modes[key].classList.add('bg-indigo-600', 'text-white');
                 } else {
-                    // 未選中樣式
                     modes[key].classList.remove('bg-indigo-600', 'text-white');
                     modes[key].classList.add('bg-slate-200', 'text-slate-800');
                 }
@@ -423,7 +464,7 @@
                 };
                 container.appendChild(btn);
             });
-            if (!$('#context').value) $('#context').value = ''; // 避免切換模式時清空正在輸入的內容
+            if (!$('#context').value) $('#context').value = ''; 
         }
 
         // 性愛細節區塊開關 (保持不變)
@@ -436,7 +477,6 @@
             }
             else { 
                 $('#sexOptions').classList.add('hidden'); 
-                // 不清除細節輸入框，方便切換回來時內容還在
             }
         }
 
@@ -451,7 +491,7 @@
             };
         }
         
-        // --- Local Storage 相關功能 (V9.2: 移至 Modal 內) ---
+        // --- Local Storage 相關功能 (保持不變) ---
         function saveInputData() {
             const data = getPayload();
             try {
@@ -474,10 +514,8 @@
                 }
                 const data = JSON.parse(dataString);
                 
-                // 載入模式並觸發設定
                 setAnalysisMode(data.mode || 'personality'); 
 
-                // 載入選單值
                 $('#aBeast').value = data.aBeast || '';
                 $('#aKin').value = data.aKin || '';
                 $('#aBranch').value = data.aBranch || '';
@@ -489,7 +527,6 @@
                 $('#sexDetailInput').value = data.sexDetail || '';
                 $('#modelSelect').value = data.model || 'gpt-4o-mini';
 
-                // 重新檢查性愛細節區塊
                 toggleSexOptions(); 
 
                 $('#saveStatus').textContent = '✅ 輸入資料已載入！';
@@ -665,21 +702,17 @@
         // --- 核心事件監聽和初始化 ---
         document.addEventListener('DOMContentLoaded', () => {
             
-            // 載入美化設定
             loadBeautySettings();
             
-            // 設定報告時間
             $('#reportTime').textContent = new Date().toLocaleDateString('zh-TW', {
                 year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
             });
             
-            // 模式切換按鈕
             $('#modePersonality').onclick = () => setAnalysisMode('personality');
             $('#modeSingle').onclick = () => setAnalysisMode('single');
             $('#modeDual').onclick = () => setAnalysisMode('dual');
             setAnalysisMode('personality'); 
             
-            // V9.2: 設定面板邏輯
             const settingsModal = $('#settingsModal');
             $('#openSettings').onclick = () => settingsModal.classList.add('active');
             $('#closeSettings').onclick = () => settingsModal.classList.remove('active');
@@ -689,14 +722,11 @@
                 }
             };
 
-            // 輸入儲存/載入
             $('#saveInput').onclick = saveInputData;
             $('#loadInput').onclick = loadInputData;
 
-            // 情境輸入 oninput
             $('#context').oninput = toggleSexOptions;
             
-            // 性愛細節按鈕
             $$('.sex-detail').forEach(b => b.onclick = () => { 
                 const current = $('#sexDetailInput').value.trim();
                 const detail = b.dataset.detail;
@@ -712,7 +742,6 @@
                 $('#sexDetailInput').value = existingDetails.join('；');
             });
 
-            // 圖表類型切換
             $$('.chart-type-selector button').forEach(btn => {
                 btn.onclick = () => {
                     if (!currentScores) return; 
@@ -723,7 +752,6 @@
                 };
             });
             
-            // --- 背景設定功能 (V9.2: 移至 Modal 內) ---
             const body = $('body');
             const bgColorInput = $('#bgColor');
             const bgImageFile = $('#bgImageFile');
@@ -752,7 +780,7 @@
                         body.style.backgroundSize = 'cover';
                         body.style.backgroundPosition = 'center';
                         body.style.backgroundAttachment = 'fixed';
-                        saveBeautySettings(getBeautySettings()); // 儲存 Base64 圖片字串
+                        saveBeautySettings(getBeautySettings());
                     };
                     reader.readAsDataURL(file);
                 } else {
@@ -767,13 +795,13 @@
                 body.style.backgroundImage = 'none';
                 body.style.backgroundColor = '#f1f5f9';
                 body.classList.add('bg-slate-50'); 
-                saveBeautySettings({}); // 清除 Local Storage 記錄
+                saveBeautySettings({});
             };
             
             // V9.0 核心邏輯：一鍵分析 (呼叫 Vercel Serverless Function)
             $('#go').onclick = async () => {
                 const payload = getPayload();
-                const model = payload.model;
+                const model = payload.model; // 從設定中獲取模型
                 let errorMessage = '';
                 
                 const aComplete = payload.aBeast && payload.aKin && payload.aBranch;
@@ -789,7 +817,7 @@
                 $('#result').innerHTML='<p class="text-slate-500">正在等待 AI 分析...</p>'; 
                 renderChart(null, currentChartType); 
                 $('#webScoresAndTags').innerHTML = '';
-                startProgressBar();
+                startProgressBar(); // V9.3: 啟動固定進度條
                 
                 const prompt = generateOpenAIPrompt(payload);
 
@@ -834,7 +862,6 @@
                 }
             };
 
-            // 列印/PDF 按鈕... 
             $('#print').onclick = () => {
                  if (analysisMode === 'dual' && !currentScores) { 
                     alert("請先完成雙人分析並獲得分數後再列印報告！");

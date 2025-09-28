@@ -26,19 +26,79 @@
     <!-- 頁首 -->
     <header class="no-print">
       <h1 class="text-2xl font-bold">仙人指路神獸七十二型人格｜一鍵分析</h1>
-      <p class="text-slate-500 text-sm">支援：分數條、雷達圖、列印/匯出 PDF、背景自訂</p>
+      <p class="text-slate-500 text-sm">選擇六獸六親與情境 → 分析 → 分數條、雷達圖、列印/背景自訂</p>
     </header>
 
-    <!-- 控制列 -->
-    <div class="flex gap-3 items-center no-print">
-      <button id="go" class="px-4 py-2 rounded-xl bg-indigo-600 text-white">一鍵分析</button>
-      <button id="print" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-800">列印 / 匯出 PDF</button>
-      <input id="bgColor" type="color" title="選擇背景顏色" class="ml-4" />
-      <input id="bgImg" type="file" accept="image/*" title="上傳背景圖片" />
-      <span id="status" class="text-sm text-slate-600 ml-3"></span>
+    <!-- 選單區 -->
+    <div class="grid md:grid-cols-2 gap-4 no-print">
+      <!-- 我方 -->
+      <section class="bg-white p-4 rounded-2xl shadow-sm">
+        <h2 class="font-semibold mb-3">我方</h2>
+        <select id="aBeast" class="w-full mb-2 border rounded-lg p-2">
+          <option value="">六獸</option>
+          <option>青龍</option><option>朱雀</option><option>勾陳</option>
+          <option>螣蛇</option><option>白虎</option><option>玄武</option>
+        </select>
+        <select id="aKin" class="w-full mb-2 border rounded-lg p-2">
+          <option value="">六親</option>
+          <option>父母</option><option>兄弟</option><option>子孫</option>
+          <option>妻財</option><option>官鬼</option>
+        </select>
+        <select id="aBranch" class="w-full border rounded-lg p-2">
+          <option value="">地支</option>
+          <option>子</option><option>丑</option><option>寅</option><option>卯</option>
+          <option>辰</option><option>巳</option><option>午</option><option>未</option>
+          <option>申</option><option>酉</option><option>戌</option><option>亥</option>
+        </select>
+      </section>
+
+      <!-- 對方 -->
+      <section class="bg-white p-4 rounded-2xl shadow-sm">
+        <h2 class="font-semibold mb-3">對方</h2>
+        <select id="bBeast" class="w-full mb-2 border rounded-lg p-2">
+          <option value="">六獸</option>
+          <option>青龍</option><option>朱雀</option><option>勾陳</option>
+          <option>螣蛇</option><option>白虎</option><option>玄武</option>
+        </select>
+        <select id="bKin" class="w-full mb-2 border rounded-lg p-2">
+          <option value="">六親</option>
+          <option>父母</option><option>兄弟</option><option>子孫</option>
+          <option>妻財</option><option>官鬼</option>
+        </select>
+        <select id="bBranch" class="w-full border rounded-lg p-2">
+          <option value="">地支</option>
+          <option>子</option><option>丑</option><option>寅</option><option>卯</option>
+          <option>辰</option><option>巳</option><option>午</option><option>未</option>
+          <option>申</option><option>酉</option><option>戌</option><option>亥</option>
+        </select>
+      </section>
     </div>
 
-    <!-- 結果區 -->
+    <!-- 情境 -->
+    <section class="bg-white p-4 rounded-2xl shadow-sm space-y-2 no-print">
+      <h2 class="font-semibold">情境</h2>
+      <div class="flex gap-2 flex-wrap mb-2">
+        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">年度目標協調</button>
+        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">績效回饋會議</button>
+        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">跨部門協作</button>
+        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">壓期交付專案</button>
+        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">人際關係協調</button>
+        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">愛情</button>
+        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">性愛</button>
+      </div>
+      <input id="context" class="w-full border rounded-lg p-2" placeholder="輸入情境…" />
+    </section>
+
+    <!-- 功能列 -->
+    <div class="flex flex-wrap items-center gap-3 no-print">
+      <button id="go" class="px-4 py-2 rounded-xl bg-indigo-600 text-white">一鍵分析</button>
+      <button id="print" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-800">列印 / 匯出 PDF</button>
+      <input id="bgColor" type="color" title="背景顏色" />
+      <input id="bgImg" type="file" accept="image/*" title="上傳背景圖片" />
+      <span id="status" class="text-sm text-slate-600"></span>
+    </div>
+
+    <!-- 結果 -->
     <section class="bg-white p-5 rounded-2xl shadow-sm">
       <div id="result" class="prose max-w-none text-[15px]"></div>
       <div id="scoresWrap" class="mt-4"></div>
@@ -64,13 +124,13 @@
       });
     }
 
-    // 假資料（示範用）
+    // 假資料
     const demo = {
       scores:{ fit:80, comm:70, pace:60, account:75, trust:65, innov:85 },
       tags:["激情","契合","探索","安全感"]
     };
 
-    // 模擬分析
+    // 一鍵分析（測試用假資料）
     document.getElementById('go').onclick = () => {
       document.getElementById('status').textContent = '分析中…';
       setTimeout(()=>{
@@ -101,7 +161,7 @@
       }, 1000);
     };
 
-    // 列印 / 匯出 PDF
+    // 列印
     document.getElementById('print').onclick = () => {
       const w = window.open('', '_blank');
       const chartImg = (radarChart && radarChart.canvas) ? radarChart.canvas.toDataURL('image/png') : '';
@@ -136,6 +196,11 @@
       };
       reader.readAsDataURL(file);
     };
+
+    // 情境預設按鈕
+    document.querySelectorAll('.preset').forEach(b => b.onclick = () => {
+      document.getElementById('context').value = b.textContent;
+    });
   </script>
 </body>
 </html>

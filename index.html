@@ -1,167 +1,87 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>仙人指路神獸七十二型人格 一鍵分析</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>仙人指路神獸七十二型人格｜一鍵分析</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <style>
-    body { transition: background 0.5s ease; background-size: cover; background-attachment: fixed; }
-    @media print { @page { margin: 14mm; } .no-print{display:none!important;} body{background:#fff!important;} }
-    .scores{display:grid;grid-template-columns:1fr;gap:8px;margin-top:6px}
-    .score{display:flex;align-items:center;gap:10px;font-size:13px;color:#334155}
-    .bar{flex:1;height:10px;background:#e2e8f0;border-radius:9999px;overflow:hidden}
-    .bar>i{display:block;height:100%;background:#6366f1}
-    .score b{width:92px;display:inline-block;color:#0f172a}
-    .score em{width:36px;text-align:right;color:#475569;font-style:normal}
-    .tags{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-    .tag{background:#eef2ff;color:#3730a3;padding:4px 10px;border-radius:9999px;font-size:12px}
-  </style>
 </head>
-<body class="text-slate-800">
+<body class="bg-gray-50 min-h-screen">
 
-  <div class="max-w-5xl mx-auto p-6 space-y-5">
-
-    <!-- 頁首 -->
-    <header class="no-print">
-      <h1 class="text-2xl font-bold">仙人指路神獸七十二型人格｜一鍵分析</h1>
-      <p class="text-slate-500 text-sm">支援分數條、雷達圖、列印 / 背景自訂</p>
-    </header>
-
-    <!-- 情境 -->
-    <section class="bg-white p-4 rounded-2xl shadow-sm space-y-2 no-print">
-      <h2 class="font-semibold">情境</h2>
-      <div class="flex gap-2 flex-wrap mb-2">
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">年度目標協調</button>
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">績效回饋會議</button>
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">跨部門協作</button>
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">壓期交付專案</button>
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">人際關係協調</button>
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">愛情</button>
-        <button class="preset px-3 py-1.5 rounded-full bg-slate-100">性愛</button>
-      </div>
-      <input id="context" class="w-full border rounded-lg p-2" placeholder="輸入情境…" />
-    </section>
-
-    <!-- 功能列 -->
-    <div class="flex flex-wrap items-center gap-3 no-print">
-      <button id="go" class="px-4 py-2 rounded-xl bg-indigo-600 text-white">一鍵分析</button>
-      <button id="print" class="px-4 py-2 rounded-xl bg-slate-200 text-slate-800">列印 / 匯出 PDF</button>
-      <input id="bgColor" type="color" title="背景顏色" />
-      <input id="bgImg" type="file" accept="image/*" title="上傳背景圖片" />
-      <span id="status" class="text-sm text-slate-600"></span>
+  <!-- 頂部選單 -->
+  <nav class="bg-indigo-700 text-white px-6 py-3 flex justify-between items-center shadow">
+    <div class="text-lg font-bold">仙人指路分析系統</div>
+    <div class="space-x-4">
+      <a href="#" class="hover:underline">首頁</a>
+      <a href="#" class="hover:underline">分析工具</a>
+      <a href="#" class="hover:underline">課程簡介</a>
+      <a href="#" class="hover:underline">聯絡我們</a>
     </div>
+  </nav>
 
-    <!-- 結果 -->
-    <section class="bg-white p-5 rounded-2xl shadow-sm">
-      <div id="result" class="prose max-w-none text-[15px]"></div>
-      <div id="scoresWrap" class="mt-4"></div>
-      <div id="chart" class="mt-4"></div>
+  <main class="p-6 space-y-6">
+
+    <!-- 情境區 -->
+    <section class="bg-white shadow rounded-lg p-4">
+      <h2 class="text-lg font-semibold mb-2">情境</h2>
+      <div class="flex flex-wrap gap-2 mb-3">
+        <button class="preset px-3 py-1 bg-gray-200 rounded">年度目標協調</button>
+        <button class="preset px-3 py-1 bg-gray-200 rounded">績效回饋會議</button>
+        <button class="preset px-3 py-1 bg-gray-200 rounded">跨部門協作</button>
+        <button class="preset px-3 py-1 bg-gray-200 rounded">壓期交付專案</button>
+        <button class="preset px-3 py-1 bg-gray-200 rounded">人際關係協調</button>
+        <button class="preset px-3 py-1 bg-gray-200 rounded">愛情</button>
+        <button class="preset px-3 py-1 bg-gray-200 rounded">性愛</button>
+      </div>
+      <input id="context" type="text" placeholder="輸入情境..." 
+             class="w-full border rounded px-3 py-2"/>
     </section>
-  </div>
 
+    <!-- 分析模式切換 -->
+    <section class="bg-white shadow rounded-lg p-4 flex gap-4 items-center">
+      <label><input type="radio" name="mode" value="personality" checked> 人格分析</label>
+      <label><input type="radio" name="mode" value="sex"> 性愛分析</label>
+    </section>
+
+    <!-- 性愛選項 -->
+    <section id="sexOptions" class="bg-white shadow rounded-lg p-4 hidden">
+      <h2 class="text-lg font-semibold mb-3">性愛分析選項</h2>
+      <div class="flex flex-wrap gap-3 mb-3">
+        <label><input type="checkbox" class="sex-check" value="score"> 情愛指數</label>
+        <label><input type="checkbox" class="sex-check" value="mode"> 互動模式</label>
+        <label><input type="checkbox" class="sex-check" value="risk"> 雷點分析</label>
+        <label><input type="checkbox" class="sex-check" value="script"> 劇本推薦</label>
+        <label><input type="checkbox" class="sex-check" value="position"> 體位推薦</label>
+        <label><input type="checkbox" class="sex-check" value="toys"> 玩具推薦</label>
+        <label><input type="checkbox" class="sex-check" value="scene"> 場景推薦</label>
+      </div>
+      <button id="selectAllSex" class="px-3 py-1 bg-gray-300 rounded">全選</button>
+    </section>
+
+    <!-- 操作區 -->
+    <section class="bg-white shadow rounded-lg p-4 flex flex-wrap gap-3 items-center">
+      <button id="analyzeBtn" class="px-4 py-2 bg-indigo-600 text-white rounded">一鍵分析</button>
+      <button onclick="window.print()" class="px-4 py-2 bg-gray-200 rounded">列印 / 匯出 PDF</button>
+      <input type="color" id="bgColor" title="選擇背景顏色" class="w-10 h-10 cursor-pointer">
+      <input type="file" id="bgImg" accept="image/*" class="cursor-pointer">
+    </section>
+
+    <!-- 分析結果 -->
+    <section id="result" class="bg-white shadow rounded-lg p-6 space-y-6">
+      <p class="text-gray-500">這裡會顯示分析結果...</p>
+    </section>
+  </main>
+
+  <!-- 腳本 -->
   <script>
-    // Radar 圖
-    let radarChart = null;
-    function renderRadar(scores){
-      const wrap = document.getElementById('chart');
-      wrap.innerHTML = '';
-      if(!scores) return;
-      const labels = ['契合 fit','溝通 comm','節奏 pace','權責 account','信任 trust','創新 innov'];
-      const data = [scores.fit, scores.comm, scores.pace, scores.account, scores.trust, scores.innov];
-      const canvas = document.createElement('canvas'); wrap.appendChild(canvas);
-      if(radarChart){ radarChart.destroy(); }
-      radarChart = new Chart(canvas.getContext('2d'), {
-        type: 'radar',
-        data: { labels, datasets: [{ label: '六維度雷達圖', data, fill: true, backgroundColor:'rgba(99,102,241,0.15)', borderColor:'rgba(99,102,241,1)', pointBackgroundColor:'rgba(99,102,241,1)'}] },
-        options: { scales:{ r:{ suggestedMin:0, suggestedMax:100, ticks:{ stepSize:20 } } }, plugins:{ legend:{ display:false } } }
-      });
-    }
-
-    // 分析按鈕
-    document.getElementById('go').onclick = async () => {
-      const context = document.getElementById('context').value.trim();
-      if (!context) { alert("請輸入或選擇情境"); return; }
-
-      document.getElementById('status').textContent = '分析中…';
-      document.getElementById('result').innerHTML = '';
-      document.getElementById('scoresWrap').innerHTML = '';
-      document.getElementById('chart').innerHTML = '';
-
-      try {
-        const res = await fetch('/api/analyze', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            aBeast:"朱雀", aKin:"子孫", aBranch:"子",
-            bBeast:"朱雀", bKin:"父母", bBranch:"子",
-            context
-          })
-        });
-        const data = await res.json();
-        let plain = data.text || "";
-        
-        // 抓出 JSON 區塊
-        const jsonBlock = plain.match(/```json([\\s\\S]*?)```/i);
-        let scores = null, tags = [];
-        if (jsonBlock){
-          try {
-            const parsed = JSON.parse(jsonBlock[1]);
-            scores = parsed.scores; tags = parsed.tags || [];
-          } catch(e){}
-          plain = plain.replace(jsonBlock[0],'').trim();
-        }
-
-        document.getElementById('result').innerHTML = plain.replace(/\\n/g,"<br>");
-        
-        if(scores){
-          const s = scores;
-          const row = (label,key,color)=>`<div class="score"><b>${label}</b><div class="bar"><i style="width:${s[key]}%;background:${color}"></i></div><em>${s[key]}</em></div>`;
-          document.getElementById('scoresWrap').innerHTML = `
-            <h3 class="text-lg font-semibold mt-4">六維度分數</h3>
-            <div class="scores">
-              ${row('契合 fit','fit','#22c55e')}
-              ${row('溝通 comm','comm','#06b6d4')}
-              ${row('節奏 pace','pace','#f59e0b')}
-              ${row('權責 account','account','#8b5cf6')}
-              ${row('信任 trust','trust','#ef4444')}
-              ${row('創新 innov','innov','#6366f1')}
-            </div>
-            ${tags.length ? `<div class="tags">${tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>` : ''}
-          `;
-          renderRadar(scores);
-        }
-        document.getElementById('status').textContent = '✅ 完成';
-      } catch (e) {
-        console.error(e);
-        document.getElementById('status').textContent = '❌ 錯誤';
-        document.getElementById('result').textContent = 'API 呼叫失敗';
-      }
-    };
-
-    // 列印
-    document.getElementById('print').onclick = () => {
-      const w = window.open('', '_blank');
-      const chartImg = (radarChart && radarChart.canvas) ? radarChart.canvas.toDataURL('image/png') : '';
-      w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>列印</title>
-        <style>body{font-family:sans-serif;padding:20px;}h1{font-size:20px;margin-bottom:10px;}</style></head><body>
-        <h1>分析報告</h1>
-        <div>${document.getElementById('result').innerHTML}</div>
-        <div>${document.getElementById('scoresWrap').innerHTML}</div>
-        ${chartImg ? `<div><img src="${chartImg}" style="max-width:400px;"></div>` : ''}
-        <script>window.onload=()=>window.print()</script>
-      </body></html>`);
-      w.document.close();
-    };
-
     // 背景設定
     document.getElementById('bgColor').oninput = e => {
       document.body.style.background = e.target.value;
     };
     document.getElementById('bgImg').onchange = e => {
       const file = e.target.files[0];
-      if(!file) return;
+      if (!file) return;
       const reader = new FileReader();
       reader.onload = ev => {
         document.body.style.backgroundImage = `url(${ev.target.result})`;
@@ -172,9 +92,134 @@
     };
 
     // 情境預設按鈕
-    document.querySelectorAll('.preset').forEach(b => b.onclick = () => {
-      document.getElementById('context').value = b.textContent;
+    document.querySelectorAll('.preset').forEach(b =>
+      b.onclick = () => {
+        document.getElementById('context').value = b.textContent;
+      }
+    );
+
+    // 模式切換
+    document.querySelectorAll('input[name="mode"]').forEach(r => {
+      r.onchange = e => {
+        document.getElementById('sexOptions').classList.toggle('hidden', e.target.value !== 'sex');
+      };
     });
+
+    // 性愛全選
+    document.getElementById('selectAllSex').onclick = () => {
+      document.querySelectorAll('.sex-check').forEach(c => c.checked = true);
+    };
+
+    // 假數據
+    const fakeScores = { fit: 82, comm: 75, pace: 68, account: 80, trust: 72, innov: 85 };
+
+    // 性愛分析模板
+    const sexTemplates = {
+      score: `
+        <h4 class="font-bold">情愛指數</h4>
+        <p>9.2/10（激情與默契並存，火熱又不失細膩）</p>
+      `,
+      mode: `
+        <h4 class="font-bold">互動模式</h4>
+        <ul class="list-disc pl-6">
+          <li>一方主導挑逗，另一方靈活應對，節奏充滿遊戲感。</li>
+          <li>性愛過程如舞蹈般交錯，兼具張力與情感連結。</li>
+        </ul>
+      `,
+      risk: `
+        <h4 class="font-bold">雷點分析</h4>
+        <p>雙方皆偏好掌控，若缺乏溝通，可能導致性愛變成競爭。</p>
+      `,
+      script: `
+        <h4 class="font-bold">最佳性愛劇本推薦</h4>
+        <ul class="list-disc pl-6">
+          <li>挑逗對決：輪流掌控節奏，考驗彼此耐力。</li>
+          <li>視覺誘惑：善用服裝與燈光，增強張力。</li>
+          <li>情境調情：前戲延長，堆疊期待與快感。</li>
+        </ul>
+      `,
+      position: `
+        <h4 class="font-bold">推薦體位</h4>
+        <ul class="list-disc pl-6">
+          <li>交錯後入（Entwined Rear Entry）：靈活切換主導。</li>
+          <li>蓮花交合（Lotus Position）：提升親密度與深度。</li>
+          <li>站立交合（Standing Sex）：適合急速與激情。</li>
+        </ul>
+      `,
+      toys: `
+        <h4 class="font-bold">推薦玩具</h4>
+        <ul class="list-disc pl-6">
+          <li>震動指環：挑戰快感極限。</li>
+          <li>語音控制震動器：增添互動與主導感。</li>
+          <li>情趣蠟燭：營造氛圍並強化情慾。</li>
+        </ul>
+      `,
+      scene: `
+        <h4 class="font-bold">推薦性愛場景</h4>
+        <ul class="list-disc pl-6">
+          <li>隱密酒吧 VIP 沙發區：帶來禁忌與刺激。</li>
+          <li>私人遊戲室：將性愛化為一場挑戰。</li>
+          <li>舞蹈室鏡前：放大肢體交錯的視覺震撼。</li>
+        </ul>
+      `
+    };
+
+    // 分析
+    document.getElementById('analyzeBtn').onclick = () => {
+      const ctx = document.getElementById('context').value || "未輸入情境";
+      const mode = document.querySelector('input[name="mode"]:checked').value;
+      const resultBox = document.getElementById('result');
+
+      if (mode === 'personality') {
+        // 百分比條
+        let bars = Object.entries(fakeScores).map(([k,v]) => `
+          <div class="mb-2">
+            <div class="flex justify-between text-sm">
+              <span>${k.toUpperCase()}</span><span>${v}%</span>
+            </div>
+            <div class="w-full bg-gray-200 h-3 rounded">
+              <div class="h-3 bg-indigo-500 rounded" style="width:${v}%"></div>
+            </div>
+          </div>
+        `).join('');
+
+        // 結果區
+        resultBox.innerHTML = `
+          <h3 class="text-xl font-bold mb-2">人格分析結果</h3>
+          <p>情境：<span class="font-semibold">${ctx}</span></p>
+          <div class="mt-4">${bars}</div>
+          <canvas id="radarChart" class="mt-6"></canvas>
+        `;
+
+        // 雷達圖
+        new Chart(document.getElementById('radarChart'), {
+          type: 'radar',
+          data: {
+            labels: ["契合度","溝通","節奏","責任感","信任","創新"],
+            datasets: [{
+              label: "分析分數",
+              data: Object.values(fakeScores),
+              backgroundColor: "rgba(99,102,241,0.2)",
+              borderColor: "rgba(99,102,241,1)",
+              pointBackgroundColor: "rgba(99,102,241,1)"
+            }]
+          },
+          options: {
+            scales: { r: { suggestedMin: 0, suggestedMax: 100 } }
+          }
+        });
+      } else {
+        // 性愛分析
+        const checks = [...document.querySelectorAll('.sex-check:checked')].map(c => c.value);
+        resultBox.innerHTML = `
+          <h3 class="text-xl font-bold mb-2">性愛分析結果</h3>
+          <p>情境：<span class="font-semibold">${ctx}</span></p>
+          <div class="space-y-4 mt-4">
+            ${checks.length ? checks.map(c => sexTemplates[c]).join('') : "<p>請至少選擇一項分析</p>"}
+          </div>
+        `;
+      }
+    };
   </script>
 </body>
 </html>

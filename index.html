@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>仙人指路神獸七十二型人格 - 分析報告 (V9.1)</title>
+    <title>仙人指路神獸七十二型人格 - 分析報告 (V9.2)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
@@ -35,7 +35,7 @@
         .tags { display:flex; gap:8px; flex-wrap:wrap; margin-top:20px; padding-top:15px; border-top:1px dashed #d1d5db; /* 虛線分隔 */ }
         .tag { background:#e0f2fe; /* 淺藍色 */ color:#0284c7; /* 深藍色 */ padding:5px 12px; border-radius:9999px; font-size:13px; font-weight: 600; }
         
-        /* AI 輸出樣式 (V9.1 報告樣式增強) */
+        /* AI 輸出樣式 (報告樣式增強) */
         #result h3 { 
             font-size: 1.5rem; 
             font-weight: 800; 
@@ -94,6 +94,33 @@
             color: white;
             border-color: #3b82f6;
         }
+        
+        /* Modal 樣式 */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            width: 90%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
@@ -103,36 +130,20 @@
             <p style="font-size: 10pt; color: #6b7280; border-bottom: 1px solid #e5e7eb; padding-bottom: 10px; margin-bottom: 15px;">報告生成時間: <span id="reportTime"></span></p>
         </header>
 
-        <header class="space-y-1 no-print">
-            <h1 class="text-3xl font-extrabold text-gray-900">仙人指路｜神獸七十二型人格 (V9.1)</h1>
-            <p class="text-slate-500 text-sm">✨ **安全升級**：API Key 已隱藏於 Vercel。 **版面美化**：新增 Local Storage 記憶功能。</p>
+        <header class="space-y-1 no-print flex justify-between items-center">
+            <h1 class="text-3xl font-extrabold text-gray-900">仙人指路｜神獸七十二型人格 (V9.2)</h1>
+            <button id="openSettings" class="p-3 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors shadow-md">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+            </button>
         </header>
-        
-        <section class="bg-indigo-50 p-4 rounded-xl shadow space-y-2 no-print border-l-4 border-indigo-500">
-            <h2 class="font-bold text-indigo-700">⚙️ 系統配置</h2>
-            <div class="flex flex-wrap items-center gap-4 text-sm text-indigo-600">
-                <span class="font-medium">API 狀態: <b class="text-green-700">安全代理運行中</b></span>
-                <div class="flex items-center gap-2">
-                    <label for="modelSelect" class="font-medium">分析模型:</label>
-                    <select id="modelSelect" class="p-1 border rounded-lg text-sm bg-white shadow-sm">
-                        <option value="gpt-4o-mini">gpt-4o-mini (推薦)</option>
-                        <option value="gpt-3.5-turbo">gpt-3.5-turbo (更快)</option>
-                    </select>
-                </div>
-            </div>
-        </section>
-
 
         <div class="flex gap-4 flex-wrap no-print">
             <button id="modePersonality" class="px-5 py-2.5 rounded-lg text-white font-semibold shadow-md transition-colors">個性分析</button>
             <button id="modeSingle" class="px-5 py-2.5 rounded-lg text-slate-800 font-semibold shadow-md transition-colors">單人情境</button>
             <button id="modeDual" class="px-5 py-2.5 rounded-lg text-slate-800 font-semibold shadow-md transition-colors">雙人情境</button>
-        </div>
-
-        <div class="flex flex-wrap items-center gap-3 no-print">
-             <button id="saveInput" class="px-4 py-2 rounded-lg bg-green-500 text-white font-semibold transition-colors hover:bg-green-600">💾 儲存輸入</button>
-             <button id="loadInput" class="px-4 py-2 rounded-lg bg-yellow-500 text-white font-semibold transition-colors hover:bg-yellow-600">📥 載入輸入</button>
-             <span id="saveStatus" class="text-sm text-slate-500"></span>
         </div>
 
         <div class="grid md:grid-cols-2 gap-4 no-print">
@@ -208,11 +219,9 @@
             </div>
         </section>
 
-        <div class="flex flex-wrap items-center gap-4 no-print">
+        <div class="flex flex-wrap items-center gap-4 no-print border-b pb-4 mb-4 border-gray-200">
             <button id="go" class="px-6 py-3 rounded-lg bg-indigo-600 text-white font-bold transition-colors hover:bg-indigo-700 shadow-xl">🚀 一鍵分析</button>
             <button id="print" class="px-6 py-3 rounded-lg bg-slate-200 text-slate-800 font-semibold transition-colors hover:bg-slate-300">🖨️ 列印 / PDF</button>
-            
-            <button id="toggleBeauty" class="px-6 py-3 rounded-lg bg-pink-500 text-white font-semibold transition-colors hover:bg-pink-600">🎨 美化設定</button>
 
             <div id="statusContainer" class="flex items-center gap-3">
                 <span id="status" class="text-sm text-slate-600 font-medium"></span>
@@ -222,26 +231,10 @@
             </div>
         </div>
         
-        <section id="beautyPanel" class="bg-white p-5 rounded-xl shadow-lg space-y-3 hidden no-print border border-gray-100">
-            <h2 class="font-bold text-lg border-b pb-2 text-pink-600">背景與介面美化 (Local Storage 記憶)</h2>
-            <div class="grid md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium mb-1">背景顏色選擇：</label>
-                    <input type="color" id="bgColor" class="w-full h-10 p-1 border rounded-lg" value="#f1f5f9">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium mb-1">背景圖片 (從本機上傳)：</label>
-                    <input type="file" id="bgImageFile" accept="image/*" class="w-full border rounded-lg p-2 text-sm bg-white" />
-                </div>
-            </div>
-            <button id="clearBg" class="px-4 py-2 rounded-full bg-red-100 text-red-700 text-sm font-medium transition-colors hover:bg-red-200">❌ 清除圖片與顏色</button>
-        </section>
-
-
         <section class="result-section p-8 rounded-xl shadow-2xl space-y-6">
             <h2 class="text-2xl font-extrabold text-gray-800 border-b-2 border-gray-200 pb-2">分析報告結果</h2>
             
-            <div class="grid md:grid-cols-3 gap-8 items-center">
+            <div class="grid md:grid-cols-3 gap-8 items-center pt-4">
                 <div class="md:col-span-1 border border-gray-200 p-4 rounded-lg bg-white shadow-inner">
                     <div class="chart-type-selector no-print">
                         <button id="chartRadarBtn" data-type="radar" class="active">📊 雷達圖</button>
@@ -263,6 +256,59 @@
                 </div>
         </section>
     </div>
+    
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="flex justify-between items-center border-b pb-3 mb-4">
+                <h2 class="text-2xl font-bold text-indigo-700">⚙️ 系統與介面設定</h2>
+                <button id="closeSettings" class="text-gray-500 hover:text-gray-800">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+
+            <section class="bg-indigo-50 p-4 rounded-xl shadow space-y-2 border-l-4 border-indigo-500 mb-6">
+                <h3 class="font-bold text-lg text-indigo-700" style="border-bottom:none; margin-top:0;">🤖 AI 模型配置</h3>
+                <div class="flex flex-wrap items-center gap-4 text-sm text-indigo-600">
+                    <span class="font-medium">API 狀態: <b class="text-green-700">安全代理運行中</b></span>
+                    <div class="flex items-center gap-2">
+                        <label for="modelSelect" class="font-medium">分析模型:</label>
+                        <select id="modelSelect" class="p-1 border rounded-lg text-sm bg-white shadow-sm">
+                            <option value="gpt-4o-mini">gpt-4o-mini (推薦)</option>
+                            <option value="gpt-3.5-turbo">gpt-3.5-turbo (更快)</option>
+                        </select>
+                    </div>
+                </div>
+            </section>
+
+            <section class="bg-yellow-50 p-4 rounded-xl shadow space-y-3 border-l-4 border-yellow-500 mb-6">
+                <h3 class="font-bold text-lg text-yellow-700" style="border-bottom:none; margin-top:0;">💾 輸入資料儲存/載入</h3>
+                <p class="text-sm text-yellow-600">將您目前選定的「六獸/六親/地支/情境」儲存到瀏覽器，下次可以直接載入。</p>
+                <div class="flex flex-wrap items-center gap-3">
+                     <button id="saveInput" class="px-4 py-2 rounded-lg bg-green-500 text-white font-semibold transition-colors hover:bg-green-600">💾 儲存輸入</button>
+                     <button id="loadInput" class="px-4 py-2 rounded-lg bg-yellow-600 text-white font-semibold transition-colors hover:bg-yellow-700">📥 載入輸入</button>
+                     <span id="saveStatus" class="text-sm text-slate-500"></span>
+                </div>
+            </section>
+
+            <section class="bg-pink-50 p-4 rounded-xl shadow space-y-3 border-l-4 border-pink-500">
+                <h3 class="font-bold text-lg text-pink-700" style="border-bottom:none; margin-top:0;">🎨 背景與介面美化 (Local Storage 記憶)</h3>
+                <div class="grid md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">背景顏色選擇：</label>
+                        <input type="color" id="bgColor" class="w-full h-10 p-1 border rounded-lg" value="#f1f5f9">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">背景圖片 (從本機上傳)：</label>
+                        <input type="file" id="bgImageFile" accept="image/*" class="w-full border rounded-lg p-2 text-sm bg-white" />
+                    </div>
+                </div>
+                <button id="clearBg" class="px-4 py-2 rounded-full bg-red-100 text-red-700 text-sm font-medium transition-colors hover:bg-red-200">❌ 清除圖片與顏色</button>
+            </section>
+        </div>
+    </div>
+
 
     <script>
         const $ = s => document.querySelector(s);
@@ -290,7 +336,7 @@
         const SEX_CONTEXTS = ['性愛'];
 
 
-        // --- 進度條控制函式 (保持不變) ---
+        // --- 進度條控制函式 (V9.2: 獨立且更明顯) ---
         let progressInterval = null;
         function startProgressBar() {
             if (progressInterval) clearInterval(progressInterval);
@@ -306,6 +352,8 @@
                 }
             }, 500); 
             $('#status').textContent = '等待伺服器分析...';
+            // V9.2: 讓進度條更貼近按鈕
+            $('#statusContainer').classList.remove('hidden'); 
         }
 
         function stopProgressBar(isSuccess = true, errorDetail = '') {
@@ -324,7 +372,8 @@
             setTimeout(() => {
                 $('#progressBar').classList.add('hidden');
                 $('#progress').style.width = '0%';
-                if (!isSuccess) $('#status').textContent = ''; // 清除錯誤訊息
+                if (!isSuccess) $('#status').textContent = ''; 
+                $('#statusContainer').classList.add('hidden'); // V9.2: 分析完成後隱藏容器
             }, 3000); 
         }
         // --- 進度條控制函式結束 ---
@@ -391,18 +440,18 @@
             }
         }
 
-        // V9.1 新增：取得所有輸入值
+        // 取得所有輸入值 (保持不變)
         function getPayload(){
             return {
                 mode:analysisMode,
                 aBeast:$('#aBeast').value, aKin:$('#aKin').value, aBranch:$('#aBranch').value,
                 bBeast:$('#bBeast').value, bKin:$('#bKin').value, bBranch:$('#bBranch').value,
                 context:$('#context').value, sexDetail:$('#sexDetailInput').value,
-                model:$('#modelSelect').value // 儲存模型
+                model:$('#modelSelect').value 
             };
         }
         
-        // --- Local Storage 相關功能 (V9.1 新增) ---
+        // --- Local Storage 相關功能 (V9.2: 移至 Modal 內) ---
         function saveInputData() {
             const data = getPayload();
             try {
@@ -469,7 +518,8 @@
                 const settings = JSON.parse(settingsString);
 
                 if (settings.bgColor) {
-                    $('#bgColor').value = settings.bgColor;
+                    const bgColorInput = $('#bgColor');
+                    if (bgColorInput) bgColorInput.value = settings.bgColor;
                     body.style.backgroundColor = settings.bgColor;
                 }
                 
@@ -530,7 +580,7 @@
                         ${row('創新性','innov','#6366f1')}
                     </div>`;
                     
-                if(Array.isArray(tags) && tags.length > 0) scoresHTML+=`<h3 class="text-lg font-bold text-indigo-700 mt-4" style="border-bottom:none; padding-bottom:0;">關鍵標籤</h3><div class="tags">${tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>`;
+                if(Array.isArray(tags) && tags.length > 0) scoresHTML+=`<h3 class="lg font-bold text-indigo-700 mt-4" style="border-bottom:none; padding-bottom:0;">關鍵標籤</h3><div class="tags">${tags.map(t=>`<span class="tag">${t}</span>`).join('')}</div>`;
             }
             
             return {html: html, scores, tags, webScoresHTML: scoresHTML};
@@ -629,6 +679,16 @@
             $('#modeDual').onclick = () => setAnalysisMode('dual');
             setAnalysisMode('personality'); 
             
+            // V9.2: 設定面板邏輯
+            const settingsModal = $('#settingsModal');
+            $('#openSettings').onclick = () => settingsModal.classList.add('active');
+            $('#closeSettings').onclick = () => settingsModal.classList.remove('active');
+            settingsModal.onclick = (e) => {
+                if (e.target.id === 'settingsModal') {
+                    settingsModal.classList.remove('active');
+                }
+            };
+
             // 輸入儲存/載入
             $('#saveInput').onclick = saveInputData;
             $('#loadInput').onclick = loadInputData;
@@ -663,12 +723,7 @@
                 };
             });
             
-            // 美化面板切換
-            $('#toggleBeauty').onclick = () => {
-                $('#beautyPanel').classList.toggle('hidden');
-            };
-
-            // --- 背景設定功能 (V9.1: 增加 Local Storage 儲存) ---
+            // --- 背景設定功能 (V9.2: 移至 Modal 內) ---
             const body = $('body');
             const bgColorInput = $('#bgColor');
             const bgImageFile = $('#bgImageFile');
@@ -721,8 +776,6 @@
                 const model = payload.model;
                 let errorMessage = '';
                 
-                // 忽略了詳細的輸入檢查，直接假設已在 V9.0 中完成
-
                 const aComplete = payload.aBeast && payload.aKin && payload.aBranch;
                 const bComplete = payload.bBeast && payload.bKin && payload.bBranch;
 
@@ -764,7 +817,6 @@
                     
                     $('#result').innerHTML=formatted.html;
                     
-                    // V9.1: 無論單人/雙人，都繪製圖表和分數，單人模式下因為 JSON 無 scores 所以不會繪製。
                     if (formatted.scores) {
                          $('#webScoresAndTags').innerHTML=formatted.webScoresHTML;
                     }
@@ -776,15 +828,14 @@
                 } catch (e) { 
                     const errorMsg = e.message || e;
                     console.error("API 調用或解析失敗:", errorMsg);
-                    $('#result').innerHTML=`<p class="text-red-600">❌ **分析失敗**：${errorMsg}。</p><p class="text-sm text-slate-500">請檢查 Vercel 後台的 **環境變數 (OPENAI_API_KEY)** 是否設置正確，或檢查 Vercel logs。</p>`; 
+                    $('#result').innerHTML=`<p class="text-red-600">❌ **分析失敗**：${errorMsg}。</p><p class="text-sm text-slate-500">請確認您的網路狀況，或檢查 Vercel logs。</p>`; 
                     renderChart(null, currentChartType);
-                    stopProgressBar(false, '請檢查 Vercel Key');
+                    stopProgressBar(false, '網路或伺服器錯誤');
                 }
             };
 
             // 列印/PDF 按鈕... 
             $('#print').onclick = () => {
-                 // 只有雙人模式強制要求分數，單人和個性模式沒有分數也能列印
                  if (analysisMode === 'dual' && !currentScores) { 
                     alert("請先完成雙人分析並獲得分數後再列印報告！");
                     return;
@@ -806,7 +857,8 @@
             const detailA = `${aBeast} ${aKin} ${aBranch}`;
             const detailB = `${bBeast} ${bKin} ${bBranch}`;
             
-            let prompt = `請針對以下參數進行專業、深入的『神獸七十二型人格』分析。報告必須極度詳細，長度請超過 800 字，並包含具體、可操作的建議。報告必須用 Markdown 格式呈現，並在結尾嚴格輸出一個 JSON 區塊。
+            // V9.2: 降低字數要求到 600 字以上，以加快 gpt-4o-mini 的速度
+            let prompt = `請針對以下參數進行專業、深入的『神獸七十二型人格』分析。報告必須詳細，**長度請超過 600 字**，並包含具體、可操作的建議。報告必須用 Markdown 格式呈現，並在結尾嚴格輸出一個 JSON 區塊。
 
 ---
 ### **報告參數**

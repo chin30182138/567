@@ -487,64 +487,99 @@
             };
             updateBackground(); // 初始設置背景
 
-            // 「一鍵分析」按鈕 (請替換為您真實的 API 呼叫)
-            $('#go').onclick = async () => {
-                const payload=getPayload();
-                let errorMessage = '';
-                const aComplete = payload.aBeast && payload.aKin && payload.aBranch;
-                const bComplete = payload.bBeast && payload.bKin && payload.bBranch;
+            // index.html - V12.2 核心修正：啟用 API 呼叫並移除模擬代碼
 
-                if (!aComplete) { errorMessage = '請選滿我方「六獸、六親、地支」'; }
-                else if (payload.mode === 'dual' && !bComplete) { errorMessage = '雙人分析請選滿對方「六獸、六親、地支」'; }
-                else if (!payload.context) { errorMessage = '請輸入或選擇情境'; }
+// ... 保持您 V7.9 檔案中的所有其他程式碼不變 ...
 
-                if (errorMessage) { alert(errorMessage); return; }
+// V7.9 核心邏輯：一鍵分析 (已移除模擬文本，啟用 API)
+$('#go').onclick = async () => {
+    const payload = getPayload();
+    let errorMessage = '';
+    const aComplete = payload.aBeast && payload.aKin && payload.aBranch;
+    const bComplete = payload.bBeast && payload.bKin && payload.bBranch;
 
-                $('#result').innerHTML='<p class="text-slate-500">正在等待 AI 分析...</p>'; 
-                renderChart(null, currentChartType); 
-                $('#webScoresAndTags').innerHTML = '';
-                startProgressBar();
+    // --- 前端基本驗證 ---
+    if (!aComplete) { errorMessage = '請選滿我方「六獸、六親、地支」'; }
+    else if (payload.mode === 'dual' && !bComplete) { errorMessage = '雙人分析請選滿對方「六獸、六親、地支」'; }
+    else if (payload.mode !== 'personality' && !payload.context) { errorMessage = '請輸入或選擇情境'; }
+    else if (payload.context === '性愛' && !payload.sexDetail) { errorMessage = '您選擇了性愛情境，請點選或輸入細節按鈕，以供 AI 參考建議。'; }
 
-                const apiUrl=(payload.context==='性愛')?'/api/sex-template':'/api/analyze';
+    if (errorMessage) { alert(errorMessage); return; }
 
-                // **請替換這裡的模擬邏輯為您的實際 fetch 呼叫**
-                try{
-                    // 實際 API 呼叫範例 (請替換成您的)
-                    /*
-                    const r=await fetch(apiUrl,{
-                        method:'POST',
-                        headers:{'Content-Type':'application/json'},
-                        body:JSON.stringify(payload)
-                    });
-                    
-                    if(!r.ok) { throw new Error(`API 錯誤: ${r.statusText} (${r.status})`); }
-                    
-                    const data=await r.json();
-                    let rawText = data.text || data.choices?.[0]?.message?.content || JSON.stringify(data,null,2);
-                    */
-                    
-                    // 暫時使用模擬數據，模擬 V7 豐富且帶有 JSON 輸出殘留的文本
-                    const mockResponse = {
-                        "text": "## 跨部門協作分析報告\n\n### 雙方溝通模式與契合度\n\n**青龍-父母-子** 傾向於以長遠規劃和穩重的方式主導討論，重視結構和傳統價值觀。他們在處理涉及資源分配和風險控制的議題時，表現出強大的穩定性和責任感。然而，這可能使他們在面對變動或要求快速反應的情境時，顯得較為僵化。\n\n**朱雀-官鬼-午** 則充滿了活力和急切的行動力，追求立即的成果和高效的執行。他們擅長在壓力下推進工作，並能帶來快速的決策。但其缺點是可能因為過度關注短期目標，而忽略了細節的檢核，並可能與青龍方的穩重風格產生摩擦。\n\n**溝通建議**：青龍方應多釋出彈性，朱雀方應多提供結構化報告。雙方需建立共同的『效率指標』，而不是僅關注執行速度或完美主義。\n\n### 潛在風險與解決方案\n\n雙方在**信任 (trust)** 和**創新 (innov)** 面向分數偏低。朱雀方可能會質疑青龍方的決策速度，而青龍方可能認為朱雀方過於冒進。解決方案是：\n\n1.  **設立中立仲裁機制**：由第三方協調人來平衡雙方的節奏。\n2.  **小規模試驗**：針對新方案，先讓朱雀方在低風險小範圍進行快速試驗，緩解青龍方的疑慮。\n\nJSON 輸出\n```json\n{\n  \"scores\": {\n    \"fit\": 68,\n    \"comm\": 75,\n    \"pace\": 55,\n    \"account\": 80,\n    \"trust\": 60,\n    \"innov\": 58\n  },\n  \"tags\": [\n    \"穩定性強\",\n    \"行動力高\",\n    \"節奏不合\",\n    \"需第三方協調\"\n  ]\n}\n```\n",
-                    };
-                    
-                    await new Promise(resolve => setTimeout(resolve, 1500)); // 模擬 API 延遲
-                    let rawText = mockResponse.text;
+    // --- 準備並顯示狀態 ---
+    $('#result').innerHTML = '<p class="text-slate-500">正在等待 AI 分析...</p>';
+    renderChart(null, currentChartType);
+    $('#webScoresAndTags').innerHTML = '';
+    startProgressBar();
 
+    // --- 構建發送給 Vercel 的 Promt 文本 ---
+    const combinedA = `${payload.aBeast}-${payload.aKin}-${payload.aBranch}`;
+    const combinedB = `${payload.bBeast}-${payload.bKin}-${payload.bBranch}`;
+    
+    let promptText = `請根據以下資訊，輸出深度報告與六維度分數：\n`;
+    promptText += `分析模式: ${payload.mode === 'personality' ? '個性分析' : (payload.mode === 'single' ? '單人情境' : '雙人情境')}\n`;
+    promptText += `我方組合 (A): ${combinedA}\n`;
+    
+    if (payload.mode !== 'personality') {
+        if (payload.mode === 'dual') {
+            promptText += `對方組合 (B): ${combinedB}\n`;
+        }
+        promptText += `分析情境/主題: ${payload.context}\n`;
+        if (payload.context === '性愛' && payload.sexDetail) {
+            promptText += `性愛劇本細節要求: ${payload.sexDetail}\n`;
+        }
+    }
 
-                    const formatted=formatOutput(rawText);
-                    
-                    $('#result').innerHTML=formatted.html;
-                    $('#webScoresAndTags').innerHTML=formatted.webScoresHTML;
-                    renderChart(formatted.scores, currentChartType); 
-                    
-                    stopProgressBar(true);
-                }catch(e){ 
-                    $('#result').innerHTML=`<p class="text-red-600">❌ **分析失敗**：${String(e.message || e)}。請檢查後端服務是否運行及 API Key 是否正確。</p>`; 
-                    renderChart(null, currentChartType);
-                    stopProgressBar(false);
-                }
-            };
+    try {
+        // --- 呼叫 Vercel 後端 API ---
+        const response = await fetch('/api/analyze', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                prompt: promptText // 將構建好的 Prompt 發送給後端
+            })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || data.error) {
+            // 處理 API 錯誤 (例如 Key 無效、超時等)
+            const errorMsg = data.detail || data.error || '未知 API 錯誤';
+            $('#result').innerHTML = `<h3 class="text-red-600">❌ 分析失敗 (API 錯誤)</h3><p>${errorMsg}</p><p class="text-xs text-slate-500">請檢查 Vercel logs 或 OPENAI_API_KEY 是否有效。</p>`;
+            stopProgressBar(false);
+            return;
+        }
+
+        // --- 成功獲取 AI 原始響應文本 ---
+        const rawText = data.choices[0]?.message?.content;
+        
+        if (!rawText) {
+             $('#result').innerHTML = '<h3 class="text-red-600">❌ 分析失敗</h3><p>AI 未返回有效的文本內容，可能是伺服器超時。</p>';
+             stopProgressBar(false);
+             return;
+        }
+
+        // --- 使用 V10.3 健壯解析邏輯處理結果 ---
+        const { html, scores, tags, webScoresHTML } = formatOutput(rawText);
+
+        $('#result').innerHTML = html;
+        $('#webScoresAndTags').innerHTML = webScoresHTML;
+
+        // 繪製圖表 (如果 scores 存在)
+        renderChart(scores, currentChartType);
+        
+        stopProgressBar(true); // 成功完成
+
+    } catch (e) {
+        console.error("Fetch Error:", e);
+        $('#result').innerHTML = `<h3 class="text-red-600">❌ 網路連接或伺服器錯誤</h3><p>${e.message || '請檢查您的網路連線或 Vercel 應用程式狀態。'}</p>`;
+        stopProgressBar(false);
+    }
+};
+
+// ... 確保您在 V7.9 檔案中已使用我們建議的 V10.3 健壯的 formatOutput 函數 ...
 
             // 列印/PDF 按鈕
             $('#print').onclick = () => {
@@ -566,3 +601,4 @@
     </script>
 </body>
 </html>
+

@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>仙人指路神獸七十二型人格 - 分析報告 (V12.5 JSON 容錯強化)</title>
+    <title>仙人指路神獸七十二型人格 - 分析報告 (V12.6 響應流修正)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
@@ -103,8 +103,8 @@
         </header>
 
         <header class="space-y-1 no-print">
-            <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 (V12.5 JSON 容錯強化)</h1>
-            <p class="text-slate-500 text-sm">支援個性分析、人際分析與性愛劇本｜**已大幅強化圖表數據解析**</p>
+            <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 (V12.6 響應流修正)</h1>
+            <p class="text-slate-500 text-sm">支援個性分析、人際分析與性愛劇本｜**已修復 `body stream already read` 致命錯誤**</p>
         </header>
 
         <div class="flex gap-4 flex-wrap no-print">
@@ -380,7 +380,7 @@
             };
         }
         
-        // --- V12.5 強化 JSON 解析函式 ---
+        // --- V12.5 強化 JSON 解析函式 (保持不變，因為邏輯是對的) ---
         function formatOutput(text) {
             if (!text) return { html: '<p class="text-slate-500">無分析結果。</p>', scores: null, tags: [] };
 
@@ -398,11 +398,9 @@
 
             // 2. 如果沒有找到 ```json，則嘗試尋找第一個完整的大括號 {} 區塊
             if (!jsonText) {
-                // 尋找第一個 '{' 到最後一個 '}' 的區塊
                 const matchAnyCurly = text.match(/\{[\s\S]*\}/);
                 if (matchAnyCurly) {
                     jsonText = matchAnyCurly[0].trim();
-                    // 嘗試從文本中移除找到的 JSON 區塊
                     cleanText = text.replace(jsonText, '').trim(); 
                 }
             }
@@ -410,14 +408,11 @@
             // 解析 JSON 數據
             if (jsonText) {
                 try {
-                    // 嘗試清理常見的 JSON 格式錯誤
-                    let cleanJson = jsonText.replace(/\/\/.*|\/\*[\s\S]*?\*\/|,\s*\}/g, '').trim(); // 移除註釋和末尾多餘逗號
-
+                    let cleanJson = jsonText.replace(/\/\/.*|\/\*[\s\S]*?\*\/|,\s*\}/g, '').trim(); 
                     const j = JSON.parse(cleanJson);
                     scores = j.scores || {};
                     tags = Array.isArray(j.tags) ? j.tags : Object.values(j.tags || {}).flat().filter(t => typeof t === 'string' && t.trim() !== '');
 
-                    // 如果 scores 是空對象，則嘗試在頂層查找 'fit' 等屬性（兼容錯誤輸出的結構）
                     if (Object.keys(scores).length === 0) {
                          const potentialScores = {};
                          ['fit', 'comm', 'pace', 'account', 'trust', 'innov'].forEach(key => {
@@ -428,7 +423,6 @@
                     
                 } catch (e) {
                     console.error("JSON 解析失敗 (請檢查 AI 輸出格式是否包含有效 JSON):", e);
-                    // 設置一個錯誤標記，讓前端知道解析失敗
                     scores = { error: true, message: e.message }; 
                 }
             }
@@ -436,13 +430,12 @@
             // 渲染 HTML 內容
             let html = markdownConverter.makeHtml(cleanText);
 
-            // 清理 AI 有時會輸出的多餘標題/段落
             html = html.replace(/<p>[\s]*JSON[\s]*輸出[\s]*<\/p>/gi, '')
                      .replace(/<h[1-6]>[\s]*JSON[\s]*輸出[\s]*<\/h[1-6]>/gi, '')
                      .replace(/<p>\s*<\/p>/gi, '');
 
             let scoresHTML = '';
-            if (scores && Object.keys(scores).length > 0 && !scores.error) {
+            if (scores && Object.keys(scores).length === 6 && !scores.error) {
                 const clamp = v => Math.max(0, Math.min(100, Number(v) || 0));
                 const row = (l, k, c) => `<div class="score"><b>${l}</b><div class="bar"><i style="width:${clamp(scores[k])}%;background:${c}"></i></div><em>${clamp(scores[k])}</em></div>`;
 
@@ -458,35 +451,33 @@
                     </div>`;
 
                 if (Array.isArray(tags) && tags.length > 0) scoresHTML += `<div class="tags">${tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>`;
-            } else if (scores && scores.error) {
+            } else if (analysisMode === 'dual' && scores && (scores.error || Object.keys(scores).length < 6)) {
                 scoresHTML = `<div class="error-message">⚠️ **雙人模式分析完成，但未成功解析到六維度分數 (JSON 格式可能有誤)**<br>請檢查您的 Vercel Log 或 AI 輸出是否符合 JSON 結構。</div>`;
-                tags = []; // 確保不顯示空標籤
+                tags = []; 
+            } else {
+                 scoresHTML = `<p class="text-slate-500">此模式不提供六維度分數。</p>`;
+                 tags = []; 
             }
 
 
             return { html: html, scores, tags, webScoresHTML: scoresHTML };
         }
 
-        // --- 圖表繪製核心函式 (已恢復雷達/長條圖切換邏輯) ---
+        // --- 圖表繪製核心函式 (保持不變) ---
         function renderChart(scores, type){
             const wrap = $('#chartContainer');
             const chartTypeSelector = $('.chart-type-selector');
-            const chartPlaceholder = $('#chartPlaceholder');
             
             if(radarChart) {
                 radarChart.destroy();
                 radarChart = null;
             }
-            // 清空畫布，準備繪製
             wrap.innerHTML = '<div id="chartPlaceholder" class="text-center text-slate-500 p-4"></div>'; 
-            chartPlaceholder.id = 'chartPlaceholder_temp'; // 臨時 ID
 
-            
             const isDual = analysisMode === 'dual';
             const hasValidScores = scores && Object.keys(scores).length === 6 && !scores.error;
 
             if(!isDual || !hasValidScores) {
-                 // 雙人模式但解析失敗，或非雙人模式
                  const msg = isDual && scores && scores.error 
                      ? '⚠️ JSON 解析失敗，無法繪製圖表。'
                      : '圖表只在**雙人分析**模式中，根據 AI 提供的 **JSON** 分數繪製。';
@@ -496,7 +487,6 @@
                  return;
             }
             
-            // 雙人模式且有有效分數，開始繪圖
             wrap.innerHTML = '';
             chartTypeSelector.style.display = 'flex';
 
@@ -645,14 +635,14 @@
             };
             updateBackground(); 
 
-            // V12.5 核心邏輯：正確呼叫 API (與 V12.2 相同)
+            // V12.6 核心邏輯：API 呼叫優化 (只讀取一次響應流)
             $('#go').onclick = async () => {
                 const payload = getPayload();
                 let errorMessage = '';
                 const aComplete = payload.aBeast && payload.aKin && payload.aBranch;
                 const bComplete = payload.bBeast && payload.bKin && payload.bBranch;
 
-                // --- 前端基本驗證 ---
+                // --- 前端基本驗證 (與 V12.5 相同) ---
                 if (!aComplete) { errorMessage = '請選滿我方「六獸、六親、地支」'; }
                 else if (payload.mode === 'dual' && !bComplete) { errorMessage = '雙人分析請選滿對方「六獸、六親、地支」'; }
                 else if (payload.mode !== 'personality' && !payload.context) { errorMessage = '請輸入或選擇情境'; }
@@ -667,7 +657,7 @@
                 startProgressBar();
 
 
-                // --- 構建發送給 Vercel 的 Promt 文本 ---
+                // --- 構建發送給 Vercel 的 Promt 文本 (與 V12.5 相同) ---
                 const combinedA = `${payload.aBeast}-${payload.aKin}-${payload.aBranch}`;
                 const combinedB = `${payload.bBeast}-${payload.bKin}-${payload.bBranch}`;
                 
@@ -686,59 +676,61 @@
                 }
 
                 try {
-                    // --- 呼叫 Vercel 後端 API ---
                     const response = await fetch('/api/analyze', {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            prompt: promptText 
-                        })
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ prompt: promptText })
                     });
-
-                    // 嘗試解析 JSON 響應
-                    let data;
-                    try {
-                        data = await response.json();
-                    } catch (e) {
-                         // 如果不是有效的 JSON，說明 Vercel 後端可能出錯 (例如，API 丟出 HTML 錯誤頁)
-                         const rawText = await response.text(); 
-                         $('#result').innerHTML = `<h3 class="text-red-600">❌ 網路連接或伺服器錯誤</h3><p>無法解析 Vercel API 響應為 JSON。這通常是 Vercel 伺服器錯誤或超時，請檢查 Vercel Logs。</p><p class="text-xs text-slate-500">原始響應：${rawText.substring(0, 100)}...</p>`;
-                         stopProgressBar(false);
-                         return;
-                    }
-
-                    if (!response.ok || data.error) {
-                        const errorMsg = data.detail || data.error || '未知 API 錯誤';
-                        $('#result').innerHTML = `<h3 class="text-red-600">❌ 分析失敗 (API 錯誤)</h3><p>錯誤訊息：${errorMsg}</p><p class="text-xs text-slate-500">請檢查 Vercel logs 或 OPENAI_API_KEY 是否有效。</p>`;
+                    
+                    // --- 核心修正：只讀取一次響應主體，並處理所有成功或失敗的情況 ---
+                    const rawText = await response.text(); 
+                    
+                    if (!response.ok) {
+                        // 嘗試將錯誤響應解析為 JSON (Vercel/OpenAI 錯誤)
+                        try {
+                            const errorData = JSON.parse(rawText);
+                            const errorMsg = errorData.detail || errorData.error || '未知 API 錯誤';
+                            $('#result').innerHTML = `<h3 class="text-red-600">❌ 分析失敗 (API 錯誤)</h3><p>錯誤訊息：${errorMsg}</p><p class="text-xs text-slate-500">請檢查 Vercel logs 或 OPENAI_API_KEY 是否有效。</p>`;
+                        } catch (e) {
+                            // 如果不是 JSON，可能是 Vercel HTML 錯誤頁或其他非預期文本
+                             $('#result').innerHTML = `<h3 class="text-red-600">❌ 網路連接或伺服器錯誤 (Vercel 端)</h3><p>Vercel API 返回非標準響應。這通常是 Vercel 伺服器配置錯誤或超時。</p><p class="text-xs text-slate-500">原始響應開頭：${rawText.substring(0, 200)}...</p>`;
+                        }
                         stopProgressBar(false);
                         return;
                     }
 
-                    // --- 成功獲取 AI 原始響應文本 ---
-                    const rawText = data.choices[0]?.message?.content;
+                    // 嘗試將成功響應解析為 JSON (這是 OpenAI 的標準 JSON 結構)
+                    let data;
+                    try {
+                        data = JSON.parse(rawText);
+                    } catch (e) {
+                         $('#result').innerHTML = `<h3 class="text-red-600">❌ AI 響應格式錯誤</h3><p>Vercel 成功響應，但內容無法解析為有效的 JSON。這可能是 Vercel 或瀏覽器快取問題。</p>`;
+                         stopProgressBar(false);
+                         return;
+                    }
                     
-                    if (!rawText) {
-                        $('#result').innerHTML = '<h3 class="text-red-600">❌ 分析失敗</h3><p>AI 未返回有效的文本內容，可能是 Vercel 伺服器超時或模型輸出了空內容。</p>';
+                    const aiContent = data.choices[0]?.message?.content;
+                    
+                    if (!aiContent) {
+                        $('#result').innerHTML = '<h3 class="text-red-600">❌ 分析失敗</h3><p>AI 未返回有效的文本內容，可能是模型輸出了空內容。</p>';
                         stopProgressBar(false);
                         return;
                     }
 
                     // --- 使用強化解析邏輯處理結果 ---
-                    const { html, scores, tags, webScoresHTML } = formatOutput(rawText);
+                    const { html, scores, tags, webScoresHTML } = formatOutput(aiContent);
 
                     $('#result').innerHTML = html;
                     $('#webScoresAndTags').innerHTML = webScoresHTML;
 
-                    // 繪製圖表 (如果 scores 存在且無錯誤)
+                    // 繪製圖表
                     renderChart(scores, currentChartType);
                     
                     stopProgressBar(true); // 成功完成
 
                 } catch (e) {
                     console.error("Fetch Error:", e);
-                    $('#result').innerHTML = `<h3 class="text-red-600">❌ 網路連接或伺服器錯誤</h3><p>${e.message || '請檢查您的網路連線或 Vercel 應用程式狀態。'}</p>`;
+                    $('#result').innerHTML = `<h3 class="text-red-600">❌ 網路連接或伺服器錯誤 (前端)</h3><p>${e.message || '請檢查您的網路連線。'}</p>`;
                     stopProgressBar(false);
                 }
             };

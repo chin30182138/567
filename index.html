@@ -1,705 +1,701 @@
 <!doctype html>
 <html lang="zh-Hant">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>仙人指路神獸七十二型人格 - 分析報告 (V12.2 穩定版)</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>仙人指路神獸七十二型人格 - 分析報告 (V12.3 最終穩定版)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
 
-    <style>
-        /* 確保 body 背景切換平滑 */
-        body { 
-            transition: background-color 0.5s ease, background-image 0.5s ease; 
-            background-size: cover; 
-            background-position: center; 
-            background-attachment: fixed; 
-        } 
-        
-        .result-section { 
-            background-color: rgba(255, 255, 255, 0.95); 
-            backdrop-filter: blur(5px); 
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-        }
+    <style>
+        /* --- 介面核心樣式 (確保 V7.9 介面重現) --- */
+        body { 
+            transition: background-color 0.5s ease, background-image 0.5s ease; 
+            background-size: cover; 
+            background-position: center; 
+            background-attachment: fixed; 
+        } 
+        
+        .result-section { 
+            background-color: rgba(255, 255, 255, 0.95); 
+            backdrop-filter: blur(5px); 
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
 
-        /* 分數條與標籤樣式 */
-        .scores { display:grid; gap:8px; margin-top:20px; padding-top:15px; border-top:1px solid #e5e7eb; }
-        .score { display:flex; align-items:center; gap:10px; font-size:14px }
-        .bar { flex:1; height:12px; background:#e5e7eb; border-radius:9999px; overflow:hidden }
-        .bar > i { display:block; height:100%; transition: width 0.8s ease-out; }
-        .tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; padding-top:15px; border-top:1px solid #e5e7eb; }
-        .tag { background:#eef2ff; color:#3730a3; padding:4px 10px; border-radius:9999px; font-size:12px; font-weight: 500; }
-        
-        /* AI 輸出樣式 (V7 豐富樣式) */
-        #result h3 { font-size: 1.3rem; font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.5rem; border-bottom: 3px solid #6366f1; padding-bottom: 5px; color: #4338ca; }
-        #result h4 { font-size: 1.15rem; font-weight: 600; margin-top: 1rem; margin-bottom: 0.4rem; }
-        #result p { margin-bottom: 1rem; line-height: 1.6; }
-        #result ul, #result ol { padding-left: 25px; margin-bottom: 1rem; }
-        #result ul { list-style-type: disc; }
-        #result ol { list-style-type: decimal; }
-        
-        /* 確保圖片不破版 */
-        #result img {
-            max-width: 100%;
-            height: auto;
-            margin: 0;
-            display: inline;
-            border-radius: 0;
-            box-shadow: none;
-        }
-        
-        /* 列印時，隱藏控制項，並強制顯示顏色 */
-        @media print {
-            .no-print { display: none !important; }
-            * {
-                -webkit-print-color-adjust: exact !important;
-                color-adjust: exact !important;
-            }
-            @page { margin: 15mm; }
-        }
-        .print-header { display: none; }
+        /* --- 分數條與標籤樣式 (確保分數條顯示) --- */
+        .scores { display:grid; gap:8px; margin-top:20px; padding-top:15px; border-top:1px solid #e5e7eb; }
+        .score { display:flex; align-items:center; gap:10px; font-size:14px }
+        .bar { flex:1; height:12px; background:#e5e7eb; border-radius:9999px; overflow:hidden }
+        .bar > i { display:block; height:100%; transition: width 0.8s ease-out; }
+        .tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; padding-top:15px; border-top:1px solid #e5e7eb; }
+        .tag { background:#eef2ff; color:#3730a3; padding:4px 10px; border-radius:9999px; font-size:12px; font-weight: 500; }
+        
+        /* --- AI 輸出樣式 (確保報告格式化) --- */
+        #result h3 { font-size: 1.3rem; font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.5rem; border-bottom: 3px solid #6366f1; padding-bottom: 5px; color: #4338ca; }
+        #result h4 { font-size: 1.15rem; font-weight: 600; margin-top: 1rem; margin-bottom: 0.4rem; }
+        #result p { margin-bottom: 1rem; line-height: 1.6; }
+        #result ul, #result ol { padding-left: 25px; margin-bottom: 1rem; }
+        #result ul { list-style-type: disc; }
+        #result ol { list-style-type: decimal; }
+        
+        /* 確保圖片不破版 */
+        #result img {
+            max-width: 100%;
+            height: auto;
+            margin: 0;
+            display: inline;
+            border-radius: 0;
+            box-shadow: none;
+        }
+        
+        /* --- 列印和圖表樣式 (確保圖表顯示) --- */
+        @media print {
+            .no-print { display: none !important; }
+            * {
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+            @page { margin: 15mm; }
+        }
+        .print-header { display: none; }
 
-        /* 圖表選擇器樣式 */
-        .chart-type-selector {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        .chart-type-selector button {
-            padding: 4px 10px;
-            font-size: 12px;
-            border: 1px solid #ccc;
-            background: #fff;
-            margin: 0 2px;
-            border-radius: 4px;
-        }
-        .chart-type-selector button.active {
-            background: #6366f1;
-            color: white;
-            border-color: #6366f1;
-        }
-        
-        /* 單獨用於單人模式的標籤，讓它能隱藏 */
-        #modeSingle, #modeDual, #modePersonality {
-            transition: all 0.3s ease;
-        }
-    </style>
+        .chart-type-selector {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .chart-type-selector button {
+            padding: 4px 10px;
+            font-size: 12px;
+            border: 1px solid #ccc;
+            background: #fff;
+            margin: 0 2px;
+            border-radius: 4px;
+        }
+        .chart-type-selector button.active {
+            background: #6366f1;
+            color: white;
+            border-color: #6366f1;
+        }
+        
+        /* 單獨用於單人模式的標籤，讓它能隱藏 */
+        #modeSingle, #modeDual, #modePersonality {
+            transition: all 0.3s ease;
+        }
+    </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
-    <div class="max-w-5xl mx-auto p-6 space-y-6">
-        <header class="print-header">
-            <h1>仙人指路｜神獸七十二型人格分析報告</h1>
-            <p style="font-size: 10pt; color: #555;">報告生成時間: <span id="reportTime"></span></p>
-        </header>
+    <div class="max-w-5xl mx-auto p-6 space-y-6">
+        <header class="print-header">
+            <h1>仙人指路｜神獸七十二型人格分析報告</h1>
+            <p style="font-size: 10pt; color: #555;">報告生成時間: <span id="reportTime"></span></p>
+        </header>
 
-        <header class="space-y-1 no-print">
-            <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 (V12.2 穩定版)</h1>
-            <p class="text-slate-500 text-sm">支援個性分析、人際分析與性愛劇本｜**已修復 API 連線與 JSON 解析問題**</p>
-        </header>
+        <header class="space-y-1 no-print">
+            <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 (V12.3 最終版)</h1>
+            <p class="text-slate-500 text-sm">支援個性分析、人際分析與性愛劇本｜**介面與圖表已全面恢復**</p>
+        </header>
 
-        <div class="flex gap-4 flex-wrap no-print">
-            <button id="modePersonality" class="px-4 py-2 rounded-lg bg-indigo-600 text-white">個性分析</button>
-            <button id="modeSingle" class="px-4 py-2 rounded-lg bg-slate-200 text-slate-800">單人情境</button>
-            <button id="modeDual" class="px-4 py-2 rounded-lg bg-slate-200 text-slate-800">雙人情境</button>
-        </div>
+        <div class="flex gap-4 flex-wrap no-print">
+            <button id="modePersonality" class="px-4 py-2 rounded-lg bg-indigo-600 text-white">個性分析</button>
+            <button id="modeSingle" class="px-4 py-2 rounded-lg bg-slate-200 text-slate-800">單人情境</button>
+            <button id="modeDual" class="px-4 py-2 rounded-lg bg-slate-200 text-slate-800">雙人情境</button>
+        </div>
 
-        <div class="grid md:grid-cols-2 gap-4 no-print">
-            <section class="bg-white p-4 rounded-xl shadow">
-                <h2 class="font-semibold mb-2">我方 (分析主體)</h2>
-                <select id="aBeast" class="w-full mb-2 border rounded-lg p-2">
-                    <option value="">六獸</option><option>青龍</option><option>朱雀</option>
-                    <option>勾陳</option><option>螣蛇</option><option>白虎</option><option>玄武</option>
-                </select>
-                <select id="aKin" class="w-full mb-2 border rounded-lg p-2">
-                    <option value="">六親</option><option>父母</option><option>兄弟</option>
-                    <option>子孫</option><option>妻財</option><option>官鬼</option>
-                </select>
-                <select id="aBranch" class="w-full border rounded-lg p-2">
-                    <option value="">地支</option><option>子</option><option>丑</option><option>寅</option>
-                    <option>卯</option><option>辰</option><option>巳</option><option>午</option>
-                    <option>未</option><option>申</option><option>酉</option><option>戌</option><option>亥</option>
-                </select>
-            </section>
-            <section id="sectionB" class="bg-white p-4 rounded-xl shadow">
-                <h2 class="font-semibold mb-2">對方</h2>
-                <select id="bBeast" class="w-full mb-2 border rounded-lg p-2">
-                    <option value="">六獸</option><option>青龍</option><option>朱雀</option>
-                    <option>勾陳</option><option>螣蛇</option><option>白虎</option><option>玄武</option>
-                </select>
-                <select id="bKin" class="w-full mb-2 border rounded-lg p-2">
-                    <option value="">六親</option><option>父母</option><option>兄弟</option>
-                    <option>子孫</option><option>妻財</option><option>官鬼</option>
-                </select>
-                <select id="bBranch" class="w-full border rounded-lg p-2">
-                    <option value="">地支</option><option>子</option><option>丑</option><option>寅</option>
-                    <option>卯</option><option>辰</option><option>巳</option><option>午</option>
-                    <option>未</option><option>申</option><option>酉</option><option>戌</option><option>亥</option>
-                </select>
-            </section>
-        </div>
+        <div class="grid md:grid-cols-2 gap-4 no-print">
+            <section class="bg-white p-4 rounded-xl shadow">
+                <h2 class="font-semibold mb-2">我方 (分析主體)</h2>
+                <select id="aBeast" class="w-full mb-2 border rounded-lg p-2">
+                    <option value="">六獸</option><option>青龍</option><option>朱雀</option>
+                    <option>勾陳</option><option>螣蛇</option><option>白虎</option><option>玄武</option>
+                </select>
+                <select id="aKin" class="w-full mb-2 border rounded-lg p-2">
+                    <option value="">六親</option><option>父母</option><option>兄弟</option>
+                    <option>子孫</option><option>妻財</option><option>官鬼</option>
+                </select>
+                <select id="aBranch" class="w-full border rounded-lg p-2">
+                    <option value="">地支</option><option>子</option><option>丑</option><option>寅</option>
+                    <option>卯</option><option>辰</option><option>巳</option><option>午</option>
+                    <option>未</option><option>申</option><option>酉</option><option>戌</option><option>亥</option>
+                </select>
+            </section>
+            <section id="sectionB" class="bg-white p-4 rounded-xl shadow" style="display: none;">
+                <h2 class="font-semibold mb-2">對方</h2>
+                <select id="bBeast" class="w-full mb-2 border rounded-lg p-2">
+                    <option value="">六獸</option><option>青龍</option><option>朱雀</option>
+                    <option>勾陳</option><option>螣蛇</option><option>白虎</option><option>玄武</option>
+                </select>
+                <select id="bKin" class="w-full mb-2 border rounded-lg p-2">
+                    <option value="">六親</option><option>父母</option><option>兄弟</option>
+                    <option>子孫</option><option>妻財</option><option>官鬼</option>
+                </select>
+                <select id="bBranch" class="w-full border rounded-lg p-2">
+                    <option value="">地支</option><option>子</option><option>丑</option><option>寅</option>
+                    <option>卯</option><option>辰</option><option>巳</option><option>午</option>
+                    <option>未</option><option>申</option><option>酉</option><option>戌</option><option>亥</option>
+                </select>
+            </section>
+        </div>
 
-        <section class="bg-white p-4 rounded-xl shadow space-y-2 no-print">
-            <h2 class="font-semibold">情境 / 分析主題</h2>
-            <div id="presetContainer" class="flex gap-2 flex-wrap">
-                </div>
-            <input id="context" class="w-full border rounded-lg p-2" placeholder="輸入自訂情境或分析主題…" />
-            <div id="sexOptions" class="hidden mt-2 p-3 bg-red-50 border rounded-lg">
-                <label class="block mb-3 font-semibold text-red-700">性愛主題細節 (點選以下按鈕作為 AI 建議的基礎)：</label>
-                
-                <h3 class="text-sm font-bold text-red-600 mb-1" style="border-bottom:none; margin-top:0;">劇本類型</h3>
-                <div class="flex flex-wrap gap-2 mb-3 border-b pb-2 border-red-100">
-                    <button class="sex-detail bg-red-100 px-3 py-1.5 rounded-full" data-detail="性愛場景與角色扮演">場景與角色扮演</button>
-                    <button class="sex-detail bg-red-100 px-3 py-1.5 rounded-full" data-detail="性愛技巧與體位推薦">技巧與體位推薦</button>
-                    <button class="sex-detail bg-red-100 px-3 py-1.5 rounded-full" data-detail="性愛玩具與情境設置">玩具與情境設置</button>
-                    <button class="sex-detail bg-red-100 px-3 py-1.5 rounded-full" data-detail="六獸 X 地支全劇本合集">六獸 X 地支合集</button>
-                </div>
-                
-                <h3 class="text-sm font-bold text-red-600 mb-1" style="border-bottom:none; margin-top:0;">額外關鍵字 / 偏好</h3>
-                <div class="flex flex-wrap gap-2 mb-2">
-                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="地下賭場">地下賭場</button>
-                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="露天泳池">露天泳池</button>
-                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="摩天大樓">摩天大樓</button>
-                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="試衣間">試衣間</button>
-                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="權力遊戲">權力遊戲</button>
-                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="心理掌控">心理掌控</button>
-                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="懸疑驚悚情境">懸疑驚悚</button>
-                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="深度擁抱交合">深度擁抱</button>
-                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="語音催眠">語音催眠</button>
-                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="野性攻防">野性攻防</button>
-                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="極端快感">極端快感</button>
-                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="震動棒">震動棒</button>
-                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="束縛配件">束縛配件</button>
-                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="感官剝奪">感官剝奪</button>
-                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="心理控制工具">心理控制工具</button>
-                </div>
-                <textarea id="sexDetailInput" class="w-full border rounded-lg p-2 text-sm" placeholder="選中的細節會自動出現在這裡，AI 將依此提供建議..."></textarea>
-            </div>
-        </section>
+        <section class="bg-white p-4 rounded-xl shadow space-y-2 no-print">
+            <h2 class="font-semibold">情境 / 分析主題</h2>
+            <div id="presetContainer" class="flex gap-2 flex-wrap">
+            </div>
+            <input id="context" class="w-full border rounded-lg p-2" placeholder="輸入自訂情境或分析主題…" />
+            
+            <div id="sexOptions" class="hidden mt-2 p-3 bg-red-50 border rounded-lg">
+                <label class="block mb-3 font-semibold text-red-700">性愛主題細節 (點選以下按鈕作為 AI 建議的基礎)：</label>
+                
+                <h3 class="text-sm font-bold text-red-600 mb-1" style="border-bottom:none; margin-top:0;">劇本類型</h3>
+                <div class="flex flex-wrap gap-2 mb-3 border-b pb-2 border-red-100">
+                    <button class="sex-detail bg-red-100 px-3 py-1.5 rounded-full" data-detail="性愛場景與角色扮演">場景與角色扮演</button>
+                    <button class="sex-detail bg-red-100 px-3 py-1.5 rounded-full" data-detail="性愛技巧與體位推薦">技巧與體位推薦</button>
+                    <button class="sex-detail bg-red-100 px-3 py-1.5 rounded-full" data-detail="性愛玩具與情境設置">玩具與情境設置</button>
+                    <button class="sex-detail bg-red-100 px-3 py-1.5 rounded-full" data-detail="六獸 X 地支全劇本合集">六獸 X 地支合集</button>
+                </div>
+                
+                <h3 class="text-sm font-bold text-red-600 mb-1" style="border-bottom:none; margin-top:0;">額外關鍵字 / 偏好</h3>
+                <div class="flex flex-wrap gap-2 mb-2">
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="地下賭場">地下賭場</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="露天泳池">露天泳池</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="摩天大樓">摩天大樓</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="試衣間">試衣間</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="權力遊戲">權力遊戲</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="心理掌控">心理掌控</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="懸疑驚悚情境">懸疑驚悚</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="深度擁抱交合">深度擁抱</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="語音催眠">語音催眠</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="野性攻防">野性攻防</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="極端快感">極端快感</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="震動棒">震動棒</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="束縛配件">束縛配件</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="感官剝奪">感官剝奪</button>
+                    <button class="sex-detail bg-red-200 px-3 py-1.5 rounded-full" data-detail="心理控制工具">心理控制工具</button>
+                </div>
+                <textarea id="sexDetailInput" class="w-full border rounded-lg p-2 text-sm" placeholder="選中的細節會自動出現在這裡，AI 將依此提供建議..."></textarea>
+            </div>
+        </section>
 
-        <div class="flex flex-wrap items-center gap-3 no-print">
-            <button id="go" class="px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold">一鍵分析</button>
-            <button id="print" class="px-4 py-2 rounded-lg bg-slate-200 text-slate-800 font-semibold">列印 / PDF</button>
-            
-            <button id="toggleBeauty" class="px-4 py-2 rounded-lg bg-pink-500 text-white font-semibold">🎨 美化</button>
+        <div class="flex flex-wrap items-center gap-3 no-print">
+            <button id="go" class="px-4 py-2 rounded-lg bg-indigo-600 text-white font-semibold">一鍵分析</button>
+            <button id="print" class="px-4 py-2 rounded-lg bg-slate-200 text-slate-800 font-semibold">列印 / PDF</button>
+            
+            <button id="toggleBeauty" class="px-4 py-2 rounded-lg bg-pink-500 text-white font-semibold">🎨 美化</button>
 
-            <div id="statusContainer" class="flex items-center gap-3">
-                <span id="status" class="text-sm text-slate-600"></span>
-                <div id="progressBar" class="w-40 h-2 bg-slate-200 rounded-full overflow-hidden hidden">
-                    <div id="progress" class="h-full bg-indigo-400 transition-all duration-300 ease-linear" style="width: 0%"></div>
-                </div>
-            </div>
-        </div>
-        
-        <section id="beautyPanel" class="bg-white p-4 rounded-xl shadow space-y-3 hidden no-print">
-            <h2 class="font-semibold">背景與介面美化</h2>
-            <div class="grid md:grid-cols-2 gap-4">
-                <div>
-                    <label class="block text-sm font-medium mb-1">背景顏色選擇：</label>
-                    <input type="color" id="bgColor" class="w-full h-10 p-1 border rounded-lg" value="#f1f5f9">
-                </div>
-                <div>
-                    <label class="block text-sm font-medium mb-1">背景圖片 (從本機上傳)：</label>
-                    <input type="file" id="bgImageFile" accept="image/*" class="w-full border rounded-lg p-2 text-sm" />
-                </div>
-            </div>
-            <button id="clearBg" class="px-3 py-1.5 rounded-full bg-red-100 text-red-700 text-sm">清除圖片與顏色</button>
-        </section>
-
-
-        <section class="result-section p-5 rounded-xl shadow space-y-4">
-            <div class="grid md:grid-cols-3 gap-6">
-                <div class="md:col-span-1">
-                    <div class="chart-type-selector no-print">
-                        <button id="chartRadarBtn" data-type="radar" class="active">雷達圖</button>
-                        <button id="chartBarBtn" data-type="bar">長條圖</button>
-                    </div>
-                    <div id="chartContainer" class="flex justify-center items-center" style="min-height: 280px;">
-                        </div>
-                </div>
-                
-                <div id="scoresTagsWeb" class="md:col-span-2">
-                    <div id="webScoresAndTags">
-                        <p class="text-slate-500">選擇六獸、六親、地支和情境後，點擊「一鍵分析」開始。</p>
-                    </div>
-                </div>
-            </div>
-            
-            <div id="result" class="text-[15px] max-w-none">
-                </div>
-        </section>
-    </div>
-
-    <script>
-        const $ = s => document.querySelector(s);
-        const $$ = s => document.querySelectorAll(s);
-        let analysisMode = 'personality'; 
-        const markdownConverter = new showdown.Converter(); 
-
-        let radarChart = null; 
-        let currentScores = null; 
-        let currentChartType = 'radar'; 
-        
-        // V7.8 修正：精簡雙人模式的情境列表
-        const PRESETS = {
-            'personality': ['基礎個性', '職涯優勢', '情緒管理', '人際關係'],
-            'single': ['年度目標協調', '績效回饋會議', '跨部門協作', '壓期交付專案', '人際關係協調'],
-            'dual': [
-                '年度目標協調', '績效回饋會議', '跨部門協作', '壓期交付專案', '人際關係協調',
-                '性愛' // 只保留「性愛」作為觸發細節的總開關
-            ]
-        };
-        // V7.8 修正：性愛細節的觸發關鍵字也只留下「性愛」
-        const SEX_CONTEXTS = ['性愛'];
+            <div id="statusContainer" class="flex items-center gap-3">
+                <span id="status" class="text-sm text-slate-600"></span>
+                <div id="progressBar" class="w-40 h-2 bg-slate-200 rounded-full overflow-hidden hidden">
+                    <div id="progress" class="h-full bg-indigo-400 transition-all duration-300 ease-linear" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+        
+        <section id="beautyPanel" class="bg-white p-4 rounded-xl shadow space-y-3 hidden no-print">
+            <h2 class="font-semibold">背景與介面美化</h2>
+            <div class="grid md:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1">背景顏色選擇：</label>
+                    <input type="color" id="bgColor" class="w-full h-10 p-1 border rounded-lg" value="#f1f5f9">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">背景圖片 (從本機上傳)：</label>
+                    <input type="file" id="bgImageFile" accept="image/*" class="w-full border rounded-lg p-2 text-sm" />
+                </div>
+            </div>
+            <button id="clearBg" class="px-3 py-1.5 rounded-full bg-red-100 text-red-700 text-sm">清除圖片與顏色</button>
+        </section>
 
 
-        // --- 進度條控制函式 ---
-        let progressInterval = null;
-        function startProgressBar() {
-            if (progressInterval) clearInterval(progressInterval);
-            $('#progressBar').classList.remove('hidden');
-            $('#progress').style.width = '10%'; 
-            let progress = 10;
-            progressInterval = setInterval(() => {
-                if (progress < 90) {
-                    progress += Math.floor(Math.random() * 5);
-                    progress = Math.min(progress, 90);
-                    $('#progress').style.width = progress + '%';
-                    $('#status').textContent = `分析中... (${progress}%)`;
-                }
-            }, 1000); 
-            $('#status').textContent = '分析中...';
-        }
+        <section class="result-section p-5 rounded-xl shadow space-y-4">
+            <div class="grid md:grid-cols-3 gap-6">
+                <div class="md:col-span-1">
+                    <div class="chart-type-selector no-print" style="display: none;">
+                        <button id="chartRadarBtn" data-type="radar" class="active">雷達圖</button>
+                        <button id="chartBarBtn" data-type="bar">長條圖</button>
+                    </div>
+                    <div id="chartContainer" class="flex justify-center items-center" style="min-height: 280px;">
+                        </div>
+                </div>
+                
+                <div id="scoresTagsWeb" class="md:col-span-2">
+                    <div id="webScoresAndTags">
+                        <p class="text-slate-500">選擇六獸、六親、地支和情境後，點擊「一鍵分析」開始。</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="result" class="text-[15px] max-w-none">
+                </div>
+        </section>
+    </div>
 
-        function stopProgressBar(isSuccess = true) {
-            if (progressInterval) {
-                clearInterval(progressInterval);
-                progressInterval = null;
-            }
-            $('#progress').style.width = isSuccess ? '100%' : '0%';
-            setTimeout(() => {
-                $('#progressBar').classList.add('hidden');
-                $('#progress').style.width = '0%';
-            }, 1500); 
-            $('#status').textContent = isSuccess ? '✅ 完成' : '❌ 失敗';
-        }
-        // --- 進度條控制函式結束 ---
-
-        // --- 模式切換邏輯 ---
-        function setAnalysisMode(mode){
-            analysisMode = mode;
-            const modes = {
-                'personality': $('#modePersonality'), 
-                'single': $('#modeSingle'), 
-                'dual': $('#modeDual')
-            };
-            const sectionB = $('#sectionB');
-
-            Object.keys(modes).forEach(key => {
-                if (key === mode) {
-                    modes[key].classList.replace('bg-slate-200', 'bg-indigo-600');
-                    modes[key].classList.replace('text-slate-800', 'text-white');
-                } else {
-                    modes[key].classList.replace('bg-indigo-600', 'bg-slate-200');
-                    modes[key].classList.replace('text-white', 'text-slate-800');
-                }
-            });
-
-            sectionB.style.display = (mode === 'dual') ? 'block' : 'none';
-            
-            loadPresets(mode);
-
-            toggleSexOptions(); 
-        }
-
-        // 載入情境按鈕
-        function loadPresets(mode) {
-            const container = $('#presetContainer');
-            container.innerHTML = ''; 
-            const presets = PRESETS[mode] || [];
-            
-            presets.forEach(p => {
-                const btn = document.createElement('button');
-                btn.className = 'preset px-3 py-1.5 rounded-full bg-slate-100 text-slate-800 hover:bg-slate-200 transition-colors';
-                btn.textContent = p;
-                btn.onclick = () => {
-                    $('#context').value = p;
-                    toggleSexOptions(); 
-                };
-                container.appendChild(btn);
-            });
-            $('#context').value = '';
-        }
-
-        // --- 情境輸入/預設邏輯 (只認「性愛」) ---
-        function toggleSexOptions(){
-            const context = $('#context').value;
-            const isSexContext = SEX_CONTEXTS.includes(context);
-            
-            if(analysisMode === 'dual' && isSexContext){ 
-                $('#sexOptions').classList.remove('hidden'); 
-            }
-            else { 
-                $('#sexOptions').classList.add('hidden'); 
-                // 不清除 sexDetailInput，讓用戶的自訂輸入得以保留
-            }
-        }
-
-        function getPayload(){
-            return {
-                mode:analysisMode,
-                aBeast:$('#aBeast').value, aKin:$('#aKin').value, aBranch:$('#aBranch').value,
-                bBeast:$('#bBeast').value, bKin:$('#bKin').value, bBranch:$('#bBranch').value,
-                context:$('#context').value, sexDetail:$('#sexDetailInput').value
-            };
-        }
-        
-        // --- V10.3 健壯 JSON 解析函式 (取代舊的 formatOutput 核心) ---
-        function formatOutput(text) {
-            if (!text) return { html: '<p class="text-slate-500">無分析結果。</p>', scores: null, tags: [] };
-
-            let scores = null;
-            let tags = [];
-            let jsonText = null;
-            let cleanText = text;
-
-            // --- 1. 嘗試標準的 ```json 區塊提取 (V7.9原本邏輯) ---
-            const matchJsonBlock = text.match(/```json\s*([\s\S]*?)\s*```/i);
-            if (matchJsonBlock && matchJsonBlock[1]) {
-                jsonText = matchJsonBlock[1].trim();
-                // 成功提取後，將其從報告中移除
-                cleanText = text.replace(matchJsonBlock[0], '').trim();
-                console.log("JSON 提取方法：標準 Markdown 區塊。");
-            }
-
-            // --- 2. 嘗試提取文本中最後一個大括號 {} 區塊 (處理 AI 忘記寫 ```json) ---
-            if (!jsonText) {
-                // 尋找文本中最後一個 { 開頭和 } 結尾的完整區塊
-                const matchLastCurly = text.match(/\{[\s\S]*\}\s*$/); 
-                if (matchLastCurly) {
-                    jsonText = matchLastCurly[0].trim();
-                    // 嘗試從原始文本中刪除它
-                    cleanText = text.replace(matchLastCurly[0], '').trim(); 
-                    console.log("JSON 提取方法：文本結尾的純 JSON 區塊。");
-                }
-            }
-            
-            // --- 3. 嘗試從報告文字中提取第一個找到的 { ... } (最終備用) ---
-            if (!jsonText) {
-                const matchAnyCurly = text.match(/\{[\s\S]*\}/);
-                if (matchAnyCurly) {
-                    jsonText = matchAnyCurly[0].trim();
-                    console.log("JSON 提取方法：文本中第一個找到的 JSON 區塊 (未清理文本)。");
-                }
-            }
-            
-            // --- 解析 JSON 數據 ---
-            if (jsonText) {
-                try {
-                    const j = JSON.parse(jsonText);
-                    scores = j.scores || {};
-                    // 確保標籤格式正確
-                    tags = Array.isArray(j.tags) ? j.tags : Object.values(j.tags || {}).flat().filter(t => typeof t === 'string' && t.trim() !== '');
-                } catch (e) {
-                    console.error("JSON 解析失敗 (健壯性檢查結束):", e, "原始 JSON 文本:", jsonText ? jsonText.substring(0, 200) + '...' : '空');
-                }
-            }
-
-            // --- 渲染 HTML 內容 ---
-            let html = markdownConverter.makeHtml(cleanText);
-
-            // 清理 AI 有時會輸出的多餘標題/段落
-            html = html.replace(/<p>[\s]*JSON[\s]*輸出[\s]*<\/p>/gi, '')
-                       .replace(/<h[1-6]>[\s]*JSON[\s]*輸出[\s]*<\/h[1-6]>/gi, '')
-                       .replace(/<p>\s*<\/p>/gi, '');
-
-            let scoresHTML = '';
-            if (scores && Object.keys(scores).length > 0) {
-                const clamp = v => Math.max(0, Math.min(100, Number(v) || 0));
-                const row = (l, k, c) => `<div class="score"><b>${l}</b><div class="bar"><i style="width:${clamp(scores[k])}%;background:${c}"></i></div><em>${clamp(scores[k])}</em></div>`;
-
-                scoresHTML = `
-                    <h3 style="border-bottom:none; margin-top:0;">六維度分數</h3>
-                    <div class="scores">
-                        ${row('契合 fit', 'fit', '#22c55e')}
-                        ${row('溝通 comm', 'comm', '#06b6d4')}
-                        ${row('節奏 pace', 'pace', '#f59e0b')}
-                        ${row('權責 account', 'account', '#8b5cf6')}
-                        ${row('信任 trust', 'trust', '#ef4444')}
-                        ${row('創新 innov', 'innov', '#6366f1')}
-                    </div>`;
-
-                if (Array.isArray(tags) && tags.length > 0) scoresHTML += `<div class="tags">${tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>`;
-            }
-
-            return { html: html, scores, tags, webScoresHTML: scoresHTML };
-        }
-
-        // --- 圖表繪製核心函式 (保持不變) ---
-        function renderChart(scores, type){
-            const wrap = $('#chartContainer');
-            const scoresTagsWeb = $('#scoresTagsWeb');
-            const chartTypeSelector = $('.chart-type-selector');
-            
-            if(radarChart) {
-                radarChart.destroy();
-                radarChart = null;
-            }
-            wrap.innerHTML = ''; 
-
-            // 個性/單人模式沒有圖表
-            if(analysisMode === 'personality' || analysisMode === 'single' || !scores || Object.keys(scores).length === 0) {
-                 wrap.style.display = 'none';
-                 scoresTagsWeb.style.display = 'none';
-                 chartTypeSelector.style.display = 'none';
-                 return;
-            }
-            
-            // 雙人模式顯示圖表
-            wrap.style.display = 'flex';
-            scoresTagsWeb.style.display = 'block';
-            chartTypeSelector.style.display = 'flex';
-
-            currentScores = scores; 
-            currentChartType = type; 
-
-            const labels=['契合 fit','溝通 comm','節奏 pace','權責 account','信任 trust','創新 innov'];
-            const data=[scores.fit,scores.comm,scores.pace,scores.account,scores.trust,scores.innov];
-            const colors=['#22c55e','#06b6d4','#f59e0b','#8b5cf6','#ef4444','#6366f1'];
-            
-            const canvas=document.createElement('canvas'); 
-            canvas.id = 'chartCanvas'; 
-            wrap.appendChild(canvas);
-            
-            try {
-                const config = {
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: '六維度分析',
-                            data: data,
-                            backgroundColor: type === 'bar' ? colors : 'rgba(99,102,241,0.2)', 
-                            borderColor: type === 'bar' ? colors : 'rgba(99,102,241,1)',
-                            borderWidth: type === 'bar' ? 1 : 2,
-                            fill: type === 'radar',
-                            pointBackgroundColor:'rgba(99,102,241,1)',
-                            pointBorderColor:'#fff',
-                            pointHoverBackgroundColor:'#fff',
-                            pointHoverBorderColor:'rgba(99,102,241,1)'
-                        }]
-                    },
-                    options: {
-                        responsive:true, 
-                        maintainAspectRatio: true, 
-                        plugins:{ legend:{ display:false } },
-                        scales: type === 'radar' ? { 
-                            r:{
-                                angleLines:{ display:true }, grid:{ color:'rgba(0, 0, 0, 0.1)' },
-                                pointLabels:{ font:{ size: 12 } }, suggestedMin:0, suggestedMax:100, ticks:{ stepSize:20 } 
-                            }
-                        } : { 
-                            y: { suggestedMin: 0, suggestedMax: 100, ticks: { stepSize: 20 } },
-                            x: { grid: { display: false } }
-                        }
-                    }
-                };
-                
-                radarChart = new Chart(canvas.getContext('2d'), {
-                    type: type,
-                    ...config
-                });
-
-            } catch (e) {
-                console.error("Chart.js 繪製失敗:", e);
-                wrap.innerHTML = '<p class="text-red-500 text-sm p-4">圖表繪製失敗。請檢查 F12 控制台錯誤。</p>';
-            }
-        }
-        
-        // --- 核心事件監聽和初始化 ---
-        document.addEventListener('DOMContentLoaded', () => {
-            // 設定報告時間
-            $('#reportTime').textContent = new Date().toLocaleDateString('zh-TW', {
-                year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
-            });
-            
-            // 模式切換按鈕
-            $('#modePersonality').onclick = () => setAnalysisMode('personality');
-            $('#modeSingle').onclick = () => setAnalysisMode('single');
-            $('#modeDual').onclick = () => setAnalysisMode('dual');
-            setAnalysisMode('personality'); 
-
-            // 情境輸入 oninput
-            $('#context').oninput = toggleSexOptions;
-            
-            // 性愛細節按鈕 (點擊添加/移除)
-            $$('.sex-detail').forEach(b => b.onclick = () => { 
-                const current = $('#sexDetailInput').value.trim();
-                const detail = b.dataset.detail;
-                
-                // 將當前輸入框內容轉換為陣列，過濾空字符串
-                let existingDetails = current.split('；').map(d => d.trim()).filter(d => d);
-                
-                // 檢查是否已存在
-                if(existingDetails.includes(detail)) {
-                    // 如果已存在，則移除它
-                    existingDetails = existingDetails.filter(d => d !== detail);
-                } else {
-                    // 如果不存在，則添加它
-                    existingDetails.push(detail);
-                }
-                
-                // 重新組合，並更新輸入框
-                $('#sexDetailInput').value = existingDetails.join('；');
-            });
-
-            // 圖表類型切換
-            $$('.chart-type-selector button').forEach(btn => {
-                btn.onclick = () => {
-                    if (!currentScores) return; 
-                    const newType = btn.dataset.type;
-                    $$('.chart-type-selector button').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    renderChart(currentScores, newType);
-                };
-            });
-            
-            // 列印
-            $('#print').onclick = () => window.print();
-
-            // 美化面板切換
-            $('#toggleBeauty').onclick = () => {
-                $('#beautyPanel').classList.toggle('hidden');
-            };
-
-            // --- 背景設定功能 ---
-            const body = $('body');
-            const bgColorInput = $('#bgColor');
-            const bgImageFile = $('#bgImageFile');
-            const clearBgBtn = $('#clearBg');
-            
-            const updateBackground = () => {
-                const color = bgColorInput.value || '#f1f5f9';
-                body.style.backgroundColor = color;
-                body.classList.remove('bg-slate-50'); 
-            };
-
-            bgColorInput.oninput = updateBackground;
-
-            bgImageFile.onchange = (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        body.style.backgroundImage = `url('${event.target.result}')`;
-                        body.style.backgroundSize = 'cover';
-                        body.style.backgroundPosition = 'center';
-                        body.style.backgroundAttachment = 'fixed';
-                    };
-                    reader.readAsDataURL(file);
-                } else {
-                     body.style.backgroundImage = 'none';
-                }
-            };
-
-            clearBgBtn.onclick = () => {
-                bgImageFile.value = '';
-                bgColorInput.value = '#f1f5f9';
-                body.style.backgroundImage = 'none';
-                body.style.backgroundColor = '#f1f5f9';
-                body.classList.add('bg-slate-50'); 
-            };
-            updateBackground(); 
-
-            // V12.2 核心邏輯：啟用 API 呼叫並移除模擬代碼
-            $('#go').onclick = async () => {
-                const payload = getPayload();
-                let errorMessage = '';
-                const aComplete = payload.aBeast && payload.aKin && payload.aBranch;
-                const bComplete = payload.bBeast && payload.bKin && payload.bBranch;
-
-                // --- 前端基本驗證 ---
-                if (!aComplete) { errorMessage = '請選滿我方「六獸、六親、地支」'; }
-                else if (payload.mode === 'dual' && !bComplete) { errorMessage = '雙人分析請選滿對方「六獸、六親、地支」'; }
-                else if (payload.mode !== 'personality' && !payload.context) { errorMessage = '請輸入或選擇情境'; }
-                else if (payload.context === '性愛' && !payload.sexDetail) { errorMessage = '您選擇了性愛情境，請點選或輸入細節按鈕，以供 AI 參考建議。'; }
-
-                if (errorMessage) { alert(errorMessage); return; }
-
-                // --- 準備並顯示狀態 ---
-                $('#result').innerHTML = '<p class="text-slate-500">正在等待 AI 分析...</p>';
-                renderChart(null, currentChartType);
-                $('#webScoresAndTags').innerHTML = '';
-                startProgressBar();
+    <script>
+        const $ = s => document.querySelector(s);
+        const $$ = s => document.querySelectorAll(s);
+        let analysisMode = 'personality'; 
+        const markdownConverter = new showdown.Converter(); 
+        let radarChart = null; 
+        let currentScores = null; 
+        let currentChartType = 'radar'; 
+        
+        // 情境預設 (恢復到V7.9)
+        const PRESETS = {
+            'personality': ['基礎個性', '職涯優勢', '情緒管理', '人際關係'],
+            'single': ['年度目標協調', '績效回饋會議', '跨部門協作', '壓期交付專案', '人際關係協調'],
+            'dual': [
+                '年度目標協調', '績效回饋會議', '跨部門協作', '壓期交付專案', '人際關係協調',
+                '性愛'
+            ]
+        };
+        const SEX_CONTEXTS = ['性愛'];
 
 
-                // --- 構建發送給 Vercel 的 Promt 文本 ---
-                const combinedA = `${payload.aBeast}-${payload.aKin}-${payload.aBranch}`;
-                const combinedB = `${payload.bBeast}-${payload.bKin}-${payload.bBranch}`;
-                
-                let promptText = `請根據以下資訊，輸出深度報告與六維度分數：\n`;
-                promptText += `分析模式: ${payload.mode === 'personality' ? '個性分析' : (payload.mode === 'single' ? '單人情境' : '雙人情境')}\n`;
-                promptText += `我方組合 (A): ${combinedA}\n`;
-                
-                if (payload.mode === 'dual') {
-                    promptText += `對方組合 (B): ${combinedB}\n`;
-                }
+        // --- 進度條控制函式 ---
+        let progressInterval = null;
+        function startProgressBar() {
+            if (progressInterval) clearInterval(progressInterval);
+            $('#progressBar').classList.remove('hidden');
+            $('#progress').style.width = '10%'; 
+            let progress = 10;
+            progressInterval = setInterval(() => {
+                if (progress < 90) {
+                    progress += Math.floor(Math.random() * 5);
+                    progress = Math.min(progress, 90);
+                    $('#progress').style.width = progress + '%';
+                    $('#status').textContent = `分析中... (${progress}%)`;
+                }
+            }, 1000); 
+            $('#status').textContent = '分析中...';
+        }
 
-                promptText += `分析情境/主題: ${payload.context || '基礎個性'}\n`;
+        function stopProgressBar(isSuccess = true) {
+            if (progressInterval) {
+                clearInterval(progressInterval);
+                progressInterval = null;
+            }
+            $('#progress').style.width = isSuccess ? '100%' : '0%';
+            setTimeout(() => {
+                $('#progressBar').classList.add('hidden');
+                $('#progress').style.width = '0%';
+            }, 1500); 
+            $('#status').textContent = isSuccess ? '✅ 完成' : '❌ 失敗';
+        }
+        // --- 進度條控制函式結束 ---
 
-                if (payload.context === '性愛' && payload.sexDetail) {
-                    promptText += `性愛劇本細節要求: ${payload.sexDetail}\n`;
-                }
+        // --- 模式切換邏輯 (恢復圖表/分數區塊隱藏邏輯) ---
+        function setAnalysisMode(mode){
+            analysisMode = mode;
+            const modes = {
+                'personality': $('#modePersonality'), 
+                'single': $('#modeSingle'), 
+                'dual': $('#modeDual')
+            };
+            const sectionB = $('#sectionB');
+            const scoresTagsWeb = $('#scoresTagsWeb');
+            const chartTypeSelector = $('.chart-type-selector');
+            const chartContainer = $('#chartContainer');
 
-                try {
-                    // --- 呼叫 Vercel 後端 API ---
-                    const response = await fetch('/api/analyze', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            prompt: promptText // 將構建好的 Prompt 發送給後端
-                        })
-                    });
 
-                    const data = await response.json();
+            Object.keys(modes).forEach(key => {
+                if (key === mode) {
+                    modes[key].classList.replace('bg-slate-200', 'bg-indigo-600');
+                    modes[key].classList.replace('text-slate-800', 'text-white');
+                } else {
+                    modes[key].classList.replace('bg-indigo-600', 'bg-slate-200');
+                    modes[key].classList.replace('text-white', 'text-slate-800');
+                }
+            });
 
-                    if (!response.ok || data.error) {
-                        // 處理 API 錯誤 (例如 Key 無效、超時等)
-                        const errorMsg = data.detail || data.error || '未知 API 錯誤';
-                        $('#result').innerHTML = `<h3 class="text-red-600">❌ 分析失敗 (API 錯誤)</h3><p>錯誤訊息：${errorMsg}</p><p class="text-xs text-slate-500">請檢查 Vercel logs 或 OPENAI_API_KEY 是否有效。</p>`;
-                        stopProgressBar(false);
-                        return;
-                    }
+            sectionB.style.display = (mode === 'dual') ? 'block' : 'none';
+            
+            // 恢復圖表/分數/標籤區塊的隱藏邏輯
+            if (mode !== 'dual') {
+                scoresTagsWeb.style.display = 'block'; // 保持顯示，但內容會在 run 之後清空
+                chartContainer.style.display = 'none';
+                chartTypeSelector.style.display = 'none';
+            } else {
+                scoresTagsWeb.style.display = 'block';
+                chartContainer.style.display = 'flex';
+                chartTypeSelector.style.display = 'flex';
+            }
+            
+            loadPresets(mode);
+            toggleSexOptions(); 
+        }
 
-                    // --- 成功獲取 AI 原始響應文本 ---
-                    const rawText = data.choices[0]?.message?.content;
-                    
-                    if (!rawText) {
-                        $('#result').innerHTML = '<h3 class="text-red-600">❌ 分析失敗</h3><p>AI 未返回有效的文本內容，可能是 Vercel 伺服器超時或模型輸出了空內容。</p>';
-                        stopProgressBar(false);
-                        return;
-                    }
+        // 載入情境按鈕
+        function loadPresets(mode) {
+            const container = $('#presetContainer');
+            container.innerHTML = ''; 
+            const presets = PRESETS[mode] || [];
+            
+            presets.forEach(p => {
+                const btn = document.createElement('button');
+                btn.className = 'preset px-3 py-1.5 rounded-full bg-slate-100 text-slate-800 hover:bg-slate-200 transition-colors';
+                btn.textContent = p;
+                btn.onclick = () => {
+                    $('#context').value = p;
+                    toggleSexOptions(); 
+                };
+                container.appendChild(btn);
+            });
+            $('#context').value = '';
+        }
 
-                    // --- 使用健壯解析邏輯處理結果 ---
-                    const { html, scores, tags, webScoresHTML } = formatOutput(rawText);
+        // --- 情境輸入/預設邏輯 (只認「性愛」) ---
+        function toggleSexOptions(){
+            const context = $('#context').value;
+            const isSexContext = SEX_CONTEXTS.includes(context);
+            
+            if(analysisMode === 'dual' && isSexContext){ 
+                $('#sexOptions').classList.remove('hidden'); 
+            }
+            else { 
+                $('#sexOptions').classList.add('hidden'); 
+            }
+        }
 
-                    $('#result').innerHTML = html;
-                    $('#webScoresAndTags').innerHTML = webScoresHTML;
+        function getPayload(){
+            return {
+                mode:analysisMode,
+                aBeast:$('#aBeast').value, aKin:$('#aKin').value, aBranch:$('#aBranch').value,
+                bBeast:$('#bBeast').value, bKin:$('#bKin').value, bBranch:$('#bBranch').value,
+                context:$('#context').value, sexDetail:$('#sexDetailInput').value
+            };
+        }
+        
+        // --- V10.3 健壯 JSON 解析函式 (已確認穩定) ---
+        function formatOutput(text) {
+            if (!text) return { html: '<p class="text-slate-500">無分析結果。</p>', scores: null, tags: [] };
 
-                    // 繪製圖表 (如果 scores 存在)
-                    renderChart(scores, currentChartType);
-                    
-                    stopProgressBar(true); // 成功完成
+            let scores = null;
+            let tags = [];
+            let jsonText = null;
+            let cleanText = text;
 
-                } catch (e) {
-                    console.error("Fetch Error:", e);
-                    $('#result').innerHTML = `<h3 class="text-red-600">❌ 網路連接或伺服器錯誤</h3><p>${e.message || '請檢查您的網路連線或 Vercel 應用程式狀態。'}</p>`;
-                    stopProgressBar(false);
-                }
-            };
-        });
-    </script>
+            // 1. 嘗試標準的 ```json 區塊提取
+            const matchJsonBlock = text.match(/```json\s*([\s\S]*?)\s*```/i);
+            if (matchJsonBlock && matchJsonBlock[1]) {
+                jsonText = matchJsonBlock[1].trim();
+                cleanText = text.replace(matchJsonBlock[0], '').trim();
+            }
+
+            // 2. 嘗試提取文本中最後一個大括號 {} 區塊 (備用)
+            if (!jsonText) {
+                const matchLastCurly = text.match(/\{[\s\S]*\}\s*$/); 
+                if (matchLastCurly) {
+                    jsonText = matchLastCurly[0].trim();
+                    cleanText = text.replace(matchLastCurly[0], '').trim(); 
+                }
+            }
+            
+            // 3. 嘗試從報告文字中提取第一個找到的 { ... } (最終備用)
+            if (!jsonText) {
+                const matchAnyCurly = text.match(/\{[\s\S]*\}/);
+                if (matchAnyCurly) {
+                    jsonText = matchAnyCurly[0].trim();
+                }
+            }
+            
+            // 解析 JSON 數據
+            if (jsonText) {
+                try {
+                    const j = JSON.parse(jsonText);
+                    scores = j.scores || {};
+                    tags = Array.isArray(j.tags) ? j.tags : Object.values(j.tags || {}).flat().filter(t => typeof t === 'string' && t.trim() !== '');
+                } catch (e) {
+                    console.error("JSON 解析失敗 (請檢查 AI 輸出格式是否包含有效 JSON):", e);
+                }
+            }
+
+            // 渲染 HTML 內容
+            let html = markdownConverter.makeHtml(cleanText);
+
+            // 清理 AI 有時會輸出的多餘標題/段落
+            html = html.replace(/<p>[\s]*JSON[\s]*輸出[\s]*<\/p>/gi, '')
+                     .replace(/<h[1-6]>[\s]*JSON[\s]*輸出[\s]*<\/h[1-6]>/gi, '')
+                     .replace(/<p>\s*<\/p>/gi, '');
+
+            let scoresHTML = '';
+            if (scores && Object.keys(scores).length > 0) {
+                const clamp = v => Math.max(0, Math.min(100, Number(v) || 0));
+                const row = (l, k, c) => `<div class="score"><b>${l}</b><div class="bar"><i style="width:${clamp(scores[k])}%;background:${c}"></i></div><em>${clamp(scores[k])}</em></div>`;
+
+                scoresHTML = `
+                    <h3 style="border-bottom:none; margin-top:0;">六維度分數</h3>
+                    <div class="scores">
+                        ${row('契合 fit', 'fit', '#22c55e')}
+                        ${row('溝通 comm', 'comm', '#06b6d4')}
+                        ${row('節奏 pace', 'pace', '#f59e0b')}
+                        ${row('權責 account', 'account', '#8b5cf6')}
+                        ${row('信任 trust', 'trust', '#ef4444')}
+                        ${row('創新 innov', 'innov', '#6366f1')}
+                    </div>`;
+
+                if (Array.isArray(tags) && tags.length > 0) scoresHTML += `<div class="tags">${tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>`;
+            }
+
+            return { html: html, scores, tags, webScoresHTML: scoresHTML };
+        }
+
+        // --- 圖表繪製核心函式 (已恢復雷達/長條圖切換邏輯) ---
+        function renderChart(scores, type){
+            const wrap = $('#chartContainer');
+            const scoresTagsWeb = $('#scoresTagsWeb');
+            const chartTypeSelector = $('.chart-type-selector');
+            
+            if(radarChart) {
+                radarChart.destroy();
+                radarChart = null;
+            }
+            wrap.innerHTML = ''; 
+
+            // 個性/單人模式隱藏圖表，但顯示分數條
+            if(analysisMode !== 'dual' || !scores || Object.keys(scores).length === 0) {
+                 wrap.style.display = 'none';
+                 chartTypeSelector.style.display = 'none';
+                 return;
+            }
+            
+            // 雙人模式顯示圖表
+            wrap.style.display = 'flex';
+            chartTypeSelector.style.display = 'flex';
+
+            currentScores = scores; 
+            currentChartType = type; 
+
+            const labels=['契合 fit','溝通 comm','節奏 pace','權責 account','信任 trust','創新 innov'];
+            const data=[scores.fit,scores.comm,scores.pace,scores.account,scores.trust,scores.innov];
+            const colors=['#22c55e','#06b6d4','#f59e0b','#8b5cf6','#ef4444','#6366f1'];
+            
+            const canvas=document.createElement('canvas'); 
+            canvas.id = 'chartCanvas'; 
+            wrap.appendChild(canvas);
+            
+            try {
+                const config = {
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            label: '六維度分析',
+                            data: data,
+                            backgroundColor: type === 'bar' ? colors : 'rgba(99,102,241,0.2)', 
+                            borderColor: type === 'bar' ? colors : 'rgba(99,102,241,1)',
+                            borderWidth: type === 'bar' ? 1 : 2,
+                            fill: type === 'radar',
+                            pointBackgroundColor:'rgba(99,102,241,1)',
+                            pointBorderColor:'#fff',
+                            pointHoverBackgroundColor:'#fff',
+                            pointHoverBorderColor:'rgba(99,102,241,1)'
+                        }]
+                    },
+                    options: {
+                        responsive:true, 
+                        maintainAspectRatio: true, 
+                        plugins:{ legend:{ display:false } },
+                        scales: type === 'radar' ? { 
+                            r:{
+                                angleLines:{ display:true }, grid:{ color:'rgba(0, 0, 0, 0.1)' },
+                                pointLabels:{ font:{ size: 12 } }, suggestedMin:0, suggestedMax:100, ticks:{ stepSize:20 } 
+                            }
+                        } : { 
+                            y: { suggestedMin: 0, suggestedMax: 100, ticks: { stepSize: 20 } },
+                            x: { grid: { display: false } }
+                        }
+                    }
+                };
+                
+                radarChart = new Chart(canvas.getContext('2d'), {
+                    type: type,
+                    ...config
+                });
+
+            } catch (e) {
+                console.error("Chart.js 繪製失敗:", e);
+                wrap.innerHTML = '<p class="text-red-500 text-sm p-4">圖表繪製失敗。</p>';
+            }
+        }
+        
+        // --- 核心事件監聽和初始化 ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // 設定報告時間
+            $('#reportTime').textContent = new Date().toLocaleDateString('zh-TW', {
+                year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+            });
+            
+            // 模式切換按鈕
+            $('#modePersonality').onclick = () => setAnalysisMode('personality');
+            $('#modeSingle').onclick = () => setAnalysisMode('single');
+            $('#modeDual').onclick = () => setAnalysisMode('dual');
+            setAnalysisMode('personality'); 
+
+            // 情境輸入 oninput
+            $('#context').oninput = toggleSexOptions;
+            
+            // 性愛細節按鈕 (點擊添加/移除)
+            $$('.sex-detail').forEach(b => b.onclick = () => { 
+                const current = $('#sexDetailInput').value.trim();
+                const detail = b.dataset.detail;
+                
+                let existingDetails = current.split('；').map(d => d.trim()).filter(d => d);
+                
+                if(existingDetails.includes(detail)) {
+                    existingDetails = existingDetails.filter(d => d !== detail);
+                } else {
+                    existingDetails.push(detail);
+                }
+                
+                $('#sexDetailInput').value = existingDetails.join('；');
+            });
+
+            // 圖表類型切換 (已修復圖表渲染)
+            $$('.chart-type-selector button').forEach(btn => {
+                btn.onclick = () => {
+                    if (!currentScores) return; 
+                    const newType = btn.dataset.type;
+                    $$('.chart-type-selector button').forEach(b => b.classList.remove('active'));
+                    btn.classList.add('active');
+                    renderChart(currentScores, newType);
+                };
+            });
+            
+            // 列印
+            $('#print').onclick = () => window.print();
+
+            // 美化面板切換
+            $('#toggleBeauty').onclick = () => {
+                $('#beautyPanel').classList.toggle('hidden');
+            };
+
+            // --- 背景設定功能 ---
+            const body = $('body');
+            const bgColorInput = $('#bgColor');
+            const bgImageFile = $('#bgImageFile');
+            const clearBgBtn = $('#clearBg');
+            
+            const updateBackground = () => {
+                const color = bgColorInput.value || '#f1f5f9';
+                body.style.backgroundColor = color;
+                body.classList.remove('bg-slate-50'); 
+            };
+
+            bgColorInput.oninput = updateBackground;
+
+            bgImageFile.onchange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        body.style.backgroundImage = `url('${event.target.result}')`;
+                        body.style.backgroundSize = 'cover';
+                        body.style.backgroundPosition = 'center';
+                        body.style.backgroundAttachment = 'fixed';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                     body.style.backgroundImage = 'none';
+                }
+            };
+
+            clearBgBtn.onclick = () => {
+                bgImageFile.value = '';
+                bgColorInput.value = '#f1f5f9';
+                body.style.backgroundImage = 'none';
+                body.style.backgroundColor = '#f1f5f9';
+                body.classList.add('bg-slate-50'); 
+            };
+            updateBackground(); 
+
+            // V12.3 核心邏輯：正確呼叫 API (與 V12.2 相同)
+            $('#go').onclick = async () => {
+                const payload = getPayload();
+                let errorMessage = '';
+                const aComplete = payload.aBeast && payload.aKin && payload.aBranch;
+                const bComplete = payload.bBeast && payload.bKin && payload.bBranch;
+
+                // --- 前端基本驗證 ---
+                if (!aComplete) { errorMessage = '請選滿我方「六獸、六親、地支」'; }
+                else if (payload.mode === 'dual' && !bComplete) { errorMessage = '雙人分析請選滿對方「六獸、六親、地支」'; }
+                else if (payload.mode !== 'personality' && !payload.context) { errorMessage = '請輸入或選擇情境'; }
+                else if (payload.context === '性愛' && !payload.sexDetail) { errorMessage = '您選擇了性愛情境，請點選或輸入細節按鈕，以供 AI 參考建議。'; }
+
+                if (errorMessage) { alert(errorMessage); return; }
+
+                // --- 準備並顯示狀態 ---
+                $('#result').innerHTML = '<p class="text-slate-500">正在等待 AI 分析...</p>';
+                renderChart(null, currentChartType);
+                $('#webScoresAndTags').innerHTML = '';
+                startProgressBar();
+
+
+                // --- 構建發送給 Vercel 的 Promt 文本 ---
+                const combinedA = `${payload.aBeast}-${payload.aKin}-${payload.aBranch}`;
+                const combinedB = `${payload.bBeast}-${payload.bKin}-${payload.bBranch}`;
+                
+                let promptText = `請根據以下資訊，輸出深度報告與六維度分數：\n`;
+                promptText += `分析模式: ${payload.mode === 'personality' ? '個性分析' : (payload.mode === 'single' ? '單人情境' : '雙人情境')}\n`;
+                promptText += `我方組合 (A): ${combinedA}\n`;
+                
+                if (payload.mode === 'dual') {
+                    promptText += `對方組合 (B): ${combinedB}\n`;
+                }
+
+                promptText += `分析情境/主題: ${payload.context || '基礎個性'}\n`;
+
+                if (payload.context === '性愛' && payload.sexDetail) {
+                    promptText += `性愛劇本細節要求: ${payload.sexDetail}\n`;
+                }
+
+                try {
+                    // --- 呼叫 Vercel 後端 API ---
+                    const response = await fetch('/api/analyze', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            prompt: promptText 
+                        })
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok || data.error) {
+                        const errorMsg = data.detail || data.error || '未知 API 錯誤';
+                        $('#result').innerHTML = `<h3 class="text-red-600">❌ 分析失敗 (API 錯誤)</h3><p>錯誤訊息：${errorMsg}</p><p class="text-xs text-slate-500">請檢查 Vercel logs 或 OPENAI_API_KEY 是否有效。</p>`;
+                        stopProgressBar(false);
+                        return;
+                    }
+
+                    // --- 成功獲取 AI 原始響應文本 ---
+                    const rawText = data.choices[0]?.message?.content;
+                    
+                    if (!rawText) {
+                        $('#result').innerHTML = '<h3 class="text-red-600">❌ 分析失敗</h3><p>AI 未返回有效的文本內容，可能是 Vercel 伺服器超時或模型輸出了空內容。</p>';
+                        stopProgressBar(false);
+                        return;
+                    }
+
+                    // --- 使用健壯解析邏輯處理結果 ---
+                    const { html, scores, tags, webScoresHTML } = formatOutput(rawText);
+
+                    $('#result').innerHTML = html;
+                    $('#webScoresAndTags').innerHTML = webScoresHTML;
+
+                    // 繪製圖表 (如果 scores 存在)
+                    renderChart(scores, currentChartType);
+                    
+                    stopProgressBar(true); // 成功完成
+
+                } catch (e) {
+                    console.error("Fetch Error:", e);
+                    $('#result').innerHTML = `<h3 class="text-red-600">❌ 網路連接或伺服器錯誤</h3><p>${e.message || '請檢查您的網路連線或 Vercel 應用程式狀態。'}</p>`;
+                    stopProgressBar(false);
+                }
+            };
+        });
+    </script>
 </body>
 </html>

@@ -63,6 +63,7 @@ export default async function handler(request, response) {
             max_tokens: 3000, 
         });
 
+        // Vercel Serverless Function 成功，返回結果
         response.status(200).json(completion);
 
     } catch (error) {
@@ -76,6 +77,7 @@ export default async function handler(request, response) {
              });
         }
         
+        // 捕獲其他所有執行時錯誤（包括網路、超時等）
         response.status(500).json({ 
             error: '分析服務器錯誤', 
             detail: error.message || '無法連線到 AI 服務。' 

@@ -1,4 +1,4 @@
-// api/analyze.js - Vercel Serverless Function (V10.6 - 最終模型鎖定與指令強化)
+// api/analyze.js - V10.6 (GPT-4o 鎖定版)
 
 // 獲取 Vercel 環境變數中設置的 OpenAI API Key
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY; 
@@ -11,22 +11,22 @@ export default async function handler(req, res) {
         return res.status(405).end('Method Not Allowed');
     }
 
-    // 檢查 API Key 是否存在 (從 Vercel 環境變數中獲取)
+    // 檢查 API Key 是否存在
     if (!OPENAI_API_KEY) {
         return res.status(500).json({ error: 'Server configuration error: OPENAI_API_KEY is not set in Vercel environment variables.' });
     }
 
     try {
-        const { prompt } = req.body; // V10.6 修正：不再信任前端傳來的 model 參數
+        const { prompt } = req.body; 
 
         if (!prompt) {
              return res.status(400).json({ error: 'Missing required parameter: prompt.' });
         }
 
         // ⭐ V10.6 核心修正：強制鎖定為 GPT-4o，以保證指令遵守度和速度穩定性
-        const FINAL_MODEL = 'gpt-4o'; 
+        const FINAL_MODEL = 'gpt-4o'; // 這是保證穩定的關鍵！
         
-        // 確保系統指令的強度
+        // 強化系統指令
         const SYSTEM_PROMPT = "你是一位精通中國古代《神獸七十二型人格》理論的資深分析師。你的任務是根據用戶提供的『六獸-六親-地支』組合和情境，輸出深度且具體的分析報告。報告必須專業、嚴謹，並且字數至少 800 字。對於雙人模式（特別是性愛），報告必須充滿細節和針對性建議，絕對不能保守或簡略。**輸出格式嚴格遵循 markdown，並且報告結尾必須包含一個獨立的 JSON 區塊，列出六維度分數和標籤。**"
 
         // 呼叫 OpenAI API
@@ -34,7 +34,6 @@ export default async function handler(req, res) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                // 使用 Vercel 環境變數中的 Key
                 'Authorization': `Bearer ${OPENAI_API_KEY}` 
             },
             body: JSON.stringify({

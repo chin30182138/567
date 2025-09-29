@@ -1,41 +1,12 @@
-// Vercel 專案 -> /api/analyze.js (V13.8 最終穩定版)
-// 採用 V7.7 核心邏輯 + 超時修復
+// Vercel 專案 -> /api/analyze.js (V16.0 最終極簡測試版)
 
+// **注意：由於我們刪除了 package.json，Vercel 需手動建構安裝 openai**
 const OpenAI = require('openai'); 
 
-// 確保 Vercel 環境變數中 OPENAI_API_KEY 已設定
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
-    // 增加超時時間，避免 Vercel 伺服器崩潰 (FUNCTION_INVOCATION_FAILED)
-    timeout: 30000, 
+    // 移除 timeout 設置，讓 Vercel 預設處理
 });
-
-// JSON 結構提示，確保圖表和長條圖所需數據完整
-// 採用最嚴格的提示詞，避免 JSON 格式錯誤 (JSON 格式可能有誤)
-const JSON_STRUCTURE_PROMPT = `
-**請絕對、嚴格、立即遵守以下格式規範，這是強制性的最終要求：**
-
-1.  報告主體必須是專業、深入的繁體中文 Markdown 格式。
-2.  **在報告結束後，你必須立即輸出一個獨立的 '```json' 程式碼區塊。**
-3.  **此 '```json' 區塊的前後，絕對禁止出現任何多餘的解釋文字或標題。**
-4.  JSON 區塊必須嚴格包含以下結構：
-
-{
-  "scores": {
-    "fit": [0-100的整數，代表契合度分數],
-    "comm": [0-100的整數，代表溝通度分數],
-    "pace": [0-100的整數，代表節奏度分數],
-    "account": [0-100的整數，代表權責度分數],
-    "trust": [0-100的整數，代表信任度分數],
-    "innov": [0-100的整數，代表創新度分數]
-  },
-  "tags": [
-    "性格或情境的關鍵詞1",
-    "性格或情境的關鍵詞2",
-    "性格或情境的關鍵詞3"
-  ]
-}
-`;
 
 export default async function handler(request, response) {
     if (request.method !== 'POST') {
@@ -44,40 +15,39 @@ export default async function handler(request, response) {
 
     const { prompt } = request.body;
 
-    if (!prompt) {
-        return response.status(400).json({ error: 'Missing prompt in request body' });
-    }
-
+    // ** 這是極簡測試，只要求 AI 輸出一個簡單結果 **
     try {
-        const fullPrompt = prompt + JSON_STRUCTURE_PROMPT;
-        
-        // 使用 gpt-3.5-turbo 模型
         const completion = await openai.chat.completions.create({
-            model: "gpt-3.5-turbo", 
+            // ** 升級到 gpt-4o 終結超時和格式問題 **
+            model: "gpt-4o", 
             messages: [
                 {
                     role: "system",
-                    content: "你是一位精通易學、心理學和企業管理的專業顧問，專門提供仙人指路神獸七十二型人格的分析報告。你必須使用繁體中文和 Markdown 格式輸出專業報告，並在結尾嚴格遵守使用者提供的 JSON 結構來輸出六維度分數和標籤。",
+                    content: "你是一位專門回覆「測試成功」的助手。",
                 },
                 {
                     role: "user",
-                    content: fullPrompt,
+                    content: "請確認 API 連線是否正常，並回覆「連線成功，分析功能已就緒。」",
                 }
             ],
-            temperature: 0.7,
-            max_tokens: 3000, 
+            temperature: 0,
+            max_tokens: 50, // 只要求短結果，避免任何超時
         });
 
-        // 成功響應
-        response.status(200).json(completion);
+        // 如果成功，返回一個簡單的 OK 響應
+        return response.status(200).json({ 
+            success: true,
+            message: "API 成功連線並取得回應",
+            test_response: completion.choices[0].message.content
+        });
 
     } catch (error) {
-        console.error('OpenAI API Error or Timeout:', error);
+        console.error('Final Test Error:', error);
         
-        // 捕獲所有執行時錯誤（包括網路、超時等）
-        response.status(500).json({ 
-            error: '分析服務器錯誤或超時', 
-            detail: error.message || '無法連線到 AI 服務或執行超時。' 
+        // 捕獲所有錯誤
+        return response.status(500).json({ 
+            error: 'FINAL_FAILURE_POINT', 
+            detail: error.message || 'Vercel 函數執行中斷，無法連線或依賴未載入。' 
         });
     }
 }

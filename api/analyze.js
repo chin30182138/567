@@ -1,71 +1,56 @@
-// api/analyze.js
-// Vercel Serverless Function - 作為前端與 OpenAI 之間的代理
+// api/analyze.js - Vercel Serverless Function (V10.4 極限速度與JSON強化版)
+import OpenAI from 'openai';
 
-// 獲取 Vercel 環境變數中設置的 OpenAI API Key
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY; 
-const OPENAI_API_ENDPOINT = 'https://api.openai.com/v1/chat/completions';
+// 確保 Vercel 環境變數 OPENAI_API_KEY 已設定
+const openai = new OpenAI(); 
 
+// Vercel 預設限制 10 秒。
 export default async function handler(req, res) {
-    // 檢查是否為 POST 請求
     if (req.method !== 'POST') {
-        res.setHeader('Allow', 'POST');
-        return res.status(405).end('Method Not Allowed');
-    }
-
-    // 檢查 API Key 是否存在 (從 Vercel 環境變數中獲取)
-    if (!OPENAI_API_KEY) {
-        return res.status(500).json({ error: 'Server configuration error: OPENAI_API_KEY is not set in Vercel environment variables.' });
+        return res.status(405).json({ error: 'Method Not Allowed' });
     }
 
     try {
-        const { payload, model, prompt } = req.body;
-
-        if (!prompt || !model) {
-             return res.status(400).json({ error: 'Missing required parameters: prompt or model.' });
+        const { model, prompt, payload } = req.body;
+        
+        // 為了確保速度和一致性，強制使用 gpt-3.5-turbo
+        const finalModel = 'gpt-3.5-turbo'; 
+        
+        let systemContent = "你是一位精通易學、占卜、命理的專業顧問。你的分析必須專業、深入。";
+        
+        // V10.4 核心修正：要求雙人模式必須返回嚴格 JSON，並放在文字前面。
+        if (payload && payload.mode === 'dual') {
+            systemContent += " **你的首要任務是輸出分析結果。如果這是雙人模式分析，你必須在報告的文字描述_之前_，先嚴格輸出一個符合 JSON 格式的程式碼區塊 (```json ... ```)，內含六維度分數 (fit, comm, pace, account, trust, innov) 和標籤 (tags)。**";
         }
 
-        // 呼叫 OpenAI API
-        const response = await fetch(OPENAI_API_ENDPOINT, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                // 使用 Vercel 環境變數中的 Key
-                'Authorization': `Bearer ${OPENAI_API_KEY}` 
-            },
-            body: JSON.stringify({
-                model: model,
-                messages: [
-                    { 
-                        role: "system", 
-                        content: "你是一位精通中國古代《神獸七十二型人格》理論的資深分析師。你的任務是根據用戶提供的『六獸-六親-地支』組合和情境，輸出深度且具體的分析報告。報告必須專業、嚴謹，並且字數至少 800 字。對於雙人模式（特別是性愛），報告必須充滿細節和針對性建議，絕對不能保守或簡略。**輸出格式嚴格遵循 markdown，並且報告結尾必須包含一個獨立的 JSON 區塊，列出六維度分數和標籤。**" 
-                    },
-                    { role: "user", content: prompt }
-                ],
-                temperature: 0.7,
-                max_tokens: 3000, 
-            })
+        // 發起對 OpenAI API 的請求
+        const completion = await openai.chat.completions.create({
+            model: finalModel, 
+            messages: [
+                { role: "system", content: systemContent },
+                { role: "user", content: prompt }
+            ],
+            temperature: 0.7, // 維持中等創造力
         });
 
-        if (!response.ok) {
-            // 轉發 OpenAI 的錯誤訊息
-            const errorData = await response.json().catch(() => ({}));
-            const status = response.status;
-            
-            console.error("OpenAI API Error:", errorData.error ? errorData.error.message : response.statusText);
-
-            return res.status(status).json({ 
-                error: `OpenAI API 請求失敗 (HTTP ${status})`, 
-                detail: errorData.error ? errorData.error.message : response.statusText 
-            });
+        // 成功響應
+        res.status(200).json(completion);
+    } catch (error) {
+        // 處理 API 請求失敗，這是前端會看到的錯誤源頭
+        console.error("OpenAI API Error:", error.message || error);
+        
+        let errorMessage = '未知伺服器錯誤';
+        if (error.status === 401) {
+             errorMessage = 'API Key 驗證失敗 (401)。請檢查 Vercel 環境變數。';
+        } else if (error.status === 400 && error.message.includes('rate limit')) {
+             errorMessage = 'API 請求頻率過高 (400)。';
+        } else if (error.message) {
+             errorMessage = error.message;
         }
 
-        const data = await response.json();
-        
-        // 將 OpenAI 的回應直接傳回前端
-        res.status(200).json(data);
-
-    } catch (error) {
-        console.error("Serverless Function Internal Error:", error);
-        res.status(500).json({ error: 'Internal Server Error', detail: error.message });
+        res.status(500).json({ 
+            detail: `伺服器處理失敗：${errorMessage}`, 
+            error: error.message || 'Unknown error' 
+        });
     }
 }

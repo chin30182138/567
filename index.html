@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>仙人指路神獸七十二型人格 - 分析報告 (V9.4)</title>
+    <title>仙人指路神獸七十二型人格 - 分析報告 (V10.0)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
@@ -26,7 +26,7 @@
             border-radius: 16px;
         }
 
-        /* V9.4: 進度條容器固定位置且浮動 */
+        /* V10.0: 進度條容器固定位置且浮動 */
         #statusContainerFixed {
             position: fixed;
             top: 25%;
@@ -34,7 +34,7 @@
             transform: translateX(-50%);
             z-index: 50;
             padding: 15px 30px;
-            background-color: rgba(255, 255, 255, 0.98); /* 略微不透明 */
+            background-color: rgba(255, 255, 255, 0.98);
             border-radius: 12px;
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
             border: 1px solid #e5e7eb;
@@ -58,10 +58,10 @@
         #progress {
             height: 100%;
             background-color: #3b82f6;
-            transition: width 0.3s ease-linear; /* 保持動畫平滑 */
+            transition: width 0.3s ease-linear; 
         }
-        
-        /* 報告與其他樣式... (與 V9.3 保持一致以節省空間) */
+
+        /* 分數條與標籤樣式 (微調顏色和間距) */
         .scores { display:grid; gap:10px; margin-top:25px; padding-top:20px; border-top:1px solid #d1d5db; }
         .score { display:flex; align-items:center; gap:10px; font-size:14px; font-weight: 500; }
         .score b { min-width: 60px; text-align: right; color: #4b5563; }
@@ -70,8 +70,23 @@
         .tags { display:flex; gap:8px; flex-wrap:wrap; margin-top:20px; padding-top:15px; border-top:1px dashed #d1d5db; }
         .tag { background:#e0f2fe; color:#0284c7; padding:5px 12px; border-radius:9999px; font-size:13px; font-weight: 600; }
         
-        #result h3 { font-size: 1.5rem; font-weight: 800; margin-top: 2rem; margin-bottom: 0.8rem; border-bottom: 4px solid #3b82f6; padding-bottom: 8px; color: #1e3a8a; }
-        #result h4 { font-size: 1.25rem; font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.6rem; color: #4b5563; }
+        /* AI 輸出樣式 (報告樣式增強) */
+        #result h3 { 
+            font-size: 1.5rem; 
+            font-weight: 800; 
+            margin-top: 2rem; 
+            margin-bottom: 0.8rem; 
+            border-bottom: 4px solid #3b82f6;
+            padding-bottom: 8px; 
+            color: #1e3a8a;
+        }
+        #result h4 { 
+            font-size: 1.25rem; 
+            font-weight: 700; 
+            margin-top: 1.5rem; 
+            margin-bottom: 0.6rem; 
+            color: #4b5563; 
+        }
         #result p { margin-bottom: 1.2rem; line-height: 1.7; text-align: justify; }
         #result ul, #result ol { padding-left: 30px; margin-bottom: 1.2rem; }
         #result ul { list-style-type: '👉 '; }
@@ -79,27 +94,72 @@
         #result li { margin-bottom: 8px; }
         #result img { max-width: 100%; height: auto; margin: 0; display: inline; border-radius: 0; box-shadow: none; }
         
+        /* 列印時，隱藏控制項 */
         @media print {
             .no-print { display: none !important; }
-            * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; }
+            * {
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
             @page { margin: 15mm; }
             .result-section { box-shadow: none; border: none; border-radius: 0; }
         }
         .print-header { display: none; }
 
-        .chart-type-selector { display: flex; justify-content: center; align-items: center; margin-bottom: 15px; }
-        .chart-type-selector button { padding: 6px 15px; font-size: 13px; border: 1px solid #d1d5db; background: #f9fafb; margin: 0 4px; border-radius: 6px; transition: all 0.2s ease; }
-        .chart-type-selector button.active { background: #3b82f6; color: white; border-color: #3b82f6; }
+        /* 圖表選擇器樣式 */
+        .chart-type-selector {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .chart-type-selector button {
+            padding: 6px 15px;
+            font-size: 13px;
+            border: 1px solid #d1d5db;
+            background: #f9fafb;
+            margin: 0 4px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+        }
+        .chart-type-selector button.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+        }
         
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: none; justify-content: center; align-items: center; z-index: 50; }
-        .modal.active { display: flex; }
-        .modal-content { background: white; padding: 2rem; border-radius: 1rem; width: 90%; max-width: 700px; max-height: 90vh; overflow-y: auto; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); }
+        /* Modal 樣式 */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 50;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 1rem;
+            width: 90%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
     <div id="statusContainerFixed" class="hidden">
         <span id="status" class="text-lg text-slate-700 font-bold mb-1">等待伺服器分析...</span>
-        <p id="subStatus" class="text-sm text-slate-500 mb-2">首次啟動可能需要幾秒鐘喚醒 Vercel 伺服器。</p>
+        <p id="subStatus" class="text-sm text-slate-500 mb-2">極速模型 (gpt-3.5-turbo) 啟動中，請稍候。</p>
         <div id="progressBar" class="w-full">
             <div id="progress" style="width: 0%"></div>
         </div>
@@ -112,7 +172,7 @@
         </header>
 
         <header class="space-y-1 no-print flex justify-between items-center">
-            <h1 class="text-3xl font-extrabold text-gray-900">仙人指路｜神獸七十二型人格 (V9.4)</h1>
+            <h1 class="text-3xl font-extrabold text-gray-900">仙人指路｜神獸七十二型人格 (V10.0)</h1>
             <button id="openSettings" class="p-3 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors shadow-md">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -249,7 +309,7 @@
                     <div class="flex items-center gap-2">
                         <label for="modelSelect" class="font-medium">分析模型:</label>
                         <select id="modelSelect" class="p-1 border rounded-lg text-sm bg-white shadow-sm">
-                            <option value="gpt-3.5-turbo">gpt-3.5-turbo (極速推薦)</option>
+                            <option value="gpt-3.5-turbo">gpt-3.5-turbo (極速鎖定)</option>
                         </select>
                     </div>
                 </div>
@@ -308,7 +368,7 @@
         const SEX_CONTEXTS = ['性愛'];
 
 
-        // --- 進度條控制函式 (V9.4: 視覺加速) ---
+        // --- 進度條控制函式 (V10.0: 回到平穩動畫，強調冷啟動) ---
         let progressInterval = null;
         function startProgressBar() {
             if (progressInterval) clearInterval(progressInterval);
@@ -320,37 +380,24 @@
             
             fixedContainer.classList.add('active'); 
             progress.style.width = '10%'; 
-            status.textContent = '等待伺服器喚醒...';
+            status.textContent = '等待伺服器喚醒 (冷啟動)...';
             subStatus.textContent = '首次啟動 Vercel 伺服器約需 5-15 秒，請稍候。'; // 明確提示冷啟動
             
             let currentProgress = 10;
             
-            // 冷啟動模擬：前 10 秒進度較慢
-            let slowPhase = true;
-            let totalTime = 0;
-
             progressInterval = setInterval(() => {
-                totalTime += 500;
-                
-                if (slowPhase && totalTime < 10000) { 
-                    // 前 10 秒進度緩慢，模擬冷啟動
-                    currentProgress += 1;
-                    if (currentProgress >= 30) { 
-                        slowPhase = false;
-                        status.textContent = 'AI 核心分析中...';
-                        subStatus.textContent = 'AI 正在極速寫作報告 (已選用 gpt-3.5-turbo)。';
-                    }
-                } else if (currentProgress < 90) {
-                    // 進入輸出階段，速度加快
-                    currentProgress += Math.floor(Math.random() * 5) + 3; // 視覺上跑得更快
+                if (currentProgress < 90) {
+                    currentProgress += Math.floor(Math.random() * 2) + 1; // 隨機增加
                     currentProgress = Math.min(currentProgress, 90);
-                } else {
-                    // 接近完成
-                    currentProgress = 95;
-                    status.textContent = '數據整理與格式化...';
+                    progress.style.width = currentProgress + '%';
+                    
+                    if (currentProgress > 30 && status.textContent.includes('喚醒')) {
+                        status.textContent = 'AI 核心分析中...';
+                        subStatus.textContent = '正在使用 gpt-3.5-turbo 生成報告...';
+                    } else {
+                        status.textContent = `分析中... (${currentProgress}%)`;
+                    }
                 }
-                
-                progress.style.width = currentProgress + '%';
             }, 500); 
         }
 
@@ -371,11 +418,11 @@
                 status.textContent = '✅ 分析完成！';
                 subStatus.textContent = '報告已在下方顯示。';
             } else {
-                status.textContent = `❌ 分析失敗: ${errorDetail}`;
-                subStatus.textContent = '請檢查網路連線或 API Key。';
+                status.textContent = `❌ 分析失敗`;
+                subStatus.textContent = `錯誤詳情: ${errorDetail}。請檢查 Vercel logs。`;
             }
 
-            // 保持顯示 3 秒後隱藏
+            // 保持顯示 4 秒後隱藏
             setTimeout(() => {
                 fixedContainer.classList.remove('active');
                 progress.style.width = '0%';
@@ -385,7 +432,7 @@
         }
         // --- 進度條控制函式結束 ---
 
-        // --- 模式切換邏輯 (保持不變) ---
+        // --- 模式切換邏輯 (保持 V9.0 的穩定功能) ---
         function setAnalysisMode(mode){
             analysisMode = mode;
             const modes = {
@@ -449,7 +496,7 @@
                 aBeast:$('#aBeast').value, aKin:$('#aKin').value, aBranch:$('#aBranch').value,
                 bBeast:$('#bBeast').value, bKin:$('#bKin').value, bBranch:$('#bBranch').value,
                 context:$('#context').value, sexDetail:$('#sexDetailInput').value,
-                // V9.4: 雖然設定頁面只剩 turbo，但這裡還是讀取，確保靈活性
+                // V10.0: 雖然設定頁面只剩 turbo，但還是讀取，確保靈活性
                 model:$('#modelSelect').value 
             };
         }
@@ -488,8 +535,8 @@
                 
                 $('#context').value = data.context || '';
                 $('#sexDetailInput').value = data.sexDetail || '';
-                // V9.4: 如果載入的是舊的 4o-mini，也強制轉成 3.5-turbo
-                $('#modelSelect').value = data.model === 'gpt-4o-mini' ? 'gpt-3.5-turbo' : data.model || 'gpt-3.5-turbo';
+                // V10.0: 如果載入的不是 turbo，強制轉成 turbo
+                $('#modelSelect').value = 'gpt-3.5-turbo';
 
                 toggleSexOptions(); 
 
@@ -538,7 +585,7 @@
         }
 
 
-        // --- 格式化輸出函式 (保持不變) ---
+        // --- 格式化輸出函式 (保持 V9.0 的穩定功能) ---
         function formatOutput(text){
             if(!text) return {html:'<p class="text-slate-500">無分析結果。</p>', scores:null, tags:[]};
             
@@ -587,7 +634,7 @@
             return {html: html, scores, tags, webScoresHTML: scoresHTML};
         }
 
-        // --- 圖表繪製核心函式 (保持不變) ---
+        // --- 圖表繪製核心函式 (保持 V9.0 的穩定功能) ---
         function renderChart(scores, type){
             const wrap = $('#chartContainer');
             const scoresTagsWeb = $('#scoresTagsWeb');
@@ -765,8 +812,8 @@
             // 核心邏輯：一鍵分析 (呼叫 Vercel Serverless Function)
             $('#go').onclick = async () => {
                 const payload = getPayload();
-                // V9.4: 模型被強制鎖定在 gpt-3.5-turbo，但還是從 payload 讀取以確保一致性
-                const model = payload.model || 'gpt-3.5-turbo'; 
+                // 鎖定 gpt-3.5-turbo 確保速度
+                const model = 'gpt-3.5-turbo'; 
                 let errorMessage = '';
                 
                 const aComplete = payload.aBeast && payload.aKin && payload.aBranch;
@@ -821,9 +868,9 @@
                 } catch (e) { 
                     const errorMsg = e.message || e;
                     console.error("API 調用或解析失敗:", errorMsg);
-                    $('#result').innerHTML=`<p class="text-red-600">❌ **分析失敗**：${errorMsg}。</p><p class="text-sm text-slate-500">請確認您的網路狀況，或檢查 Vercel logs。</p>`; 
+                    $('#result').innerHTML=`<p class="text-red-600">❌ **分析失敗**：${errorMsg}。</p><p class="text-sm text-slate-500">請確認您的網路狀況、OpenAI API Key 狀態，或檢查 Vercel logs。</p>`; 
                     renderChart(null, currentChartType);
-                    stopProgressBar(false, '網路或伺服器錯誤');
+                    stopProgressBar(false, errorMsg);
                 }
             };
 
@@ -843,13 +890,13 @@
             };
         });
         
-        // --- 根據模式生成 OpenAI 專屬指令 Prompt (保持不變) ---
+        // --- 根據模式生成 OpenAI 專屬指令 Prompt (保持穩定要求) ---
         function generateOpenAIPrompt(payload) {
             const { mode, aBeast, aKin, aBranch, bBeast, bKin, bBranch, context, sexDetail } = payload;
             const detailA = `${aBeast} ${aKin} ${aBranch}`;
             const detailB = `${bBeast} ${bKin} ${bBranch}`;
             
-            // V9.2: 字數要求保持在 600 字以上，以加快速度
+            // 字數要求維持在 600 字以上
             let prompt = `請針對以下參數進行專業、深入的『神獸七十二型人格』分析。報告必須詳細，**長度請超過 600 字**，並包含具體、可操作的建議。報告必須用 Markdown 格式呈現，並在結尾嚴格輸出一個 JSON 區塊。
 
 ---

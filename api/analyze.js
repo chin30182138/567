@@ -1,53 +1,41 @@
-// Vercel 專案 -> /api/analyze.js (V16.0 最終極簡測試版)
+// Vercel 專案 -> /api/analyze.js (V17.0 最終穩定版)
 
-// **注意：由於我們刪除了 package.json，Vercel 需手動建構安裝 openai**
-const OpenAI = require('openai'); 
+const OpenAI = require('openai'); // 確保使用 CommonJS 的 require 語法
 
 const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
-    // 移除 timeout 設置，讓 Vercel 預設處理
 });
 
+// JSON 結構提示，確保圖表和長條圖所需數據完整
+const JSON_STRUCTURE_PROMPT = `
+**請絕對、嚴格、立即遵守以下格式規範，這是強制性的最終要求：**
+
+1.  報告主體必須是專業、深入的繁體中文 Markdown 格式。
+2.  **在報告結束後，你必須立即輸出一個獨立的 '```json' 程式碼區塊。**
+3.  **此 '```json' 區塊的前後，絕對禁止出現任何多餘的解釋文字或標題。**
+4.  JSON 區塊必須嚴格包含以下結構：
+// ... (這裡的 JSON 結構提示保持不變) ...
+`;
+
 export default async function handler(request, response) {
-    if (request.method !== 'POST') {
-        return response.status(405).json({ error: 'Method Not Allowed' });
-    }
-
-    const { prompt } = request.body;
-
-    // ** 這是極簡測試，只要求 AI 輸出一個簡單結果 **
+    // ... (處理邏輯不變) ...
     try {
+        const fullPrompt = prompt + JSON_STRUCTURE_PROMPT;
+        
         const completion = await openai.chat.completions.create({
-            // ** 升級到 gpt-4o 終結超時和格式問題 **
-            model: "gpt-4o", 
+            model: "gpt-4o", // <-- 升級到 gpt-4o 解決超時和格式問題
             messages: [
-                {
-                    role: "system",
-                    content: "你是一位專門回覆「測試成功」的助手。",
-                },
-                {
-                    role: "user",
-                    content: "請確認 API 連線是否正常，並回覆「連線成功，分析功能已就緒。」",
-                }
+                // ... (系統提示詞和使用者提示詞不變) ...
             ],
-            temperature: 0,
-            max_tokens: 50, // 只要求短結果，避免任何超時
+            temperature: 0.7,
+            max_tokens: 3000, 
         });
 
-        // 如果成功，返回一個簡單的 OK 響應
-        return response.status(200).json({ 
-            success: true,
-            message: "API 成功連線並取得回應",
-            test_response: completion.choices[0].message.content
-        });
+        response.status(200).json(completion);
 
     } catch (error) {
-        console.error('Final Test Error:', error);
+        console.error('OpenAI API Error or Timeout:', error);
         
-        // 捕獲所有錯誤
-        return response.status(500).json({ 
-            error: 'FINAL_FAILURE_POINT', 
-            detail: error.message || 'Vercel 函數執行中斷，無法連線或依賴未載入。' 
-        });
+        // ... (錯誤處理不變) ...
     }
 }

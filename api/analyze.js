@@ -1,7 +1,7 @@
 // Vercel 專案 -> /api/analyze.js
-// V12.4 最終修正：強制要求 AI 輸出 JSON 結構，確保介面圖表能繪製。
+// V12.9 穩定版：使用 require 引入 openai，並確保 Vercel 能正確安裝依賴。
 
-import { OpenAI } from 'openai';
+const OpenAI = require('openai'); // <-- 確保是 require 語法
 
 // 確保 Vercel 環境變數中 OPENAI_API_KEY 已設定
 const openai = new OpenAI({

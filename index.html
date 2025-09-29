@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>仙人指路神獸七十二型人格 - 分析報告 (V10.0)</title>
+    <title>仙人指路神獸七十二型人格 - 分析報告 (V10.3)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
@@ -41,6 +41,7 @@
             display: none;
             flex-direction: column;
             align-items: center;
+            min-width: 350px; /* 增加最小寬度，讓提示文字更清晰 */
         }
         #statusContainerFixed.active {
             display: flex;
@@ -172,7 +173,7 @@
         </header>
 
         <header class="space-y-1 no-print flex justify-between items-center">
-            <h1 class="text-3xl font-extrabold text-gray-900">仙人指路｜神獸七十二型人格 (V10.0)</h1>
+            <h1 class="text-3xl font-extrabold text-gray-900">仙人指路｜神獸七十二型人格 (V10.3)</h1>
             <button id="openSettings" class="p-3 rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200 transition-colors shadow-md">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
@@ -368,7 +369,7 @@
         const SEX_CONTEXTS = ['性愛'];
 
 
-        // --- 進度條控制函式 (V10.0: 回到平穩動畫，強調冷啟動) ---
+        // --- 進度條控制函式 (V10.3: 優化提示，強調等待 Vercel 冷啟動) ---
         let progressInterval = null;
         function startProgressBar() {
             if (progressInterval) clearInterval(progressInterval);
@@ -380,8 +381,8 @@
             
             fixedContainer.classList.add('active'); 
             progress.style.width = '10%'; 
-            status.textContent = '等待伺服器喚醒 (冷啟動)...';
-            subStatus.textContent = '首次啟動 Vercel 伺服器約需 5-15 秒，請稍候。'; // 明確提示冷啟動
+            status.textContent = '🟡 正在喚醒 Vercel 伺服器 (冷啟動)...';
+            subStatus.textContent = '這一步最容易超時，請稍候 5-15 秒。'; // 明確提示冷啟動
             
             let currentProgress = 10;
             
@@ -392,7 +393,7 @@
                     progress.style.width = currentProgress + '%';
                     
                     if (currentProgress > 30 && status.textContent.includes('喚醒')) {
-                        status.textContent = 'AI 核心分析中...';
+                        status.textContent = '🟢 AI 核心分析中...';
                         subStatus.textContent = '正在使用 gpt-3.5-turbo 生成報告...';
                     } else {
                         status.textContent = `分析中... (${currentProgress}%)`;
@@ -419,7 +420,7 @@
                 subStatus.textContent = '報告已在下方顯示。';
             } else {
                 status.textContent = `❌ 分析失敗`;
-                subStatus.textContent = `錯誤詳情: ${errorDetail}。請檢查 Vercel logs。`;
+                subStatus.textContent = `錯誤詳情: ${errorDetail}。 (可能是 Vercel 超時或 Key 問題)`;
             }
 
             // 保持顯示 4 秒後隱藏
@@ -496,7 +497,6 @@
                 aBeast:$('#aBeast').value, aKin:$('#aKin').value, aBranch:$('#aBranch').value,
                 bBeast:$('#bBeast').value, bKin:$('#bKin').value, bBranch:$('#bBranch').value,
                 context:$('#context').value, sexDetail:$('#sexDetailInput').value,
-                // V10.0: 雖然設定頁面只剩 turbo，但還是讀取，確保靈活性
                 model:$('#modelSelect').value 
             };
         }
@@ -585,23 +585,49 @@
         }
 
 
-        // --- 格式化輸出函式 (保持 V9.0 的穩定功能) ---
+        // --- 格式化輸出函式 (V10.3: 增強 JSON 解析的健壯性) ---
         function formatOutput(text){
             if(!text) return {html:'<p class="text-slate-500">無分析結果。</p>', scores:null, tags:[]};
             
-            const jsonBlock = text.match(/```json\s*([\s\S]*?)\s*```/i);
+            // 修正 JSON 提取邏輯，嘗試多種常見的 JSON 格式
+            let jsonBlock = text.match(/```json\s*([\s\S]*?)\s*```/i);
+            if (!jsonBlock) {
+                // 嘗試沒有語言標籤的 ``` 區塊
+                jsonBlock = text.match(/```\s*([\s\S]*?)\s*```/i);
+            }
+            if (!jsonBlock) {
+                // 嘗試從結尾尋找 { ... }
+                const potentialJson = text.substring(text.lastIndexOf('{'), text.lastIndexOf('}') + 1).trim();
+                if (potentialJson && (potentialJson.startsWith('{') || potentialJson.startsWith('['))) {
+                    jsonBlock = [null, potentialJson];
+                }
+            }
+
+
             let scores=null,tags=[];
             let cleanText = text; 
             
             if(jsonBlock){
                 try{ 
-                    const j=JSON.parse(jsonBlock[1]); 
+                    let jsonString = jsonBlock[1].trim();
+                    // V10.3 健壯性：移除多餘的 Markdown 註釋
+                    jsonString = jsonString.replace(/^json\s*/i, '');
+                    
+                    const j=JSON.parse(jsonString); 
                     scores=j.scores||{}; 
                     tags=Array.isArray(j.tags) ? j.tags : Object.values(j.tags || {}).flat().filter(t => typeof t === 'string' && t.trim() !== '');
                     
-                    cleanText = text.replace(jsonBlock[0],'').trim(); 
+                    // 確保只移除找到的 JSON 區塊
+                    if (jsonBlock[0]) {
+                        cleanText = text.replace(jsonBlock[0],'').trim();
+                    } else if (jsonBlock[1] === potentialJson) {
+                         cleanText = text.replace(potentialJson,'').trim();
+                    }
+                     
                 }catch(e){
-                    console.error("JSON解析失敗", e);
+                    console.error("JSON解析失敗，可能 AI 輸出的 JSON 格式有誤:", e);
+                    // 如果解析失敗，則在報告中顯示錯誤
+                    cleanText = cleanText + `\n\n**[警告: JSON 解析失敗]** 無法繪製圖表或顯示分數條。原始錯誤: ${e.message}`;
                 }
             }
             
@@ -648,7 +674,12 @@
 
             if(analysisMode !== 'dual' || !scores || Object.keys(scores).length === 0) {
                  wrap.innerHTML = '<p class="text-slate-500 text-center text-sm p-4">圖表只在**雙人分析**模式中根據 AI 提供的 JSON 分數繪製。</p>';
-                 scoresTagsWeb.innerHTML = '<p class="text-slate-500">選擇六獸、六親、地支和情境後，點擊「一鍵分析」開始。</p>';
+                 if(analysisMode === 'dual') {
+                    // 雙人模式但沒有分數，提示可能解析失敗
+                    scoresTagsWeb.innerHTML = '<p class="text-red-500 font-bold">⚠️ 雙人模式分析完成，但未成功解析到六維度分數 (JSON 格式可能有誤)。</p>';
+                 } else {
+                    scoresTagsWeb.innerHTML = '<p class="text-slate-500">選擇六獸、六親、地支和情境後，點擊「一鍵分析」開始。</p>';
+                 }
                  chartTypeSelector.style.display = 'none';
                  return;
             }
@@ -812,7 +843,6 @@
             // 核心邏輯：一鍵分析 (呼叫 Vercel Serverless Function)
             $('#go').onclick = async () => {
                 const payload = getPayload();
-                // 鎖定 gpt-3.5-turbo 確保速度
                 const model = 'gpt-3.5-turbo'; 
                 let errorMessage = '';
                 

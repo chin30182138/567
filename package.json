@@ -1,7 +1,7 @@
 {
   "name": "ai-analysis-app",
   "version": "1.0.0",
-  "description": "AI analysis tool",
+  "description": "AI analysis tool for Vercel",
   "main": "index.html",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"

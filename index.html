@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>仙人指路神獸七十二型人格 - 分析報告 (V12.3 最終穩定版)</title>
+    <title>仙人指路神獸七十二型人格 - 分析報告 (V12.5 JSON 容錯強化)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
@@ -84,6 +84,15 @@
         #modeSingle, #modeDual, #modePersonality {
             transition: all 0.3s ease;
         }
+
+        .error-message {
+            color: #ef4444; /* red-500 */
+            background-color: #fef2f2; /* red-50 */
+            border: 1px solid #fca5a5; /* red-300 */
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
@@ -94,8 +103,8 @@
         </header>
 
         <header class="space-y-1 no-print">
-            <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 (V12.3 最終版)</h1>
-            <p class="text-slate-500 text-sm">支援個性分析、人際分析與性愛劇本｜**介面與圖表已全面恢復**</p>
+            <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 (V12.5 JSON 容錯強化)</h1>
+            <p class="text-slate-500 text-sm">支援個性分析、人際分析與性愛劇本｜**已大幅強化圖表數據解析**</p>
         </header>
 
         <div class="flex gap-4 flex-wrap no-print">
@@ -216,7 +225,8 @@
                         <button id="chartBarBtn" data-type="bar">長條圖</button>
                     </div>
                     <div id="chartContainer" class="flex justify-center items-center" style="min-height: 280px;">
-                        </div>
+                        <div id="chartPlaceholder" class="text-center text-slate-500 p-4">圖表只在**雙人分析**模式中，根據 AI 提供的 **JSON** 分數繪製。</div>
+                    </div>
                 </div>
                 
                 <div id="scoresTagsWeb" class="md:col-span-2">
@@ -296,6 +306,7 @@
             const scoresTagsWeb = $('#scoresTagsWeb');
             const chartTypeSelector = $('.chart-type-selector');
             const chartContainer = $('#chartContainer');
+            const chartPlaceholder = $('#chartPlaceholder');
 
 
             Object.keys(modes).forEach(key => {
@@ -310,15 +321,18 @@
 
             sectionB.style.display = (mode === 'dual') ? 'block' : 'none';
             
-            // 恢復圖表/分數/標籤區塊的隱藏邏輯
-            if (mode !== 'dual') {
-                scoresTagsWeb.style.display = 'block'; // 保持顯示，但內容會在 run 之後清空
-                chartContainer.style.display = 'none';
-                chartTypeSelector.style.display = 'none';
-            } else {
-                scoresTagsWeb.style.display = 'block';
+            // 恢復圖表/分數/標籤區塊的顯示邏輯
+            if (mode === 'dual') {
                 chartContainer.style.display = 'flex';
+                chartPlaceholder.style.display = 'block'; 
                 chartTypeSelector.style.display = 'flex';
+            } else {
+                // 非雙人模式，不顯示圖表切換和預留的圖表位置
+                if(radarChart) radarChart.destroy();
+                chartContainer.style.display = 'flex';
+                chartPlaceholder.style.display = 'block'; 
+                chartPlaceholder.textContent = '此模式不提供六維度圖表。';
+                chartTypeSelector.style.display = 'none';
             }
             
             loadPresets(mode);
@@ -366,7 +380,7 @@
             };
         }
         
-        // --- V10.3 健壯 JSON 解析函式 (已確認穩定) ---
+        // --- V12.5 強化 JSON 解析函式 ---
         function formatOutput(text) {
             if (!text) return { html: '<p class="text-slate-500">無分析結果。</p>', scores: null, tags: [] };
 
@@ -375,38 +389,47 @@
             let jsonText = null;
             let cleanText = text;
 
-            // 1. 嘗試標準的 ```json 區塊提取
+            // 1. 優先嘗試標準的 ```json 區塊提取
             const matchJsonBlock = text.match(/```json\s*([\s\S]*?)\s*```/i);
             if (matchJsonBlock && matchJsonBlock[1]) {
                 jsonText = matchJsonBlock[1].trim();
                 cleanText = text.replace(matchJsonBlock[0], '').trim();
             }
 
-            // 2. 嘗試提取文本中最後一個大括號 {} 區塊 (備用)
+            // 2. 如果沒有找到 ```json，則嘗試尋找第一個完整的大括號 {} 區塊
             if (!jsonText) {
-                const matchLastCurly = text.match(/\{[\s\S]*\}\s*$/); 
-                if (matchLastCurly) {
-                    jsonText = matchLastCurly[0].trim();
-                    cleanText = text.replace(matchLastCurly[0], '').trim(); 
-                }
-            }
-            
-            // 3. 嘗試從報告文字中提取第一個找到的 { ... } (最終備用)
-            if (!jsonText) {
+                // 尋找第一個 '{' 到最後一個 '}' 的區塊
                 const matchAnyCurly = text.match(/\{[\s\S]*\}/);
                 if (matchAnyCurly) {
                     jsonText = matchAnyCurly[0].trim();
+                    // 嘗試從文本中移除找到的 JSON 區塊
+                    cleanText = text.replace(jsonText, '').trim(); 
                 }
             }
             
             // 解析 JSON 數據
             if (jsonText) {
                 try {
-                    const j = JSON.parse(jsonText);
+                    // 嘗試清理常見的 JSON 格式錯誤
+                    let cleanJson = jsonText.replace(/\/\/.*|\/\*[\s\S]*?\*\/|,\s*\}/g, '').trim(); // 移除註釋和末尾多餘逗號
+
+                    const j = JSON.parse(cleanJson);
                     scores = j.scores || {};
                     tags = Array.isArray(j.tags) ? j.tags : Object.values(j.tags || {}).flat().filter(t => typeof t === 'string' && t.trim() !== '');
+
+                    // 如果 scores 是空對象，則嘗試在頂層查找 'fit' 等屬性（兼容錯誤輸出的結構）
+                    if (Object.keys(scores).length === 0) {
+                         const potentialScores = {};
+                         ['fit', 'comm', 'pace', 'account', 'trust', 'innov'].forEach(key => {
+                             if(j[key] !== undefined) potentialScores[key] = j[key];
+                         });
+                         if(Object.keys(potentialScores).length > 0) scores = potentialScores;
+                    }
+                    
                 } catch (e) {
                     console.error("JSON 解析失敗 (請檢查 AI 輸出格式是否包含有效 JSON):", e);
+                    // 設置一個錯誤標記，讓前端知道解析失敗
+                    scores = { error: true, message: e.message }; 
                 }
             }
 
@@ -419,7 +442,7 @@
                      .replace(/<p>\s*<\/p>/gi, '');
 
             let scoresHTML = '';
-            if (scores && Object.keys(scores).length > 0) {
+            if (scores && Object.keys(scores).length > 0 && !scores.error) {
                 const clamp = v => Math.max(0, Math.min(100, Number(v) || 0));
                 const row = (l, k, c) => `<div class="score"><b>${l}</b><div class="bar"><i style="width:${clamp(scores[k])}%;background:${c}"></i></div><em>${clamp(scores[k])}</em></div>`;
 
@@ -435,7 +458,11 @@
                     </div>`;
 
                 if (Array.isArray(tags) && tags.length > 0) scoresHTML += `<div class="tags">${tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>`;
+            } else if (scores && scores.error) {
+                scoresHTML = `<div class="error-message">⚠️ **雙人模式分析完成，但未成功解析到六維度分數 (JSON 格式可能有誤)**<br>請檢查您的 Vercel Log 或 AI 輸出是否符合 JSON 結構。</div>`;
+                tags = []; // 確保不顯示空標籤
             }
+
 
             return { html: html, scores, tags, webScoresHTML: scoresHTML };
         }
@@ -443,24 +470,34 @@
         // --- 圖表繪製核心函式 (已恢復雷達/長條圖切換邏輯) ---
         function renderChart(scores, type){
             const wrap = $('#chartContainer');
-            const scoresTagsWeb = $('#scoresTagsWeb');
             const chartTypeSelector = $('.chart-type-selector');
+            const chartPlaceholder = $('#chartPlaceholder');
             
             if(radarChart) {
                 radarChart.destroy();
                 radarChart = null;
             }
-            wrap.innerHTML = ''; 
+            // 清空畫布，準備繪製
+            wrap.innerHTML = '<div id="chartPlaceholder" class="text-center text-slate-500 p-4"></div>'; 
+            chartPlaceholder.id = 'chartPlaceholder_temp'; // 臨時 ID
 
-            // 個性/單人模式隱藏圖表，但顯示分數條
-            if(analysisMode !== 'dual' || !scores || Object.keys(scores).length === 0) {
-                 wrap.style.display = 'none';
+            
+            const isDual = analysisMode === 'dual';
+            const hasValidScores = scores && Object.keys(scores).length === 6 && !scores.error;
+
+            if(!isDual || !hasValidScores) {
+                 // 雙人模式但解析失敗，或非雙人模式
+                 const msg = isDual && scores && scores.error 
+                     ? '⚠️ JSON 解析失敗，無法繪製圖表。'
+                     : '圖表只在**雙人分析**模式中，根據 AI 提供的 **JSON** 分數繪製。';
+                 
+                 wrap.innerHTML = `<div id="chartPlaceholder" class="text-center text-slate-500 p-4">${msg}</div>`;
                  chartTypeSelector.style.display = 'none';
                  return;
             }
             
-            // 雙人模式顯示圖表
-            wrap.style.display = 'flex';
+            // 雙人模式且有有效分數，開始繪圖
+            wrap.innerHTML = '';
             chartTypeSelector.style.display = 'flex';
 
             currentScores = scores; 
@@ -608,7 +645,7 @@
             };
             updateBackground(); 
 
-            // V12.3 核心邏輯：正確呼叫 API (與 V12.2 相同)
+            // V12.5 核心邏輯：正確呼叫 API (與 V12.2 相同)
             $('#go').onclick = async () => {
                 const payload = getPayload();
                 let errorMessage = '';
@@ -619,7 +656,7 @@
                 if (!aComplete) { errorMessage = '請選滿我方「六獸、六親、地支」'; }
                 else if (payload.mode === 'dual' && !bComplete) { errorMessage = '雙人分析請選滿對方「六獸、六親、地支」'; }
                 else if (payload.mode !== 'personality' && !payload.context) { errorMessage = '請輸入或選擇情境'; }
-                else if (payload.context === '性愛' && !payload.sexDetail) { errorMessage = '您選擇了性愛情境，請點選或輸入細節按鈕，以供 AI 參考建議。'; }
+                else if (payload.context === '性愛' && payload.mode === 'dual' && !payload.sexDetail) { errorMessage = '您選擇了性愛情境，請點選或輸入細節按鈕，以供 AI 參考建議。'; }
 
                 if (errorMessage) { alert(errorMessage); return; }
 
@@ -644,7 +681,7 @@
 
                 promptText += `分析情境/主題: ${payload.context || '基礎個性'}\n`;
 
-                if (payload.context === '性愛' && payload.sexDetail) {
+                if (payload.context === '性愛' && payload.mode === 'dual' && payload.sexDetail) {
                     promptText += `性愛劇本細節要求: ${payload.sexDetail}\n`;
                 }
 
@@ -660,7 +697,17 @@
                         })
                     });
 
-                    const data = await response.json();
+                    // 嘗試解析 JSON 響應
+                    let data;
+                    try {
+                        data = await response.json();
+                    } catch (e) {
+                         // 如果不是有效的 JSON，說明 Vercel 後端可能出錯 (例如，API 丟出 HTML 錯誤頁)
+                         const rawText = await response.text(); 
+                         $('#result').innerHTML = `<h3 class="text-red-600">❌ 網路連接或伺服器錯誤</h3><p>無法解析 Vercel API 響應為 JSON。這通常是 Vercel 伺服器錯誤或超時，請檢查 Vercel Logs。</p><p class="text-xs text-slate-500">原始響應：${rawText.substring(0, 100)}...</p>`;
+                         stopProgressBar(false);
+                         return;
+                    }
 
                     if (!response.ok || data.error) {
                         const errorMsg = data.detail || data.error || '未知 API 錯誤';
@@ -678,13 +725,13 @@
                         return;
                     }
 
-                    // --- 使用健壯解析邏輯處理結果 ---
+                    // --- 使用強化解析邏輯處理結果 ---
                     const { html, scores, tags, webScoresHTML } = formatOutput(rawText);
 
                     $('#result').innerHTML = html;
                     $('#webScoresAndTags').innerHTML = webScoresHTML;
 
-                    // 繪製圖表 (如果 scores 存在)
+                    // 繪製圖表 (如果 scores 存在且無錯誤)
                     renderChart(scores, currentChartType);
                     
                     stopProgressBar(true); // 成功完成

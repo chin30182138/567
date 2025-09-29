@@ -1,7 +1,7 @@
 // Vercel 專案 -> /api/analyze.js
-// V12.9 穩定版：使用 require 引入 openai，並確保 Vercel 能正確安裝依賴。
+// V13.4 最終穩定版：使用 require 引入 openai，並強化 JSON 提示詞。
 
-const OpenAI = require('openai'); // <-- 確保是 require 語法
+const OpenAI = require('openai'); 
 
 // 確保 Vercel 環境變數中 OPENAI_API_KEY 已設定
 const openai = new OpenAI({
@@ -10,7 +10,11 @@ const openai = new OpenAI({
 
 // JSON 結構提示，確保圖表和長條圖所需數據完整
 const JSON_STRUCTURE_PROMPT = `
-你必須在深度分析報告的最後，以一個獨立的 '```json' 程式碼區塊輸出以下結構的 JSON 物件。這個 JSON 結構是強制性的，必須嚴格遵守：
+**請嚴格遵守以下格式規範，這是強制性的：**
+
+1.  報告主體必須是專業、深入的繁體中文 Markdown 格式。
+2.  **報告的最後一個部分，且前後不能有任何額外解釋文字，必須是一個獨立的 '```json' 程式碼區塊。**
+3.  這個 JSON 區塊必須嚴格包含以下結構：
 
 {
   "scores": {
@@ -27,9 +31,6 @@ const JSON_STRUCTURE_PROMPT = `
     "性格或情境的關鍵詞3"
   ]
 }
-
-- 報告主體必須是專業、深入的繁體中文 Markdown 格式。
-- JSON 區塊必須是報告的最後一個部分，並且前後不能有額外解釋文字。
 `;
 
 export default async function handler(request, response) {

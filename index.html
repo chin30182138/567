@@ -979,7 +979,88 @@ ${sexDetail ? `- **性愛細節/偏好**: ${sexDetail}` : ''}
 `;
             return prompt;
         }
+// index.html - 最終 JSON 解析邏輯 (V12.0 配合後端強制 JSON)
 
+/**
+ * 根據使用的模型，從 AI 響應資料中提取 JSON 物件。
+ * * @param {Object} aiResponseData - 從 Vercel 代理收到的完整響應 JSON 物件。
+ * @param {string} modelUsed - 伺服器實際使用的模型名稱 (例如 'gpt-4-turbo')。
+ * @returns {Object|null} 解析出的六維度分數 JSON 物件，或 null。
+ */
+const extractJsonFromResponse = (aiResponseData, modelUsed) => {
+    // 檢查響應結構是否存在
+    if (!aiResponseData || !aiResponseData.choices || aiResponseData.choices.length === 0) {
+        console.error("AI 響應資料結構不完整或為空。");
+        return null;
+    }
+    
+    // 獲取模型輸出的文本內容
+    const responseText = aiResponseData.choices[0].message.content;
+
+    // =========================================================
+    // 1. V12.0 修正：優先解析嚴格 JSON 模式（針對 GPT-4-Turbo 或 GPT-4o）
+    // =========================================================
+    
+    // 請確保這裡的模型名稱與您在 api/analyze.js 中鎖定的 FINAL_MODEL 一致！
+    if (modelUsed === 'gpt-4-turbo' || modelUsed === 'gpt-4o') { 
+        try {
+            // 後端 V12.0 強制只輸出純 JSON，所以直接嘗試解析整個文本
+            const jsonText = responseText.trim();
+            
+            // 由於嚴格 JSON 模式下沒有 Markdown 區塊，直接解析即可
+            const finalJson = JSON.parse(jsonText); 
+            
+            console.log("成功使用 V12.0 嚴格 JSON 模式解析。");
+            return finalJson; 
+        } catch (e) {
+            console.error("V12.0 嚴格 JSON 解析失敗（但後端應已鎖定 JSON 模式）：", e);
+            // 雖然理論上不應該失敗，但如果失敗，則繼續嘗試舊的提取邏輯，以防萬一
+        }
+    }
+
+    // =========================================================
+    // 2. 舊邏輯：從 Markdown 報告中提取 JSON 區塊 (作為後備)
+    // =========================================================
+    
+    // 這是原本健壯的邏輯，用於從長篇 Markdown 報告中提取 ```json...```
+    const jsonMatch = responseText.match(/```json\s*([\s\S]*?)\s*```/i);
+    
+    if (jsonMatch && jsonMatch[1]) {
+        try {
+            const finalJson = JSON.parse(jsonMatch[1].trim());
+            console.log("成功使用舊的 Markdown 提取邏輯解析。");
+            return finalJson;
+        } catch (e) {
+            console.error("Markdown JSON 區塊解析失敗:", e);
+        }
+    }
+    
+    // 如果所有方法都失敗，則返回 null
+    console.warn("未能從 AI 響應中解析出有效的六維度分數 JSON。");
+    return null; 
+};
+
+// ...
+// 備註：您需要在 index.html 的主函數中調用這個 extractJsonFromResponse 函數。
+// 範例調用 (您需要找到您的 AJAX 或 Fetch 成功後的部分)：
+/*
+fetch('/api/analyze', { ... })
+    .then(response => response.json())
+    .then(data => {
+        const modelUsed = data.model || 'gpt-4-turbo'; // 從響應中獲取實際模型或使用預設
+        const scoreData = extractJsonFromResponse(data, modelUsed);
+        
+        if (scoreData) {
+            // 成功：繪製圖表
+        } else {
+            // 失敗：顯示錯誤訊息
+        }
+    })
+    .catch(error => {
+        // 處理網路錯誤
+    });
+*/
     </script>
 </body>
 </html>
+

@@ -1,41 +1,61 @@
-// Vercel 專案 -> /api/analyze.js (V17.0 最終穩定版)
 
-const OpenAI = require('openai'); // 確保使用 CommonJS 的 require 語法
+// api/analyze.js - V35.0 最終穩定版 (使用 OpenAI 官方 SDK)
+
+// 導入 OpenAI SDK
+const OpenAI = require('openai'); 
+
+// 確保 Vercel 環境變數中 OPENAI_API_KEY 已設定 (兼容 GEMINI_API_KEY)
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || process.env.GEMINI_API_KEY; 
+const FINAL_MODEL = 'gpt-3.5-turbo'; 
 
 const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
+    apiKey: OPENAI_API_KEY, 
 });
 
-// JSON 結構提示，確保圖表和長條圖所需數據完整
-const JSON_STRUCTURE_PROMPT = `
-**請絕對、嚴格、立即遵守以下格式規範，這是強制性的最終要求：**
+const SYSTEM_PROMPT = "你是一位精通中國古代《神獸七十二型人格》理論的資深分析師。你的任務是根據用戶提供的『六獸-六親-地支』組合和情境，輸出深度且具體的分析報告。報告必須專業、嚴謹，並且字數至少 800 字。";
 
-1.  報告主體必須是專業、深入的繁體中文 Markdown 格式。
-2.  **在報告結束後，你必須立即輸出一個獨立的 '```json' 程式碼區塊。**
-3.  **此 '```json' 區塊的前後，絕對禁止出現任何多餘的解釋文字或標題。**
-4.  JSON 區塊必須嚴格包含以下結構：
-// ... (這裡的 JSON 結構提示保持不變) ...
-`;
+export default async function handler(req, res) {
+    if (req.method !== 'POST') {
+        return res.status(405).json({ error: 'Method Not Allowed' });
+    }
 
-export default async function handler(request, response) {
-    // ... (處理邏輯不變) ...
+    if (!OPENAI_API_KEY) {
+        return res.status(500).json({ error: 'Server configuration error: OPENAI_API_KEY is missing.' });
+    }
+
     try {
-        const fullPrompt = prompt + JSON_STRUCTURE_PROMPT;
+        const { prompt } = req.body;
+
+        if (!prompt) {
+            return res.status(400).json({ error: 'Missing required parameter: prompt.' });
+        }
         
+        // 呼叫 OpenAI API
         const completion = await openai.chat.completions.create({
-            model: "gpt-4o", // <-- 升級到 gpt-4o 解決超時和格式問題
+            model: FINAL_MODEL,
             messages: [
-                // ... (系統提示詞和使用者提示詞不變) ...
+                {
+                    role: "system",
+                    content: SYSTEM_PROMPT,
+                },
+                {
+                    role: "user",
+                    content: prompt,
+                }
             ],
             temperature: 0.7,
-            max_tokens: 3000, 
+            max_tokens: 3000,
         });
 
-        response.status(200).json(completion);
+        res.status(200).json(completion);
 
     } catch (error) {
-        console.error('OpenAI API Error or Timeout:', error);
+        console.error("OpenAI API Error:", error.message || error);
         
-        // ... (錯誤處理不變) ...
+        // 處理 API 請求失敗
+        res.status(500).json({ 
+            error: '分析服務器錯誤', 
+            detail: error.message || '無法連線到 AI 服務。' 
+        });
     }
 }

@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>仙人指路神獸七十二型人格 - 分析報告 (V40.0 終結版)</title>
+    <title>仙人指路神獸七十二型人格 - 分析報告 (V40.0 最終版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
 
@@ -36,9 +36,9 @@
             font-weight: 900; 
             margin-top: 2rem; 
             margin-bottom: 0.8rem; 
-            border-bottom: 4px solid #3b82f6; /* 核心藍色底線 */
+            border-bottom: 4px solid #3b82f6; 
             padding-bottom: 6px; 
-            color: #1e3a8a; /* 深藍色，專業感 */
+            color: #1e3a8a; 
         }
         
         /* 次級標題 */
@@ -76,6 +76,31 @@
             padding: 1rem;
             border-radius: 0.5rem;
             margin-top: 1rem;
+        }
+        
+        /* ⭐️ V40.0 品牌視覺修正：報告頂部的主標題樣式 ⭐️ */
+        #reportHeaderContainer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        #reportLogo {
+            width: 80px; 
+            height: 80px;
+            object-fit: contain;
+            border-radius: 50%;
+            border: 2px solid #3b82f6;
+            padding: 5px;
+            display: none; /* 預設隱藏 */
+        }
+        #reportMainTitle {
+            font-size: 2rem;
+            font-weight: 900;
+            color: #1e3a8a;
+            padding-bottom: 5px;
+            border-bottom: 5px solid #3b82f6; 
+            flex-grow: 1; /* 佔據剩餘空間 */
         }
     </style>
 </head>
@@ -349,7 +374,7 @@
             if (matchJsonBlock && matchJsonBlock[1]) {
                 cleanText = text.replace(matchJsonBlock[0], '').trim();
                 
-                // V35.0 修正：即使不顯示分數，也要嘗試解析 tags，讓標籤能夠顯示
+                // 嘗試提取 tags
                 try {
                     const j = JSON.parse(matchJsonBlock[1].trim());
                     tags = Array.isArray(j.tags) ? j.tags : null;
@@ -378,6 +403,21 @@
             if (Array.isArray(tags) && tags.length > 0) {
                  webScoresHTML = `<div style="margin-top: 15px;"><h4 style="margin-bottom: 5px;">關鍵標籤 (AI 建議)</h4><div class="tags">${tags.map(t => `<span class="tag">${t}</span>`).join('')}</div></div>`;
             }
+
+            // ⭐ V38.0 報告主標題處理 ⭐
+            // 提取 Markdown H2 或 H3 作為報告主標題
+            let titleMatch = html.match(/<h[23]>(.*?)<\/h[23]>/i);
+            let aiTitle = titleMatch ? titleMatch[1] : (payload.context + '分析報告');
+            
+            const brandTitleHTML = `<h2 id="brandTitle" style="font-size: 1.8rem; font-weight: 900; color: #1e3a8a; padding-bottom: 5px; border-bottom: 5px solid #3b82f6; margin-bottom: 1.5rem;">仙人指路：${aiTitle}</h2>`;
+            
+            // 將 AI 輸出的原始標題從正文中移除
+            if (titleMatch) {
+                html = html.replace(titleMatch[0], '');
+            }
+            
+            // 將品牌主標題加到最頂端
+            html = brandTitleHTML + html;
 
 
             return { html: html, scores: null, tags: null, webScoresHTML: webScoresHTML };

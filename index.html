@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>仙人指路神獸七十二型人格 - 分析報告 (V36.0 最終邏輯修正)</title>
+    <title>仙人指路神獸七十二型人格 - 分析報告 (V41.0 最終穩定版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
 
@@ -20,13 +20,38 @@
             background-color: rgba(255, 255, 255, 0.95); 
             backdrop-filter: blur(5px); 
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border-radius: 12px;
         }
 
-        /* --- 報告文本樣式 (專業排版) --- */
-        #result h3 { font-size: 1.3rem; font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.5rem; border-bottom: 3px solid #6366f1; padding-bottom: 5px; color: #4338ca; }
-        #result h4 { font-size: 1.15rem; font-weight: 700; margin-top: 1rem; margin-bottom: 0.4rem; color: #4b5563; }
-        #result p { margin-bottom: 1rem; line-height: 1.6; }
-        #result ul, #result ol { padding-left: 25px; margin-bottom: 1rem; }
+        /* ⭐️ V40.0 核心修正：履歷表式報告排版 ⭐️ */
+        #result {
+            font-size: 16px;
+            line-height: 1.7;
+            color: #333;
+        }
+        
+        /* 報告主要標題 (對應 Markdown ### 或 ##) */
+        #result h3 { 
+            font-size: 1.6rem; 
+            font-weight: 900; 
+            margin-top: 2rem; 
+            margin-bottom: 0.8rem; 
+            border-bottom: 4px solid #3b82f6; /* 核心藍色底線 */
+            padding-bottom: 6px; 
+            color: #1e3a8a; /* 深藍色，專業感 */
+        }
+        
+        /* 次級標題 */
+        #result h4 { 
+            font-size: 1.25rem; 
+            font-weight: 700; 
+            margin-top: 1.5rem; 
+            margin-bottom: 0.5rem; 
+            color: #4b5563;
+        }
+        
+        /* 清單樣式 (強調條列重點) */
+        #result ul, #result ol { padding-left: 25px; margin-bottom: 1.2rem; }
         #result ul { list-style-type: disc; }
         #result ol { list-style-type: decimal; }
         
@@ -52,6 +77,32 @@
             border-radius: 0.5rem;
             margin-top: 1rem;
         }
+        
+        /* V41.0 Logo 區域樣式 */
+        #reportHeaderContainer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        #reportLogo {
+            width: 80px; 
+            height: 80px;
+            object-fit: contain;
+            border-radius: 50%;
+            border: 2px solid #3b82f6;
+            padding: 5px;
+            margin-right: 20px;
+            display: none; /* 預設隱藏 */
+        }
+        #reportMainTitle {
+            font-size: 2rem;
+            font-weight: 900;
+            color: #1e3a8a;
+            padding-bottom: 5px;
+            border-bottom: 5px solid #3b82f6; 
+            flex-grow: 1; /* 佔據剩餘空間 */
+        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
@@ -62,8 +113,8 @@
         </header>
 
         <header class="space-y-1 no-print">
-            <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 (V36.0 最終邏輯修正)</h1>
-            <p class="text-slate-500 text-sm">✨ **已修復六獸/六親單獨重複問題**</p>
+            <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 (V41.0 最終版)</h1>
+            <p class="text-slate-500 text-sm">✨ **已專注於深度文本報告** (移除所有圖表和分數相關 UI)</p>
         </header>
 
         <div class="flex gap-4 flex-wrap no-print">
@@ -171,6 +222,10 @@
                     <label class="block text-sm font-medium mb-1">背景圖片 (從本機上傳)：</label>
                     <input type="file" id="bgImageFile" accept="image/*" class="w-full border rounded-lg p-2 text-sm" />
                 </div>
+                <div>
+                    <label class="block text-sm font-medium mb-1">報告 Logo (從本機上傳)：</label>
+                    <input type="file" id="reportLogoFile" accept="image/*" class="w-full border rounded-lg p-2 text-sm" />
+                </div>
             </div>
             <button id="clearBg" class="px-3 py-1.5 rounded-full bg-red-100 text-red-700 text-sm">清除圖片與顏色</button>
         </section>
@@ -181,6 +236,10 @@
                 
                 <div class="md:col-span-1">
                     <div id="webScoresAndTags">
+                        <div id="reportHeaderContainer">
+                            <img id="reportLogo" alt="Logo Image" style="display: none;">
+                            <h2 id="reportMainTitle" style="font-size: 2rem; font-weight: 900; color: #1e3a8a; padding-bottom: 5px; border-bottom: 5px solid #3b82f6; margin-bottom: 1.5rem;">仙人指路｜神獸七十二型人格</h2>
+                        </div>
                         <p class="text-slate-500">選擇六獸、六親、地支和情境後，點擊「一鍵分析」開始。</p>
                     </div>
                     <div id="result" class="text-[16px] max-w-none pt-4 border-t border-gray-200 mt-4">
@@ -197,7 +256,7 @@
         const markdownConverter = new showdown.Converter(); 
         
         const API_PROXY_ENDPOINT = '/api/analyze'; 
-
+        const LOCAL_STORAGE_KEY_LOGO = 'report_logo_img'; // V40.0 新增
 
         // 情境預設 (恢復到V7.9)
         const PRESETS = {
@@ -211,7 +270,7 @@
         const SEX_CONTEXTS = ['性愛'];
 
 
-        // --- 進度條控制函式 ---
+        // --- 進度條控制函式 (保持 V7.9 的邏輯) ---
         let progressInterval = null;
         function startProgressBar() {
             if (progressInterval) clearInterval(progressInterval);
@@ -311,26 +370,19 @@
         }
         
         // --- V35.0 簡化：現在只提取文本，不再提取分數 ---
-        function formatOutput(text) {
+        function formatOutput(text, payload) {
             if (!text) return { html: '<p class="text-slate-500">無分析結果。</p>', scores: null, tags: null, webScoresHTML: '<p class="text-slate-500">無法獲取分析內容。</p>' };
 
             let scores = null;
             let tags = null;
-            let jsonText = null;
             let cleanText = text;
 
-            // 嘗試找到 JSON 區塊並移除（防止 JSON 程式碼塊干擾報告）
+            // 嘗試找到 JSON 區塊並移除
             const matchJsonBlock = text.match(/```json\s*([\s\S]*?)\s*```/i);
             if (matchJsonBlock && matchJsonBlock[1]) {
                 cleanText = text.replace(matchJsonBlock[0], '').trim();
                 
-                // V35.0 修正：即使不顯示分數，也要嘗試解析 tags，讓標籤能夠顯示
-                try {
-                    const j = JSON.parse(matchJsonBlock[1].trim());
-                    tags = Array.isArray(j.tags) ? j.tags : null;
-                } catch (e) {
-                    console.error("JSON Tags 解析失敗 (純文本模式)", e);
-                }
+                // 忽略分數提取，只為排版清理文本
             } else {
                  // 嘗試移除結尾的純 JSON 區塊
                 const matchLastCurly = text.match(/\{[\s\S]*\}\s*$/); 
@@ -346,16 +398,24 @@
             html = html.replace(/<p>[\s]*JSON[\s]*輸出[\s]*<\/p>/gi, '')
                      .replace(/<h[1-6]>[\s]*JSON[\s]*輸出[\s]*<\/h[1-6]>/gi, '')
                      .replace(/<p>\s*<\/p>/gi, '');
-
-            // V35.0: 移除所有分數相關的 HTML 輸出
-            let webScoresHTML = '<p class="text-slate-500">此模式專注於文本分析。</p>';
             
-            if (Array.isArray(tags) && tags.length > 0) {
-                 webScoresHTML = `<div style="margin-top: 15px;"><h4 style="margin-bottom: 5px;">關鍵標籤 (AI 建議)</h4><div class="tags">${tags.map(t => `<span class="tag">${t}</span>`).join('')}</div></div>`;
+            // V40.0 處理：將 AI 輸出的第一個 H2/H3 標題提取出來作為副標題
+            let titleMatch = html.match(/<h[23]>(.*?)<\/h[23]>/i);
+            let aiTitle = titleMatch ? titleMatch[1] : (payload.context + '分析報告');
+            
+            // 移除 AI 輸出的原始標題，只保留主標題
+            if (titleMatch) {
+                html = html.replace(titleMatch[0], '');
             }
+            
+            // ⭐️ V40.0 品牌主標題插入 ⭐️
+            const brandTitleHTML = `<h2 id="reportMainTitle" style="font-size: 1.8rem; font-weight: 900; color: #1e3a8a; padding-bottom: 5px; margin-bottom: 1.5rem;">仙人指路：${aiTitle}</h2>`;
+            
+            // 處理標籤
+            let webScoresAndTags = '<p class="text-slate-500">此模式專注於文本分析。</p>';
 
 
-            return { html: html, scores: null, tags: null, webScoresHTML: webScoresHTML };
+            return { html: brandTitleHTML + html, scores: null, tags: null, webScoresHTML: webScoresAndTags };
         }
 
         // V36.1 移除所有圖表相關函數
@@ -405,11 +465,28 @@
                 $('#beautyPanel').classList.toggle('hidden');
             };
 
-            // --- 背景設定功能 ---
+            // --- V40.0 Logo 圖片上傳邏輯 ---
             const body = $('body');
             const bgColorInput = $('#bgColor');
             const bgImageFile = $('#bgImageFile');
             const clearBgBtn = $('#clearBg');
+            const reportLogoFile = $('#reportLogoFile'); // Logo input
+            const reportLogoImg = $('#reportLogo'); // Logo img element
+            
+            // Logo 處理邏輯
+            reportLogoFile.onchange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = (event) => {
+                        reportLogoImg.src = event.target.result;
+                        reportLogoImg.style.display = 'block';
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    reportLogoImg.style.display = 'none';
+                }
+            };
             
             const updateBackground = () => {
                 const color = bgColorInput.value || '#f1f5f9';
@@ -441,6 +518,8 @@
                 body.style.backgroundImage = 'none';
                 body.style.backgroundColor = '#f1f5f9';
                 body.classList.add('bg-slate-50'); 
+                reportLogoImg.src = '';
+                reportLogoImg.style.display = 'none';
             };
             updateBackground(); 
 
@@ -542,8 +621,8 @@
                         return;
                     }
 
-                    // --- 渲染 HTML 內容 (V38.0 報告排版) ---
-                    const { html, webScoresHTML } = formatOutput(aiContent);
+                    // --- 渲染 HTML 內容 (V40.0 報告排版) ---
+                    const { html, webScoresHTML } = formatOutput(aiContent, payload);
 
                     $('#result').innerHTML = html;
                     $('#webScoresAndTags').innerHTML = webScoresHTML;

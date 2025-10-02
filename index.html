@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>仙人指路神獸七十二型人格 - 分析報告 (V40.0 終結版)</title>
+    <title>仙人指路神獸七十二型人格 - 分析報告 (V36.0 最終邏輯修正)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
 
@@ -20,38 +20,13 @@
             background-color: rgba(255, 255, 255, 0.95); 
             backdrop-filter: blur(5px); 
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            border-radius: 12px;
         }
 
-        /* ⭐️ V40.0 核心修正：履歷表式報告排版 ⭐️ */
-        #result {
-            font-size: 16px;
-            line-height: 1.7;
-            color: #333;
-        }
-        
-        /* 報告主要標題 (對應 Markdown ### 或 ##) */
-        #result h3 { 
-            font-size: 1.6rem; 
-            font-weight: 900; 
-            margin-top: 2rem; 
-            margin-bottom: 0.8rem; 
-            border-bottom: 4px solid #3b82f6; /* 核心藍色底線 */
-            padding-bottom: 6px; 
-            color: #1e3a8a; /* 深藍色，專業感 */
-        }
-        
-        /* 次級標題 */
-        #result h4 { 
-            font-size: 1.25rem; 
-            font-weight: 700; 
-            margin-top: 1.5rem; 
-            margin-bottom: 0.5rem; 
-            color: #4b5563;
-        }
-        
-        /* 清單樣式 (強調條列重點) */
-        #result ul, #result ol { padding-left: 25px; margin-bottom: 1.2rem; }
+        /* --- 報告文本樣式 (專業排版) --- */
+        #result h3 { font-size: 1.3rem; font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.5rem; border-bottom: 3px solid #6366f1; padding-bottom: 5px; color: #4338ca; }
+        #result h4 { font-size: 1.15rem; font-weight: 700; margin-top: 1rem; margin-bottom: 0.4rem; color: #4b5563; }
+        #result p { margin-bottom: 1rem; line-height: 1.6; }
+        #result ul, #result ol { padding-left: 25px; margin-bottom: 1rem; }
         #result ul { list-style-type: disc; }
         #result ol { list-style-type: decimal; }
         
@@ -87,8 +62,8 @@
         </header>
 
         <header class="space-y-1 no-print">
-            <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 (V40.0 最終版)</h1>
-            <p class="text-slate-500 text-sm">✨ **已專注於深度文本報告** (移除所有圖表和分數相關 UI)</p>
+            <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 (V36.0 最終邏輯修正)</h1>
+            <p class="text-slate-500 text-sm">✨ **已修復六獸/六親單獨重複問題**</p>
         </header>
 
         <div class="flex gap-4 flex-wrap no-print">

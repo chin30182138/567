@@ -1,14 +1,6 @@
+
 {
-  "name": "ai-analysis-app",
-  "version": "1.0.0",
-  "description": "AI analysis tool for Vercel",
-  "main": "index.js", 
-  "scripts": {
-    "start": "node index.js"
-  },
   "dependencies": {
     "openai": "^4.0.0" 
-  },
-  "author": "",
-  "license": "ISC"
+  }
 }

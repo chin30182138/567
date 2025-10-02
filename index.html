@@ -3,13 +3,12 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>仙人指路神獸七十二型人格 - 分析報告 (V12.6 響應流修正)</title>
+    <title>仙人指路神獸七十二型人格 - 分析報告 (V39.0 最終版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
 
     <style>
-        /* --- 介面核心樣式 (確保 V7.9 介面重現) --- */
+        /* --- 介面核心樣式 --- */
         body { 
             transition: background-color 0.5s ease, background-image 0.5s ease; 
             background-size: cover; 
@@ -21,35 +20,28 @@
             background-color: rgba(255, 255, 255, 0.95); 
             backdrop-filter: blur(5px); 
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border-radius: 12px;
         }
 
-        /* --- 分數條與標籤樣式 (確保分數條顯示) --- */
-        .scores { display:grid; gap:8px; margin-top:20px; padding-top:15px; border-top:1px solid #e5e7eb; }
-        .score { display:flex; align-items:center; gap:10px; font-size:14px }
-        .bar { flex:1; height:12px; background:#e5e7eb; border-radius:9999px; overflow:hidden }
-        .bar > i { display:block; height:100%; transition: width 0.8s ease-out; }
-        .tags { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; padding-top:15px; border-top:1px solid #e5e7eb; }
-        .tag { background:#eef2ff; color:#3730a3; padding:4px 10px; border-radius:9999px; font-size:12px; font-weight: 500; }
+        /* --- 報告文本樣式 (專業排版) --- */
+        #result {
+            font-size: 16px;
+            line-height: 1.7;
+            color: #333;
+        }
         
-        /* --- AI 輸出樣式 (確保報告格式化) --- */
+        /* 報告主要標題 (Markdown H2/H3/H4) */
         #result h3 { font-size: 1.3rem; font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.5rem; border-bottom: 3px solid #6366f1; padding-bottom: 5px; color: #4338ca; }
-        #result h4 { font-size: 1.15rem; font-weight: 600; margin-top: 1rem; margin-bottom: 0.4rem; }
+        #result h4 { font-size: 1.15rem; font-weight: 700; margin-top: 1rem; margin-bottom: 0.4rem; color: #4b5563; }
         #result p { margin-bottom: 1rem; line-height: 1.6; }
-        #result ul, #result ol { padding-left: 25px; margin-bottom: 1rem; }
+        #result ul, #result ol { padding-left: 25px; margin-bottom: 1.2rem; }
         #result ul { list-style-type: disc; }
         #result ol { list-style-type: decimal; }
         
         /* 確保圖片不破版 */
-        #result img {
-            max-width: 100%;
-            height: auto;
-            margin: 0;
-            display: inline;
-            border-radius: 0;
-            box-shadow: none;
-        }
+        #result img { max-width: 100%; height: auto; margin: 0; display: inline; border-radius: 0; box-shadow: none; }
         
-        /* --- 列印和圖表樣式 (確保圖表顯示) --- */
+        /* 列印時，隱藏控制項 */
         @media print {
             .no-print { display: none !important; }
             * {
@@ -60,38 +52,24 @@
         }
         .print-header { display: none; }
 
-        .chart-type-selector {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-        .chart-type-selector button {
-            padding: 4px 10px;
-            font-size: 12px;
-            border: 1px solid #ccc;
-            background: #fff;
-            margin: 0 2px;
-            border-radius: 4px;
-        }
-        .chart-type-selector button.active {
-            background: #6366f1;
-            color: white;
-            border-color: #6366f1;
-        }
-        
-        /* 單獨用於單人模式的標籤，讓它能隱藏 */
-        #modeSingle, #modeDual, #modePersonality {
-            transition: all 0.3s ease;
-        }
-
         .error-message {
-            color: #ef4444; /* red-500 */
-            background-color: #fef2f2; /* red-50 */
-            border: 1px solid #fca5a5; /* red-300 */
+            color: #ef4444; 
+            background-color: #fef2f2; 
+            border: 1px solid #fca5a5; 
             padding: 1rem;
             border-radius: 0.5rem;
             margin-top: 1rem;
+        }
+        
+        /* ⭐️ V39.0 品牌視覺修正：報告頂部的主標題樣式 ⭐️ */
+        #brandTitle {
+            font-size: 2rem;
+            font-weight: 900;
+            color: #1e3a8a;
+            margin-top: 0;
+            margin-bottom: 1rem;
+            padding-bottom: 5px;
+            border-bottom: 5px solid #3b82f6; /* 最粗的底線 */
         }
     </style>
 </head>
@@ -103,8 +81,8 @@
         </header>
 
         <header class="space-y-1 no-print">
-            <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 (V12.6 響應流修正)</h1>
-            <p class="text-slate-500 text-sm">支援個性分析、人際分析與性愛劇本｜**已修復 `body stream already read` 致命錯誤**</p>
+            <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 (V29.2 最終穩定版)</h1>
+            <p class="text-slate-500 text-sm">✨ **已修復邏輯錯誤與報告排版**</p>
         </header>
 
         <div class="flex gap-4 flex-wrap no-print">
@@ -218,26 +196,16 @@
 
 
         <section class="result-section p-5 rounded-xl shadow space-y-4">
-            <div class="grid md:grid-cols-3 gap-6">
-                <div class="md:col-span-1">
-                    <div class="chart-type-selector no-print" style="display: none;">
-                        <button id="chartRadarBtn" data-type="radar" class="active">雷達圖</button>
-                        <button id="chartBarBtn" data-type="bar">長條圖</button>
-                    </div>
-                    <div id="chartContainer" class="flex justify-center items-center" style="min-height: 280px;">
-                        <div id="chartPlaceholder" class="text-center text-slate-500 p-4">圖表只在**雙人分析**模式中，根據 AI 提供的 **JSON** 分數繪製。</div>
-                    </div>
-                </div>
+            <div class="grid md:grid-cols-1 gap-6">
                 
-                <div id="scoresTagsWeb" class="md:col-span-2">
+                <div class="md:col-span-1">
                     <div id="webScoresAndTags">
                         <p class="text-slate-500">選擇六獸、六親、地支和情境後，點擊「一鍵分析」開始。</p>
                     </div>
+                    <div id="result" class="text-[16px] max-w-none pt-4 border-t border-gray-200 mt-4">
+                        </div>
                 </div>
             </div>
-            
-            <div id="result" class="text-[15px] max-w-none">
-                </div>
         </section>
     </div>
 
@@ -246,10 +214,10 @@
         const $$ = s => document.querySelectorAll(s);
         let analysisMode = 'personality'; 
         const markdownConverter = new showdown.Converter(); 
-        let radarChart = null; 
-        let currentScores = null; 
-        let currentChartType = 'radar'; 
         
+        const API_PROXY_ENDPOINT = '/api/analyze'; 
+
+
         // 情境預設 (恢復到V7.9)
         const PRESETS = {
             'personality': ['基礎個性', '職涯優勢', '情緒管理', '人際關係'],
@@ -303,11 +271,6 @@
                 'dual': $('#modeDual')
             };
             const sectionB = $('#sectionB');
-            const scoresTagsWeb = $('#scoresTagsWeb');
-            const chartTypeSelector = $('.chart-type-selector');
-            const chartContainer = $('#chartContainer');
-            const chartPlaceholder = $('#chartPlaceholder');
-
 
             Object.keys(modes).forEach(key => {
                 if (key === mode) {
@@ -320,20 +283,6 @@
             });
 
             sectionB.style.display = (mode === 'dual') ? 'block' : 'none';
-            
-            // 恢復圖表/分數/標籤區塊的顯示邏輯
-            if (mode === 'dual') {
-                chartContainer.style.display = 'flex';
-                chartPlaceholder.style.display = 'block'; 
-                chartTypeSelector.style.display = 'flex';
-            } else {
-                // 非雙人模式，不顯示圖表切換和預留的圖表位置
-                if(radarChart) radarChart.destroy();
-                chartContainer.style.display = 'flex';
-                chartPlaceholder.style.display = 'block'; 
-                chartPlaceholder.textContent = '此模式不提供六維度圖表。';
-                chartTypeSelector.style.display = 'none';
-            }
             
             loadPresets(mode);
             toggleSexOptions(); 
@@ -380,169 +329,59 @@
             };
         }
         
-        // --- V12.5 強化 JSON 解析函式 (保持不變，因為邏輯是對的) ---
+        // --- V35.0 簡化：現在只提取文本，不再提取分數 ---
         function formatOutput(text) {
-            if (!text) return { html: '<p class="text-slate-500">無分析結果。</p>', scores: null, tags: [] };
+            if (!text) return { html: '<p class="text-slate-500">無分析結果。</p>', scores: null, tags: null, webScoresHTML: '<p class="text-slate-500">無法獲取分析內容。</p>' };
 
             let scores = null;
-            let tags = [];
+            let tags = null;
             let jsonText = null;
             let cleanText = text;
 
-            // 1. 優先嘗試標準的 ```json 區塊提取
+            // 嘗試找到 JSON 區塊並移除（防止 JSON 程式碼塊干擾報告）
             const matchJsonBlock = text.match(/```json\s*([\s\S]*?)\s*```/i);
             if (matchJsonBlock && matchJsonBlock[1]) {
-                jsonText = matchJsonBlock[1].trim();
                 cleanText = text.replace(matchJsonBlock[0], '').trim();
-            }
-
-            // 2. 如果沒有找到 ```json，則嘗試尋找第一個完整的大括號 {} 區塊
-            if (!jsonText) {
-                const matchAnyCurly = text.match(/\{[\s\S]*\}/);
-                if (matchAnyCurly) {
-                    jsonText = matchAnyCurly[0].trim();
-                    cleanText = text.replace(jsonText, '').trim(); 
+                
+                // 嘗試提取 tags
+                try {
+                    const j = JSON.parse(matchJsonBlock[1].trim());
+                    tags = Array.isArray(j.tags) ? j.tags : null;
+                } catch (e) {
+                    console.error("JSON Tags 解析失敗 (純文本模式)", e);
+                }
+            } else {
+                 // 嘗試移除結尾的純 JSON 區塊
+                const matchLastCurly = text.match(/\{[\s\S]*\}\s*$/); 
+                if (matchLastCurly) {
+                    cleanText = text.replace(matchLastCurly[0], '').trim(); 
                 }
             }
             
-            // 解析 JSON 數據
-            if (jsonText) {
-                try {
-                    let cleanJson = jsonText.replace(/\/\/.*|\/\*[\s\S]*?\*\/|,\s*\}/g, '').trim(); 
-                    const j = JSON.parse(cleanJson);
-                    scores = j.scores || {};
-                    tags = Array.isArray(j.tags) ? j.tags : Object.values(j.tags || {}).flat().filter(t => typeof t === 'string' && t.trim() !== '');
-
-                    if (Object.keys(scores).length === 0) {
-                         const potentialScores = {};
-                         ['fit', 'comm', 'pace', 'account', 'trust', 'innov'].forEach(key => {
-                             if(j[key] !== undefined) potentialScores[key] = j[key];
-                         });
-                         if(Object.keys(potentialScores).length > 0) scores = potentialScores;
-                    }
-                    
-                } catch (e) {
-                    console.error("JSON 解析失敗 (請檢查 AI 輸出格式是否包含有效 JSON):", e);
-                    scores = { error: true, message: e.message }; 
-                }
-            }
-
             // 渲染 HTML 內容
             let html = markdownConverter.makeHtml(cleanText);
 
+            // 清理 AI 有時會輸出的多餘標題/段落
             html = html.replace(/<p>[\s]*JSON[\s]*輸出[\s]*<\/p>/gi, '')
                      .replace(/<h[1-6]>[\s]*JSON[\s]*輸出[\s]*<\/h[1-6]>/gi, '')
                      .replace(/<p>\s*<\/p>/gi, '');
 
-            let scoresHTML = '';
-            if (scores && Object.keys(scores).length === 6 && !scores.error) {
-                const clamp = v => Math.max(0, Math.min(100, Number(v) || 0));
-                const row = (l, k, c) => `<div class="score"><b>${l}</b><div class="bar"><i style="width:${clamp(scores[k])}%;background:${c}"></i></div><em>${clamp(scores[k])}</em></div>`;
-
-                scoresHTML = `
-                    <h3 style="border-bottom:none; margin-top:0;">六維度分數</h3>
-                    <div class="scores">
-                        ${row('契合 fit', 'fit', '#22c55e')}
-                        ${row('溝通 comm', 'comm', '#06b6d4')}
-                        ${row('節奏 pace', 'pace', '#f59e0b')}
-                        ${row('權責 account', 'account', '#8b5cf6')}
-                        ${row('信任 trust', 'trust', '#ef4444')}
-                        ${row('創新 innov', 'innov', '#6366f1')}
-                    </div>`;
-
-                if (Array.isArray(tags) && tags.length > 0) scoresHTML += `<div class="tags">${tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>`;
-            } else if (analysisMode === 'dual' && scores && (scores.error || Object.keys(scores).length < 6)) {
-                scoresHTML = `<div class="error-message">⚠️ **雙人模式分析完成，但未成功解析到六維度分數 (JSON 格式可能有誤)**<br>請檢查您的 Vercel Log 或 AI 輸出是否符合 JSON 結構。</div>`;
-                tags = []; 
-            } else {
-                 scoresHTML = `<p class="text-slate-500">此模式不提供六維度分數。</p>`;
-                 tags = []; 
+            // V35.0: 移除所有分數相關的 HTML 輸出
+            let webScoresHTML = '<p class="text-slate-500">此模式專注於文本分析。</p>';
+            
+            if (Array.isArray(tags) && tags.length > 0) {
+                 webScoresHTML = `<div style="margin-top: 15px;"><h4 style="margin-bottom: 5px;">關鍵標籤 (AI 建議)</h4><div class="tags">${tags.map(t => `<span class="tag">${t}</span>`).join('')}</div></div>`;
             }
 
 
-            return { html: html, scores, tags, webScoresHTML: scoresHTML };
+            return { html: html, scores: null, tags: null, webScoresHTML: webScoresHTML };
         }
 
-        // --- 圖表繪製核心函式 (保持不變) ---
+        // V36.1 移除所有圖表相關函數
         function renderChart(scores, type){
-            const wrap = $('#chartContainer');
-            const chartTypeSelector = $('.chart-type-selector');
-            
-            if(radarChart) {
-                radarChart.destroy();
-                radarChart = null;
-            }
-            wrap.innerHTML = '<div id="chartPlaceholder" class="text-center text-slate-500 p-4"></div>'; 
-
-            const isDual = analysisMode === 'dual';
-            const hasValidScores = scores && Object.keys(scores).length === 6 && !scores.error;
-
-            if(!isDual || !hasValidScores) {
-                 const msg = isDual && scores && scores.error 
-                     ? '⚠️ JSON 解析失敗，無法繪製圖表。'
-                     : '圖表只在**雙人分析**模式中，根據 AI 提供的 **JSON** 分數繪製。';
-                 
-                 wrap.innerHTML = `<div id="chartPlaceholder" class="text-center text-slate-500 p-4">${msg}</div>`;
-                 chartTypeSelector.style.display = 'none';
-                 return;
-            }
-            
-            wrap.innerHTML = '';
-            chartTypeSelector.style.display = 'flex';
-
-            currentScores = scores; 
-            currentChartType = type; 
-
-            const labels=['契合 fit','溝通 comm','節奏 pace','權責 account','信任 trust','創新 innov'];
-            const data=[scores.fit,scores.comm,scores.pace,scores.account,scores.trust,scores.innov];
-            const colors=['#22c55e','#06b6d4','#f59e0b','#8b5cf6','#ef4444','#6366f1'];
-            
-            const canvas=document.createElement('canvas'); 
-            canvas.id = 'chartCanvas'; 
-            wrap.appendChild(canvas);
-            
-            try {
-                const config = {
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            label: '六維度分析',
-                            data: data,
-                            backgroundColor: type === 'bar' ? colors : 'rgba(99,102,241,0.2)', 
-                            borderColor: type === 'bar' ? colors : 'rgba(99,102,241,1)',
-                            borderWidth: type === 'bar' ? 1 : 2,
-                            fill: type === 'radar',
-                            pointBackgroundColor:'rgba(99,102,241,1)',
-                            pointBorderColor:'#fff',
-                            pointHoverBackgroundColor:'#fff',
-                            pointHoverBorderColor:'rgba(99,102,241,1)'
-                        }]
-                    },
-                    options: {
-                        responsive:true, 
-                        maintainAspectRatio: true, 
-                        plugins:{ legend:{ display:false } },
-                        scales: type === 'radar' ? { 
-                            r:{
-                                angleLines:{ display:true }, grid:{ color:'rgba(0, 0, 0, 0.1)' },
-                                pointLabels:{ font:{ size: 12 } }, suggestedMin:0, suggestedMax:100, ticks:{ stepSize:20 } 
-                            }
-                        } : { 
-                            y: { suggestedMin: 0, suggestedMax: 100, ticks: { stepSize: 20 } },
-                            x: { grid: { display: false } }
-                        }
-                    }
-                };
-                
-                radarChart = new Chart(canvas.getContext('2d'), {
-                    type: type,
-                    ...config
-                });
-
-            } catch (e) {
-                console.error("Chart.js 繪製失敗:", e);
-                wrap.innerHTML = '<p class="text-red-500 text-sm p-4">圖表繪製失敗。</p>';
-            }
+             // 函數內容為空，不再執行任何繪圖操作
+             const wrap = $('#chartContainer');
+             wrap.innerHTML = '<div id="chartPlaceholder" class="text-center text-slate-500 p-4">圖表功能已停用，專注於文本分析。</div>';
         }
         
         // --- 核心事件監聽和初始化 ---
@@ -577,17 +416,6 @@
                 $('#sexDetailInput').value = existingDetails.join('；');
             });
 
-            // 圖表類型切換 (已修復圖表渲染)
-            $$('.chart-type-selector button').forEach(btn => {
-                btn.onclick = () => {
-                    if (!currentScores) return; 
-                    const newType = btn.dataset.type;
-                    $$('.chart-type-selector button').forEach(b => b.classList.remove('active'));
-                    btn.classList.add('active');
-                    renderChart(currentScores, newType);
-                };
-            });
-            
             // 列印
             $('#print').onclick = () => window.print();
 
@@ -635,33 +463,40 @@
             };
             updateBackground(); 
 
-            // V12.6 核心邏輯：API 呼叫優化 (只讀取一次響應流)
+            // V27.1 核心邏輯：修復「六獸」重複警告
             $('#go').onclick = async () => {
                 const payload = getPayload();
                 let errorMessage = '';
                 const aComplete = payload.aBeast && payload.aKin && payload.aBranch;
                 const bComplete = payload.bBeast && payload.bKin && payload.bBranch;
 
-                // --- 前端基本驗證 (與 V12.5 相同) ---
+                // --- V34.0 邏輯修正：檢查六獸、六親不得相同，但地支可以 ---
                 if (!aComplete) { errorMessage = '請選滿我方「六獸、六親、地支」'; }
                 else if (payload.mode === 'dual' && !bComplete) { errorMessage = '雙人分析請選滿對方「六獸、六親、地支」'; }
                 else if (payload.mode !== 'personality' && !payload.context) { errorMessage = '請輸入或選擇情境'; }
                 else if (payload.context === '性愛' && payload.mode === 'dual' && !payload.sexDetail) { errorMessage = '您選擇了性愛情境，請點選或輸入細節按鈕，以供 AI 參考建議。'; }
+                
+                // ⭐ V28.1 最終邏輯修正：檢查「六獸」AND「六親」是否單獨重複 ⭐
+                else if (payload.mode === 'dual' && payload.aBeast === payload.bBeast) {
+                    errorMessage = '雙人分析中，「六獸」不可相同！請選擇不同的六獸。';
+                }
+                else if (payload.mode === 'dual' && payload.aKin === payload.bKin) {
+                    errorMessage = '雙人分析中，「六親」不可相同！請選擇不同的六親。';
+                }
 
                 if (errorMessage) { alert(errorMessage); return; }
 
                 // --- 準備並顯示狀態 ---
                 $('#result').innerHTML = '<p class="text-slate-500">正在等待 AI 分析...</p>';
-                renderChart(null, currentChartType);
-                $('#webScoresAndTags').innerHTML = '';
+                $('#webScoresAndTags').innerHTML = '<p class="text-slate-500">分析中...</p>'; // 清空分數區塊
                 startProgressBar();
 
 
-                // --- 構建發送給 Vercel 的 Promt 文本 (與 V12.5 相同) ---
+                // --- 構建發送給 Vercel 的 Promt 文本 ---
                 const combinedA = `${payload.aBeast}-${payload.aKin}-${payload.aBranch}`;
                 const combinedB = `${payload.bBeast}-${payload.bKin}-${payload.bBranch}`;
                 
-                let promptText = `請根據以下資訊，輸出深度報告與六維度分數：\n`;
+                let promptText = `請根據以下資訊，輸出深度報告：\n`;
                 promptText += `分析模式: ${payload.mode === 'personality' ? '個性分析' : (payload.mode === 'single' ? '單人情境' : '雙人情境')}\n`;
                 promptText += `我方組合 (A): ${combinedA}\n`;
                 
@@ -674,57 +509,63 @@
                 if (payload.context === '性愛' && payload.mode === 'dual' && payload.sexDetail) {
                     promptText += `性愛劇本細節要求: ${payload.sexDetail}\n`;
                 }
+                
+                // V35.1: 提醒 AI 只需要文本，不需要 JSON
+                promptText += `\n請輸出專業、深入、長度超過 800 字的繁體中文分析報告，嚴格使用 Markdown 格式分段落、標題與清單。報告必須以「仙人指路」為報告主旨。請勿在報告中包含任何 JSON 程式碼塊。`;
+
 
                 try {
                     const response = await fetch('/api/analyze', {
                         method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ prompt: promptText })
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            prompt: promptText // 發送給後端 Function
+                        })
                     });
-                    
-                    // --- 核心修正：只讀取一次響應主體，並處理所有成功或失敗的情況 ---
+
+                    // 核心修正：只讀取一次響應主體，並處理所有成功或失敗的情況
                     const rawText = await response.text(); 
                     
                     if (!response.ok) {
-                        // 嘗試將錯誤響應解析為 JSON (Vercel/OpenAI 錯誤)
+                        // 處理 API 錯誤 (Vercel/OpenAI 錯誤)
                         try {
                             const errorData = JSON.parse(rawText);
                             const errorMsg = errorData.detail || errorData.error || '未知 API 錯誤';
-                            $('#result').innerHTML = `<h3 class="text-red-600">❌ 分析失敗 (API 錯誤)</h3><p>錯誤訊息：${errorMsg}</p><p class="text-xs text-slate-500">請檢查 Vercel logs 或 OPENAI_API_KEY 是否有效。</p>`;
+                            $('#result').innerHTML = `<h3 class="text-red-600">❌ 分析失敗 (API 錯誤)</h3><p>錯誤訊息：${errorMsg}</p><p class="text-xs text-slate-500">請檢查 Vercel logs 或 GEMINI/OPENAI_API_KEY 是否有效。</p>`;
                         } catch (e) {
-                            // 如果不是 JSON，可能是 Vercel HTML 錯誤頁或其他非預期文本
+                            // 如果不是 JSON，則返回 Vercel 原始錯誤
                              $('#result').innerHTML = `<h3 class="text-red-600">❌ 網路連接或伺服器錯誤 (Vercel 端)</h3><p>Vercel API 返回非標準響應。這通常是 Vercel 伺服器配置錯誤或超時。</p><p class="text-xs text-slate-500">原始響應開頭：${rawText.substring(0, 200)}...</p>`;
                         }
                         stopProgressBar(false);
                         return;
                     }
 
-                    // 嘗試將成功響應解析為 JSON (這是 OpenAI 的標準 JSON 結構)
+                    // 嘗試將成功響應解析為 JSON
                     let data;
                     try {
                         data = JSON.parse(rawText);
                     } catch (e) {
-                         $('#result').innerHTML = `<h3 class="text-red-600">❌ AI 響應格式錯誤</h3><p>Vercel 成功響應，但內容無法解析為有效的 JSON。這可能是 Vercel 或瀏覽器快取問題。</p>`;
+                         $('#result').innerHTML = `<h3 class="text-red-600">❌ API 響應格式錯誤</h3><p>Vercel 成功響應，但前端無法解析為有效的 JSON。這可能是 Vercel/瀏覽器快取問題。</p>`;
                          stopProgressBar(false);
                          return;
                     }
                     
-                    const aiContent = data.choices[0]?.message?.content;
+                    // 從 Gemini/OpenAI 響應中獲取內容
+                    const aiContent = data.candidates?.[0]?.content?.parts?.[0]?.text || data.choices?.[0]?.message?.content;
                     
                     if (!aiContent) {
-                        $('#result').innerHTML = '<h3 class="text-red-600">❌ 分析失敗</h3><p>AI 未返回有效的文本內容，可能是模型輸出了空內容。</p>';
+                        $('#result').innerHTML = '<h3 class="text-red-600">❌ 分析失敗</h3><p>AI 未返回有效的文本內容，請檢查 Vercel logs。</p>';
                         stopProgressBar(false);
                         return;
                     }
 
-                    // --- 使用強化解析邏輯處理結果 ---
-                    const { html, scores, tags, webScoresHTML } = formatOutput(aiContent);
+                    // --- 渲染 HTML 內容 (V38.0 報告排版) ---
+                    const { html, webScoresHTML } = formatOutput(aiContent);
 
                     $('#result').innerHTML = html;
                     $('#webScoresAndTags').innerHTML = webScoresHTML;
-
-                    // 繪製圖表
-                    renderChart(scores, currentChartType);
                     
                     stopProgressBar(true); // 成功完成
 

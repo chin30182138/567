@@ -3,12 +3,12 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>仙人指路神獸七十二型人格 - 分析報告 (V39.0 最終穩定版)</title>
+    <title>仙人指路神獸七十二型人格 - 分析報告 (V42.0 最終穩定版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
 
     <style>
-        /* --- 介面核心樣式 --- */
+        /* --- 介面核心樣式 (V7.9 樣式) --- */
         body { 
             transition: background-color 0.5s ease, background-image 0.5s ease; 
             background-size: cover; 
@@ -23,7 +23,7 @@
             border-radius: 12px;
         }
 
-        /* ⭐️ V39.0 核心修正：履歷表式報告排版 ⭐️ */
+        /* ⭐️ V40.0 核心修正：履歷表式報告排版 ⭐️ */
         #result {
             font-size: 16px;
             line-height: 1.7;
@@ -76,6 +76,35 @@
             padding: 1rem;
             border-radius: 0.5rem;
             margin-top: 1rem;
+        }
+        
+        /* ⭐️ V40.0 品牌視覺修正：報告頂部的主標題樣式 ⭐️ */
+        #reportHeaderContainer {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 5px solid #3b82f6; /* 核心底線 */
+            padding-bottom: 10px;
+        }
+        #reportLogo {
+            width: 80px; 
+            height: 80px;
+            object-fit: cover; /* 確保圖片能填滿圓形 */
+            border-radius: 50%;
+            border: 2px solid #3b82f6;
+            padding: 5px;
+            margin-right: 20px;
+            display: none; /* 預設隱藏 */
+            flex-shrink: 0; /* 防止Logo被擠壓 */
+        }
+        #reportMainTitle {
+            font-size: 2rem;
+            font-weight: 900;
+            color: #1e3a8a;
+            flex-grow: 1; /* 佔據剩餘空間 */
+            line-height: 1.2;
+            padding-bottom: 0;
+            border-bottom: none; /* 將底線移到容器 */
         }
     </style>
 </head>
@@ -179,6 +208,7 @@
             
             <button id="salesTalk" class="px-4 py-2 rounded-lg bg-emerald-600 text-white font-semibold">🛒 銷售話術</button>
 
+
             <div id="statusContainer" class="flex items-center gap-3">
                 <span id="status" class="text-sm text-slate-600"></span>
                 <div id="progressBar" class="w-40 h-2 bg-slate-200 rounded-full overflow-hidden hidden">
@@ -214,7 +244,7 @@
                     <div id="webScoresAndTags">
                         <div id="reportHeaderContainer">
                             <img id="reportLogo" alt="Logo Image" style="display: none;">
-                            <h2 id="reportMainTitle" style="font-size: 2rem; font-weight: 900; color: #1e3a8a; padding-bottom: 5px; border-bottom: 5px solid #3b82f6; flex-grow: 1;">仙人指路｜神獸七十二型人格</h2>
+                            <h2 id="reportMainTitle" style="font-size: 1.8rem; font-weight: 900; color: #1e3a8a; padding-bottom: 5px; margin-bottom: 1.5rem; border-bottom: 5px solid #3b82f6; flex-grow: 1;">仙人指路｜神獸七十二型人格</h2>
                         </div>
                         <p class="text-slate-500">選擇六獸、六親、地支和情境後，點擊「一鍵分析」開始。</p>
                     </div>
@@ -351,6 +381,7 @@
 
             let scores = null;
             let tags = null;
+            let jsonText = null;
             let cleanText = text;
 
             // 嘗試找到 JSON 區塊並移除（防止 JSON 程式碼塊干擾報告）
@@ -404,7 +435,7 @@
                 <div id="reportHeaderContainer">
                     <img id="reportLogo" alt="Logo Image" style="display: none;">
                     <div style="flex-grow: 1;">
-                        <h2 id="reportMainTitle" style="font-size: 1.8rem; font-weight: 900; color: #1e3a8a; padding-bottom: 5px; border-bottom: 5px solid #3b82f6; width: 100%;">${aiTitle}</h2>
+                        <h2 id="reportMainTitle" style="font-size: 1.8rem; font-weight: 900; color: #1e3a8a; padding-bottom: 5px; margin-bottom: 1.5rem; border-bottom: 5px solid #3b82f6; width: 100%;">${aiTitle}</h2>
                     </div>
                 </div>
             `;
@@ -494,7 +525,7 @@
                     localStorage.removeItem('report_logo_img_base64');
                 }
             };
-            
+
             const updateBackground = () => {
                 const color = bgColorInput.value || '#f1f5f9';
                 body.style.backgroundColor = color;

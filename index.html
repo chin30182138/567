@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>仙人指路神獸七十二型人格 - 分析報告 (V39.1 最終穩定版)</title>
+    <title>仙人指路神獸七十二型人格 - 分析報告 (V39.2 最終穩定版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
 
@@ -23,10 +23,34 @@
             border-radius: 12px;
         }
 
-        /* --- 報告文本樣式 (專業排版) --- */
-        #result h3 { font-size: 1.3rem; font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.5rem; border-bottom: 3px solid #6366f1; padding-bottom: 5px; color: #4338ca; }
-        #result h4 { font-size: 1.15rem; font-weight: 700; margin-top: 1rem; margin-bottom: 0.4rem; color: #4b5563; }
-        #result p { margin-bottom: 1rem; line-height: 1.6; }
+        /* ⭐️ V40.0 核心修正：履歷表式報告排版 ⭐️ */
+        #result {
+            font-size: 16px;
+            line-height: 1.7;
+            color: #333;
+        }
+        
+        /* 報告主要標題 (對應 Markdown ### 或 ##) */
+        #result h3 { 
+            font-size: 1.6rem; 
+            font-weight: 900; 
+            margin-top: 2rem; 
+            margin-bottom: 0.8rem; 
+            border-bottom: 4px solid #3b82f6; /* 核心藍色底線 */
+            padding-bottom: 6px; 
+            color: #1e3a8a; /* 深藍色，專業感 */
+        }
+        
+        /* 次級標題 */
+        #result h4 { 
+            font-size: 1.25rem; 
+            font-weight: 700; 
+            margin-top: 1.5rem; 
+            margin-bottom: 0.5rem; 
+            color: #4b5563;
+        }
+        
+        /* 清單樣式 (強調條列重點) */
         #result ul, #result ol { padding-left: 25px; margin-bottom: 1.2rem; }
         #result ul { list-style-type: disc; }
         #result ol { list-style-type: decimal; }
@@ -54,33 +78,33 @@
             margin-top: 1rem;
         }
         
-        /* V40.0 品牌視覺修正：報告頂部的主標題樣式 */
+        /* ⭐️ V40.0 品牌視覺修正：報告頂部的主標題樣式 ⭐️ */
         #reportHeaderContainer {
             display: flex;
             align-items: center;
             margin-bottom: 20px;
-            border-bottom: 5px solid #3b82f6; 
+            border-bottom: 5px solid #3b82f6; /* 核心底線 */
             padding-bottom: 10px;
         }
         #reportLogo {
             width: 80px; 
             height: 80px;
-            object-fit: cover; 
+            object-fit: cover; /* 確保圖片能填滿圓形 */
             border-radius: 50%;
             border: 2px solid #3b82f6;
             padding: 5px;
             margin-right: 20px;
-            display: none; 
-            flex-shrink: 0; 
+            display: none; /* 預設隱藏 */
+            flex-shrink: 0; /* 防止Logo被擠壓 */
         }
         #reportMainTitle {
-            font-size: 1.8rem;
+            font-size: 2rem;
             font-weight: 900;
             color: #1e3a8a;
-            flex-grow: 1; 
+            flex-grow: 1; /* 佔據剩餘空間 */
             line-height: 1.2;
             padding-bottom: 0;
-            border-bottom: none; 
+            border-bottom: none; /* 將底線移到容器 */
         }
     </style>
 </head>
@@ -140,6 +164,7 @@
         <section class="bg-white p-4 rounded-xl shadow space-y-2 no-print">
             <h2 class="font-semibold">情境 / 分析主題</h2>
             <div id="presetContainer" class="flex gap-2 flex-wrap">
+                <button class="preset px-3 py-1.5 rounded-full bg-slate-100 text-emerald-600 font-semibold" data-detail="銷售話術">🛒 銷售話術</button>
             </div>
             <input id="context" class="w-full border rounded-lg p-2" placeholder="輸入自訂情境或分析主題…" />
             
@@ -181,8 +206,6 @@
             <button id="print" class="px-4 py-2 rounded-lg bg-slate-200 text-slate-800 font-semibold">列印 / PDF</button>
             
             <button id="toggleBeauty" class="px-4 py-2 rounded-lg bg-pink-500 text-white font-semibold">🎨 美化</button>
-            
-            <button id="salesTalk" class="px-4 py-2 rounded-lg bg-emerald-600 text-white font-semibold">🛒 銷售話術</button>
 
 
             <div id="statusContainer" class="flex items-center gap-3">
@@ -240,19 +263,19 @@
         const API_PROXY_ENDPOINT = '/api/analyze'; 
 
 
-        // 情境預設 (恢復到V7.9)
+        // 情境預設 (V39.1 修正：將銷售話術加入預設列表)
         const PRESETS = {
-            'personality': ['基礎個性', '職涯優勢', '情緒管理', '人際關係'],
-            'single': ['年度目標協調', '績效回饋會議', '跨部門協作', '壓期交付專案', '人際關係協調'],
+            'personality': ['基礎個性', '職涯優勢', '情緒管理', '人際關係', '銷售話術'], // 加入銷售話術
+            'single': ['年度目標協調', '績效回饋會議', '跨部門協作', '壓期交付專案', '人際關係協調', '銷售話術'], // 加入銷售話術
             'dual': [
                 '年度目標協調', '績效回饋會議', '跨部門協作', '壓期交付專案', '人際關係協調',
-                '性愛'
+                '性愛', '銷售話術' // 加入銷售話術
             ]
         };
         const SEX_CONTEXTS = ['性愛'];
 
 
-        // --- 進度條控制函式 ---
+        // --- 進度條控制函式 (保持 V7.9 的邏輯) ---
         let progressInterval = null;
         function startProgressBar() {
             if (progressInterval) clearInterval(progressInterval);
@@ -318,7 +341,9 @@
             
             presets.forEach(p => {
                 const btn = document.createElement('button');
-                btn.className = 'preset px-3 py-1.5 rounded-full bg-slate-100 text-slate-800 hover:bg-slate-200 transition-colors';
+                // V39.1: 銷售話術按鈕使用不同顏色強調
+                const isSales = p === '銷售話術';
+                btn.className = `preset px-3 py-1.5 rounded-full ${isSales ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-800'} hover:bg-slate-300 transition-colors`;
                 btn.textContent = p;
                 btn.onclick = () => {
                     $('#context').value = p;
@@ -332,6 +357,7 @@
         // --- 情境輸入/預設邏輯 (只認「性愛」) ---
         function toggleSexOptions(){
             const context = $('#context').value;
+            // V39.1: 修正逻辑，只在 dual 且 context 为 '性愛' 时显示
             const isSexContext = SEX_CONTEXTS.includes(context);
             
             if(analysisMode === 'dual' && isSexContext){ 

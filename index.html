@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>仙人指路神獸七十二型人格 - 分析報告 (V43.0 最終修復版)</title>
+    <title>仙人指路神獸七十二型人格 - 分析報告 (V43.1 最終穩定版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
 
@@ -20,7 +20,6 @@
             background-color: rgba(255, 255, 255, 0.95); 
             backdrop-filter: blur(5px); 
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            border-radius: 12px;
         }
 
         /* ⭐️ V40.0 核心修正：履歷表式報告排版 ⭐️ */
@@ -98,7 +97,7 @@
             flex-shrink: 0; /* 防止Logo被擠壓 */
         }
         #reportMainTitle {
-            font-size: 1.8rem;
+            font-size: 2rem;
             font-weight: 900;
             color: #1e3a8a;
             flex-grow: 1; /* 佔據剩餘空間 */
@@ -116,8 +115,8 @@
         </header>
 
         <header class="space-y-1 no-print">
-            <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 (V42.0 最終版)</h1>
-            <p class="text-slate-500 text-sm">✨ **已修復邏輯錯誤與報告排版**</p>
+            <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 (V43.1 最終穩定版)</h1>
+            <p class="text-slate-500 text-sm">✨ **已修復邏輯錯誤，專注於實戰情境輸出**</p>
         </header>
 
         <div class="flex gap-4 flex-wrap no-print">
@@ -206,6 +205,7 @@
             <button id="print" class="px-4 py-2 rounded-lg bg-slate-200 text-slate-800 font-semibold">列印 / PDF</button>
             
             <button id="toggleBeauty" class="px-4 py-2 rounded-lg bg-pink-500 text-white font-semibold">🎨 美化</button>
+
 
             <div id="statusContainer" class="flex items-center gap-3">
                 <span id="status" class="text-sm text-slate-600"></span>
@@ -381,6 +381,7 @@
 
             let scores = null;
             let tags = null;
+            let jsonText = null;
             let cleanText = text;
 
             // 嘗試找到 JSON 區塊並移除（防止 JSON 程式碼塊干擾報告）
@@ -563,8 +564,7 @@
 
             // V27.1 核心邏輯：修復「六獸」重複警告
             $('#go').onclick = async () => {
-                // V43.0 修正：確保 payload 在這裡被定義
-                const payload = getPayload(); 
+                const payload = getPayload();
                 let errorMessage = '';
                 const aComplete = payload.aBeast && payload.aKin && payload.aBranch;
                 const bComplete = payload.bBeast && payload.bKin && payload.bBranch;
@@ -660,7 +660,7 @@
                         return;
                     }
 
-                    // --- 渲染 HTML 內容 (V40.0 報告排版) ---
+                    // --- 渲染 HTML 內容 (V38.0 報告排版) ---
                     const { html, webScoresHTML } = formatOutput(aiContent, payload);
 
                     $('#result').innerHTML = html;

@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>仙人指路神獸七十二型人格 - 分析報告 (V40.0 最終版)</title>
+    <title>仙人指路神獸七十二型人格 - 分析報告 (V41.1 最終穩定版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
 
@@ -83,6 +83,8 @@
             display: flex;
             align-items: center;
             margin-bottom: 20px;
+            border-bottom: 5px solid #3b82f6; /* 核心底線 */
+            padding-bottom: 10px;
         }
         #reportLogo {
             width: 80px; 
@@ -93,15 +95,16 @@
             padding: 5px;
             margin-right: 20px;
             display: none; /* 預設隱藏 */
+            flex-shrink: 0; /* 防止Logo被擠壓 */
         }
         #reportMainTitle {
             font-size: 2rem;
             font-weight: 900;
             color: #1e3a8a;
-            padding-bottom: 5px;
-            border-bottom: 5px solid #3b82f6; 
             flex-grow: 1; /* 佔據剩餘空間 */
             line-height: 1.2;
+            padding-bottom: 0;
+            border-bottom: none; /* 將底線移到容器 */
         }
     </style>
 </head>
@@ -113,8 +116,8 @@
         </header>
 
         <header class="space-y-1 no-print">
-            <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 (V40.0 最終版)</h1>
-            <p class="text-slate-500 text-sm">✨ **已專注於深度文本報告** (移除所有圖表和分數相關 UI)</p>
+            <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 (V41.1 最終穩定版)</h1>
+            <p class="text-slate-500 text-sm">✨ **已修復 Logo 顯示錯誤和報告排版**</p>
         </header>
 
         <div class="flex gap-4 flex-wrap no-print">
@@ -238,7 +241,7 @@
                     <div id="webScoresAndTags">
                         <div id="reportHeaderContainer">
                             <img id="reportLogo" alt="Logo Image" style="display: none;">
-                            <h2 id="reportMainTitle" style="font-size: 2rem; font-weight: 900; color: #1e3a8a; padding-bottom: 5px; border-bottom: 5px solid #3b82f6; margin-bottom: 1.5rem;">仙人指路｜神獸七十二型人格分析報告</h2>
+                            <h2 id="reportMainTitle" style="font-size: 2rem; font-weight: 900; color: #1e3a8a; padding-bottom: 5px; margin-bottom: 1.5rem; border-bottom: 5px solid #3b82f6; flex-grow: 1;">仙人指路｜神獸七十二型人格</h2>
                         </div>
                         <p class="text-slate-500">選擇六獸、六親、地支和情境後，點擊「一鍵分析」開始。</p>
                     </div>
@@ -370,11 +373,12 @@
         }
         
         // --- V35.0 簡化：現在只提取文本，不再提取分數 ---
-        function formatOutput(text, payload) {
+        function formatOutput(text) {
             if (!text) return { html: '<p class="text-slate-500">無分析結果。</p>', scores: null, tags: null, webScoresHTML: '<p class="text-slate-500">無法獲取分析內容。</p>' };
 
             let scores = null;
             let tags = null;
+            let jsonText = null;
             let cleanText = text;
 
             // 嘗試找到 JSON 區塊並移除（防止 JSON 程式碼塊干擾報告）
@@ -411,30 +415,25 @@
             if (Array.isArray(tags) && tags.length > 0) {
                  webScoresHTML = `<div style="margin-top: 15px;"><h4 style="margin-bottom: 5px;">關鍵標籤 (AI 建議)</h4><div class="tags">${tags.map(t => `<span class="tag">${t}</span>`).join('')}</div></div>`;
             }
-            
-            // V40.0 修正：處理報告主標題的插入
-            let aiTitle = payload.context + (payload.mode === 'personality' ? '深度分析' : '協作報告');
-            
-            // 提取 AI 輸出的第一個 H2/H3 標題
+
+            // V38.0 報告主標題處理
+            // 提取 AI 輸出的第一個 H2/H3 標題，作為副標題
             let titleMatch = html.match(/<h[23]>(.*?)<\/h[23]>/i);
             
             if (titleMatch) {
-                // 如果 AI 輸出了標題，則使用 AI 的標題，但將其從正文中移除
-                aiTitle = titleMatch[1];
+                // 將 AI 輸出的標題，從正文中移除
                 html = html.replace(titleMatch[0], '');
             }
-
-            const reportHeaderHTML = `<h2 id="reportMainTitle" style="font-size: 1.8rem; font-weight: 900; color: #1e3a8a; padding-bottom: 5px; margin-bottom: 1.5rem; border-bottom: 5px solid #3b82f6; width: 100%;">${aiTitle}</h2>`;
             
             // ⭐️ V40.0 最終排版：將 Logo 和 Title 放在頂部容器 ⭐️
             const finalHeaderContent = `
-                <div id="reportHeaderContainer" style="display: flex; align-items: center; margin-bottom: 20px;">
+                <div id="reportHeaderContainer">
                     <img id="reportLogo" alt="Logo Image" style="display: none;">
-                    <div style="flex-grow: 1;">${reportHeaderHTML}</div>
+                    <h2 id="reportMainTitle" style="font-size: 1.8rem; font-weight: 900; color: #1e3a8a; flex-grow: 1; line-height: 1.2;">仙人指路｜神獸七十二型人格</h2>
                 </div>
             `;
             
-            // 將報告主標題加到最頂端
+            // 將品牌主標題加到最頂端
             html = finalHeaderContent + html;
 
 
@@ -488,7 +487,7 @@
                 $('#beautyPanel').classList.toggle('hidden');
             };
 
-            // --- 背景設定功能 ---
+            // --- 背景設定功能與 Logo 載入 ---
             const body = $('body');
             const bgColorInput = $('#bgColor');
             const bgImageFile = $('#bgImageFile');
@@ -496,15 +495,7 @@
             const reportLogoFile = $('#reportLogoFile'); // Logo input
             const reportLogoImg = $('#reportLogo'); // Logo img element
             
-            const updateBackground = () => {
-                const color = bgColorInput.value || '#f1f5f9';
-                body.style.backgroundColor = color;
-                body.classList.remove('bg-slate-50'); 
-            };
-
-            bgColorInput.oninput = updateBackground;
-            
-            // V40.0 Logo 處理邏輯
+            // Logo 圖片上傳邏輯
             reportLogoFile.onchange = (e) => {
                 const file = e.target.files[0];
                 if (file) {
@@ -518,7 +509,14 @@
                     reportLogoImg.style.display = 'none';
                 }
             };
+            
+            const updateBackground = () => {
+                const color = bgColorInput.value || '#f1f5f9';
+                body.style.backgroundColor = color;
+                body.classList.remove('bg-slate-50'); 
+            };
 
+            bgColorInput.oninput = updateBackground;
 
             bgImageFile.onchange = (e) => {
                 const file = e.target.files[0];
@@ -542,7 +540,7 @@
                 body.style.backgroundImage = 'none';
                 body.style.backgroundColor = '#f1f5f9';
                 body.classList.add('bg-slate-50'); 
-                reportLogoImg.src = '';
+                reportLogoImg.src = ''; // 清除 Logo
                 reportLogoImg.style.display = 'none';
             };
             updateBackground(); 

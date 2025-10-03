@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>仙人指路神獸七十二型人格 - 分析報告 (V41.1 最終穩定版)</title>
+    <title>仙人指路神獸七十二型人格 - 分析報告 (V39.0 最終穩定版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
 
@@ -23,7 +23,7 @@
             border-radius: 12px;
         }
 
-        /* ⭐️ V40.0 核心修正：履歷表式報告排版 ⭐️ */
+        /* ⭐️ V39.0 核心修正：履歷表式報告排版 ⭐️ */
         #result {
             font-size: 16px;
             line-height: 1.7;
@@ -77,35 +77,6 @@
             border-radius: 0.5rem;
             margin-top: 1rem;
         }
-        
-        /* ⭐️ V40.0 品牌視覺修正：報告頂部的主標題樣式 ⭐️ */
-        #reportHeaderContainer {
-            display: flex;
-            align-items: center;
-            margin-bottom: 20px;
-            border-bottom: 5px solid #3b82f6; /* 核心底線 */
-            padding-bottom: 10px;
-        }
-        #reportLogo {
-            width: 80px; 
-            height: 80px;
-            object-fit: cover; /* 確保圖片能填滿圓形 */
-            border-radius: 50%;
-            border: 2px solid #3b82f6;
-            padding: 5px;
-            margin-right: 20px;
-            display: none; /* 預設隱藏 */
-            flex-shrink: 0; /* 防止Logo被擠壓 */
-        }
-        #reportMainTitle {
-            font-size: 2rem;
-            font-weight: 900;
-            color: #1e3a8a;
-            flex-grow: 1; /* 佔據剩餘空間 */
-            line-height: 1.2;
-            padding-bottom: 0;
-            border-bottom: none; /* 將底線移到容器 */
-        }
     </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
@@ -116,8 +87,8 @@
         </header>
 
         <header class="space-y-1 no-print">
-            <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 (V41.1 最終穩定版)</h1>
-            <p class="text-slate-500 text-sm">✨ **已修復 Logo 顯示錯誤和報告排版**</p>
+            <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 (V39.0 最終版)</h1>
+            <p class="text-slate-500 text-sm">✨ **已修復邏輯錯誤與報告排版**</p>
         </header>
 
         <div class="flex gap-4 flex-wrap no-print">
@@ -205,6 +176,8 @@
             <button id="print" class="px-4 py-2 rounded-lg bg-slate-200 text-slate-800 font-semibold">列印 / PDF</button>
             
             <button id="toggleBeauty" class="px-4 py-2 rounded-lg bg-pink-500 text-white font-semibold">🎨 美化</button>
+            
+            <button id="salesTalk" class="px-4 py-2 rounded-lg bg-emerald-600 text-white font-semibold">🛒 銷售話術</button>
 
             <div id="statusContainer" class="flex items-center gap-3">
                 <span id="status" class="text-sm text-slate-600"></span>
@@ -241,7 +214,7 @@
                     <div id="webScoresAndTags">
                         <div id="reportHeaderContainer">
                             <img id="reportLogo" alt="Logo Image" style="display: none;">
-                            <h2 id="reportMainTitle" style="font-size: 2rem; font-weight: 900; color: #1e3a8a; padding-bottom: 5px; margin-bottom: 1.5rem; border-bottom: 5px solid #3b82f6; flex-grow: 1;">仙人指路｜神獸七十二型人格</h2>
+                            <h2 id="reportMainTitle" style="font-size: 2rem; font-weight: 900; color: #1e3a8a; padding-bottom: 5px; border-bottom: 5px solid #3b82f6; flex-grow: 1;">仙人指路｜神獸七十二型人格</h2>
                         </div>
                         <p class="text-slate-500">選擇六獸、六親、地支和情境後，點擊「一鍵分析」開始。</p>
                     </div>
@@ -259,7 +232,6 @@
         const markdownConverter = new showdown.Converter(); 
         
         const API_PROXY_ENDPOINT = '/api/analyze'; 
-        const LOCAL_STORAGE_KEY_LOGO = 'report_logo_img';
 
 
         // 情境預設 (恢復到V7.9)
@@ -381,7 +353,7 @@
             let tags = null;
             let cleanText = text;
 
-            // 嘗試找到 JSON 區塊並移除
+            // 嘗試找到 JSON 區塊並移除（防止 JSON 程式碼塊干擾報告）
             const matchJsonBlock = text.match(/```json\s*([\s\S]*?)\s*```/i);
             if (matchJsonBlock && matchJsonBlock[1]) {
                 cleanText = text.replace(matchJsonBlock[0], '').trim();
@@ -431,7 +403,9 @@
             const finalHeaderContent = `
                 <div id="reportHeaderContainer">
                     <img id="reportLogo" alt="Logo Image" style="display: none;">
-                    <h2 id="reportMainTitle" style="font-size: 1.8rem; font-weight: 900; color: #1e3a8a; padding-bottom: 5px; margin-bottom: 1.5rem; border-bottom: 5px solid #3b82f6; flex-grow: 1;">仙人指路：${aiTitle}</h2>
+                    <div style="flex-grow: 1;">
+                        <h2 id="reportMainTitle" style="font-size: 1.8rem; font-weight: 900; color: #1e3a8a; padding-bottom: 5px; border-bottom: 5px solid #3b82f6; width: 100%;">${aiTitle}</h2>
+                    </div>
                 </div>
             `;
             
@@ -520,7 +494,7 @@
                     localStorage.removeItem('report_logo_img_base64');
                 }
             };
-
+            
             const updateBackground = () => {
                 const color = bgColorInput.value || '#f1f5f9';
                 body.style.backgroundColor = color;
@@ -551,9 +525,7 @@
                 body.style.backgroundImage = 'none';
                 body.style.backgroundColor = '#f1f5f9';
                 body.classList.add('bg-slate-50'); 
-                
-                // 清除 Logo 設置
-                reportLogoImg.src = '';
+                reportLogoImg.src = ''; // 清除 Logo 設置
                 reportLogoImg.style.display = 'none';
                 localStorage.removeItem('report_logo_img_base64');
             };
@@ -657,8 +629,8 @@
                         return;
                     }
 
-                    // --- 渲染 HTML 內容 (V40.0 報告排版) ---
-                    const { html, webScoresHTML } = formatOutput(aiContent);
+                    // --- 渲染 HTML 內容 (V38.0 報告排版) ---
+                    const { html, webScoresHTML } = formatOutput(aiContent, payload);
 
                     $('#result').innerHTML = html;
                     $('#webScoresAndTags').innerHTML = webScoresHTML;

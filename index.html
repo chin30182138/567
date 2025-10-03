@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>仙人指路神獸七十二型人格 - 分析報告 (V42.0 最終穩定版)</title>
+    <title>仙人指路神獸七十二型人格 - 分析報告 (V43.0 最終修復版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
 
@@ -376,12 +376,11 @@
         }
         
         // --- V35.0 簡化：現在只提取文本，不再提取分數 ---
-        function formatOutput(text) {
+        function formatOutput(text, payload) {
             if (!text) return { html: '<p class="text-slate-500">無分析結果。</p>', scores: null, tags: null, webScoresHTML: '<p class="text-slate-500">無法獲取分析內容。</p>' };
 
             let scores = null;
             let tags = null;
-            let jsonText = null;
             let cleanText = text;
 
             // 嘗試找到 JSON 區塊並移除（防止 JSON 程式碼塊干擾報告）
@@ -564,7 +563,8 @@
 
             // V27.1 核心邏輯：修復「六獸」重複警告
             $('#go').onclick = async () => {
-                const payload = getPayload();
+                // V43.0 修正：確保 payload 在這裡被定義
+                const payload = getPayload(); 
                 let errorMessage = '';
                 const aComplete = payload.aBeast && payload.aKin && payload.aBranch;
                 const bComplete = payload.bBeast && payload.bKin && payload.bBranch;

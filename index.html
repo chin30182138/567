@@ -23,34 +23,10 @@
             border-radius: 12px;
         }
 
-        /* ⭐️ V40.0 核心修正：履歷表式報告排版 ⭐️ */
-        #result {
-            font-size: 16px;
-            line-height: 1.7;
-            color: #333;
-        }
-        
-        /* 報告主要標題 (對應 Markdown ### 或 ##) */
-        #result h3 { 
-            font-size: 1.6rem; 
-            font-weight: 900; 
-            margin-top: 2rem; 
-            margin-bottom: 0.8rem; 
-            border-bottom: 4px solid #3b82f6; /* 核心藍色底線 */
-            padding-bottom: 6px; 
-            color: #1e3a8a; /* 深藍色，專業感 */
-        }
-        
-        /* 次級標題 */
-        #result h4 { 
-            font-size: 1.25rem; 
-            font-weight: 700; 
-            margin-top: 1.5rem; 
-            margin-bottom: 0.5rem; 
-            color: #4b5563;
-        }
-        
-        /* 清單樣式 (強調條列重點) */
+        /* --- 報告文本樣式 (專業排版) --- */
+        #result h3 { font-size: 1.3rem; font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.5rem; border-bottom: 3px solid #6366f1; padding-bottom: 5px; color: #4338ca; }
+        #result h4 { font-size: 1.15rem; font-weight: 700; margin-top: 1rem; margin-bottom: 0.4rem; color: #4b5563; }
+        #result p { margin-bottom: 1rem; line-height: 1.6; }
         #result ul, #result ol { padding-left: 25px; margin-bottom: 1.2rem; }
         #result ul { list-style-type: disc; }
         #result ol { list-style-type: decimal; }
@@ -78,33 +54,33 @@
             margin-top: 1rem;
         }
         
-        /* ⭐️ V40.0 品牌視覺修正：報告頂部的主標題樣式 ⭐️ */
+        /* V40.0 品牌視覺修正：報告頂部的主標題樣式 */
         #reportHeaderContainer {
             display: flex;
             align-items: center;
             margin-bottom: 20px;
-            border-bottom: 5px solid #3b82f6; /* 核心底線 */
+            border-bottom: 5px solid #3b82f6; 
             padding-bottom: 10px;
         }
         #reportLogo {
             width: 80px; 
             height: 80px;
-            object-fit: cover; /* 確保圖片能填滿圓形 */
+            object-fit: cover; 
             border-radius: 50%;
             border: 2px solid #3b82f6;
             padding: 5px;
             margin-right: 20px;
-            display: none; /* 預設隱藏 */
-            flex-shrink: 0; /* 防止Logo被擠壓 */
+            display: none; 
+            flex-shrink: 0; 
         }
         #reportMainTitle {
-            font-size: 2rem;
+            font-size: 1.8rem;
             font-weight: 900;
             color: #1e3a8a;
-            flex-grow: 1; /* 佔據剩餘空間 */
+            flex-grow: 1; 
             line-height: 1.2;
             padding-bottom: 0;
-            border-bottom: none; /* 將底線移到容器 */
+            border-bottom: none; 
         }
     </style>
 </head>
@@ -244,7 +220,7 @@
                     <div id="webScoresAndTags">
                         <div id="reportHeaderContainer">
                             <img id="reportLogo" alt="Logo Image" style="display: none;">
-                            <h2 id="reportMainTitle" style="font-size: 2rem; font-weight: 900; color: #1e3a8a; padding-bottom: 5px; margin-bottom: 1.5rem; border-bottom: 5px solid #3b82f6; flex-grow: 1;">仙人指路｜神獸七十二型人格</h2>
+                            <h2 id="reportMainTitle" style="font-size: 1.8rem; font-weight: 900; color: #1e3a8a; padding-bottom: 5px; margin-bottom: 1.5rem; border-bottom: 5px solid #3b82f6; flex-grow: 1;">仙人指路｜神獸七十二型人格</h2>
                         </div>
                         <p class="text-slate-500">選擇六獸、六親、地支和情境後，點擊「一鍵分析」開始。</p>
                     </div>
@@ -661,7 +637,7 @@
                     }
 
                     // --- 渲染 HTML 內容 (V40.0 報告排版) ---
-                    const { html, webScoresHTML } = formatOutput(aiContent);
+                    const { html, webScoresHTML } = formatOutput(aiContent, payload);
 
                     $('#result').innerHTML = html;
                     $('#webScoresAndTags').innerHTML = webScoresHTML;

@@ -259,6 +259,7 @@
         const markdownConverter = new showdown.Converter(); 
         
         const API_PROXY_ENDPOINT = '/api/analyze'; 
+        const LOCAL_STORAGE_KEY_LOGO = 'report_logo_img';
 
 
         // 情境預設 (恢復到V7.9)
@@ -373,15 +374,14 @@
         }
         
         // --- V35.0 簡化：現在只提取文本，不再提取分數 ---
-        function formatOutput(text) {
+        function formatOutput(text, payload) {
             if (!text) return { html: '<p class="text-slate-500">無分析結果。</p>', scores: null, tags: null, webScoresHTML: '<p class="text-slate-500">無法獲取分析內容。</p>' };
 
             let scores = null;
             let tags = null;
-            let jsonText = null;
             let cleanText = text;
 
-            // 嘗試找到 JSON 區塊並移除（防止 JSON 程式碼塊干擾報告）
+            // 嘗試找到 JSON 區塊並移除
             const matchJsonBlock = text.match(/```json\s*([\s\S]*?)\s*```/i);
             if (matchJsonBlock && matchJsonBlock[1]) {
                 cleanText = text.replace(matchJsonBlock[0], '').trim();
@@ -416,12 +416,14 @@
                  webScoresHTML = `<div style="margin-top: 15px;"><h4 style="margin-bottom: 5px;">關鍵標籤 (AI 建議)</h4><div class="tags">${tags.map(t => `<span class="tag">${t}</span>`).join('')}</div></div>`;
             }
 
-            // V38.0 報告主標題處理
+            // V40.0 報告主標題處理
             // 提取 AI 輸出的第一個 H2/H3 標題，作為副標題
             let titleMatch = html.match(/<h[23]>(.*?)<\/h[23]>/i);
+            let aiTitle = payload.context + (payload.mode === 'personality' ? '深度分析' : '協作報告');
             
             if (titleMatch) {
                 // 將 AI 輸出的標題，從正文中移除
+                aiTitle = titleMatch[1];
                 html = html.replace(titleMatch[0], '');
             }
             
@@ -429,7 +431,7 @@
             const finalHeaderContent = `
                 <div id="reportHeaderContainer">
                     <img id="reportLogo" alt="Logo Image" style="display: none;">
-                    <h2 id="reportMainTitle" style="font-size: 1.8rem; font-weight: 900; color: #1e3a8a; flex-grow: 1; line-height: 1.2;">仙人指路｜神獸七十二型人格</h2>
+                    <h2 id="reportMainTitle" style="font-size: 1.8rem; font-weight: 900; color: #1e3a8a; padding-bottom: 5px; margin-bottom: 1.5rem; border-bottom: 5px solid #3b82f6; flex-grow: 1;">仙人指路：${aiTitle}</h2>
                 </div>
             `;
             
@@ -487,7 +489,7 @@
                 $('#beautyPanel').classList.toggle('hidden');
             };
 
-            // --- 背景設定功能與 Logo 載入 ---
+            // --- 背景設定功能 ---
             const body = $('body');
             const bgColorInput = $('#bgColor');
             const bgImageFile = $('#bgImageFile');
@@ -495,21 +497,30 @@
             const reportLogoFile = $('#reportLogoFile'); // Logo input
             const reportLogoImg = $('#reportLogo'); // Logo img element
             
-            // Logo 圖片上傳邏輯
+            // ⭐️ V40.0 Logo 載入/保存邏輯修復 ⭐️
+            const savedLogo = localStorage.getItem('report_logo_img_base64');
+            if (savedLogo) {
+                reportLogoImg.src = savedLogo;
+                reportLogoImg.style.display = 'block';
+            }
+
             reportLogoFile.onchange = (e) => {
                 const file = e.target.files[0];
                 if (file) {
                     const reader = new FileReader();
                     reader.onload = (event) => {
-                        reportLogoImg.src = event.target.result;
+                        const base64Data = event.target.result;
+                        reportLogoImg.src = base64Data;
                         reportLogoImg.style.display = 'block';
+                        localStorage.setItem('report_logo_img_base64', base64Data); // 保存到本地
                     };
                     reader.readAsDataURL(file);
                 } else {
                     reportLogoImg.style.display = 'none';
+                    localStorage.removeItem('report_logo_img_base64');
                 }
             };
-            
+
             const updateBackground = () => {
                 const color = bgColorInput.value || '#f1f5f9';
                 body.style.backgroundColor = color;
@@ -540,8 +551,11 @@
                 body.style.backgroundImage = 'none';
                 body.style.backgroundColor = '#f1f5f9';
                 body.classList.add('bg-slate-50'); 
-                reportLogoImg.src = ''; // 清除 Logo
+                
+                // 清除 Logo 設置
+                reportLogoImg.src = '';
                 reportLogoImg.style.display = 'none';
+                localStorage.removeItem('report_logo_img_base64');
             };
             updateBackground(); 
 
@@ -643,8 +657,8 @@
                         return;
                     }
 
-                    // --- 渲染 HTML 內容 (V38.0 報告排版) ---
-                    const { html, webScoresHTML } = formatOutput(aiContent, payload);
+                    // --- 渲染 HTML 內容 (V40.0 報告排版) ---
+                    const { html, webScoresHTML } = formatOutput(aiContent);
 
                     $('#result').innerHTML = html;
                     $('#webScoresAndTags').innerHTML = webScoresHTML;

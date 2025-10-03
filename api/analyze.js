@@ -1,10 +1,9 @@
-
-// api/analyze.js - V35.0 最終穩定版 (使用 OpenAI 官方 SDK)
+// api/analyze.js - V41.0 最終穩定版 (使用 OpenAI 官方 SDK)
 
 // 導入 OpenAI SDK
 const OpenAI = require('openai'); 
 
-// 確保 Vercel 環境變數中 OPENAI_API_KEY 已設定 (兼容 GEMINI_API_KEY)
+// 確保 Vercel 環境變數中 OPENAI_API_KEY 已設定
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || process.env.GEMINI_API_KEY; 
 const FINAL_MODEL = 'gpt-3.5-turbo'; 
 
@@ -12,7 +11,9 @@ const openai = new OpenAI({
     apiKey: OPENAI_API_KEY, 
 });
 
-const SYSTEM_PROMPT = "你是一位精通中國古代《神獸七十二型人格》理論的資深分析師。你的任務是根據用戶提供的『六獸-六親-地支』組合和情境，輸出深度且具體的分析報告。報告必須專業、嚴謹，並且字數至少 800 字。";
+// 核心：系統提示詞將在前端生成，這裡只需要一個通用的系統級安全指令。
+const SYSTEM_PROMPT = "你是一位精通中國古代《神獸七十二型人格》理論的資深分析師。你的任務是根據用戶提供的組合和情境，輸出深度且具體的分析報告。報告必須專業、嚴謹，並且字數至少 800 字。";
+
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
@@ -40,7 +41,7 @@ export default async function handler(req, res) {
                 },
                 {
                     role: "user",
-                    content: prompt,
+                    content: prompt // V39.1: 前端已經生成了包含所有指令和格式要求的完整 Prompt
                 }
             ],
             temperature: 0.7,

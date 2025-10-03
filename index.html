@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>仙人指路神獸七十二型人格 - 分析報告 (V39.2 最終穩定版)</title>
+    <title>仙人指路神獸七十二型人格 - 分析報告 (V39.1 最終穩定版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
 
@@ -164,7 +164,7 @@
         <section class="bg-white p-4 rounded-xl shadow space-y-2 no-print">
             <h2 class="font-semibold">情境 / 分析主題</h2>
             <div id="presetContainer" class="flex gap-2 flex-wrap">
-                <button class="preset px-3 py-1.5 rounded-full bg-slate-100 text-emerald-600 font-semibold" data-detail="銷售話術">🛒 銷售話術</button>
+                 <button class="preset px-3 py-1.5 rounded-full bg-slate-100 text-emerald-600 font-semibold" data-detail="銷售話術">🛒 銷售話術</button>
             </div>
             <input id="context" class="w-full border rounded-lg p-2" placeholder="輸入自訂情境或分析主題…" />
             
@@ -265,17 +265,17 @@
 
         // 情境預設 (V39.1 修正：將銷售話術加入預設列表)
         const PRESETS = {
-            'personality': ['基礎個性', '職涯優勢', '情緒管理', '人際關係', '銷售話術'], // 加入銷售話術
-            'single': ['年度目標協調', '績效回饋會議', '跨部門協作', '壓期交付專案', '人際關係協調', '銷售話術'], // 加入銷售話術
+            'personality': ['基礎個性', '職涯優勢', '情緒管理', '人際關係'],
+            'single': ['年度目標協調', '績效回饋會議', '跨部門協作', '壓期交付專案', '人際關係協調', '銷售話術'], // V39.1: 加入銷售話術
             'dual': [
                 '年度目標協調', '績效回饋會議', '跨部門協作', '壓期交付專案', '人際關係協調',
-                '性愛', '銷售話術' // 加入銷售話術
+                '性愛', '銷售話術' // V39.1: 加入銷售話術
             ]
         };
         const SEX_CONTEXTS = ['性愛'];
 
 
-        // --- 進度條控制函式 (保持 V7.9 的邏輯) ---
+        // --- 進度條控制函式 ---
         let progressInterval = null;
         function startProgressBar() {
             if (progressInterval) clearInterval(progressInterval);
@@ -357,7 +357,6 @@
         // --- 情境輸入/預設邏輯 (只認「性愛」) ---
         function toggleSexOptions(){
             const context = $('#context').value;
-            // V39.1: 修正逻辑，只在 dual 且 context 为 '性愛' 时显示
             const isSexContext = SEX_CONTEXTS.includes(context);
             
             if(analysisMode === 'dual' && isSexContext){ 

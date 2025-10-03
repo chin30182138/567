@@ -3,12 +3,12 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>仙人指路神獸七十二型人格 - 分析報告 (V42.0 最終穩定版)</title>
+    <title>仙人指路神獸七十二型人格 - 分析報告 (V39.1 最終穩定版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
 
     <style>
-        /* --- 介面核心樣式 (V7.9 樣式) --- */
+        /* --- 介面核心樣式 --- */
         body { 
             transition: background-color 0.5s ease, background-image 0.5s ease; 
             background-size: cover; 
@@ -116,7 +116,7 @@
         </header>
 
         <header class="space-y-1 no-print">
-            <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 (V39.0 最終版)</h1>
+            <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 (V39.1 最終版)</h1>
             <p class="text-slate-500 text-sm">✨ **已修復邏輯錯誤與報告排版**</p>
         </header>
 
@@ -244,7 +244,7 @@
                     <div id="webScoresAndTags">
                         <div id="reportHeaderContainer">
                             <img id="reportLogo" alt="Logo Image" style="display: none;">
-                            <h2 id="reportMainTitle" style="font-size: 1.8rem; font-weight: 900; color: #1e3a8a; padding-bottom: 5px; margin-bottom: 1.5rem; border-bottom: 5px solid #3b82f6; flex-grow: 1;">仙人指路｜神獸七十二型人格</h2>
+                            <h2 id="reportMainTitle" style="font-size: 2rem; font-weight: 900; color: #1e3a8a; padding-bottom: 5px; margin-bottom: 1.5rem; border-bottom: 5px solid #3b82f6; flex-grow: 1;">仙人指路｜神獸七十二型人格</h2>
                         </div>
                         <p class="text-slate-500">選擇六獸、六親、地支和情境後，點擊「一鍵分析」開始。</p>
                     </div>
@@ -660,8 +660,8 @@
                         return;
                     }
 
-                    // --- 渲染 HTML 內容 (V38.0 報告排版) ---
-                    const { html, webScoresHTML } = formatOutput(aiContent, payload);
+                    // --- 渲染 HTML 內容 (V40.0 報告排版) ---
+                    const { html, webScoresHTML } = formatOutput(aiContent);
 
                     $('#result').innerHTML = html;
                     $('#webScoresAndTags').innerHTML = webScoresHTML;

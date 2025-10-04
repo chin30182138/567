@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>仙人指路神獸七十二型人格 - 分析報告 (V44.1 最終穩定版)</title>
+    <title>仙人指路神獸七十二型人格 - 分析報告 (V45.0 最終穩定版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
 
@@ -116,7 +116,7 @@
         </header>
 
         <header class="space-y-1 no-print">
-            <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 (V44.1 最終穩定版)</h1>
+            <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 (V43.1 最終穩定版)</h1>
             <p class="text-slate-500 text-sm">✨ **已修復邏輯錯誤與報告排版**</p>
         </header>
 
@@ -389,7 +389,7 @@
             if (matchJsonBlock && matchJsonBlock[1]) {
                 cleanText = text.replace(matchJsonBlock[0], '').trim();
                 
-                // 嘗試提取 tags，但忽略 scores
+                // 嘗試提取 tags
                 try {
                     const j = JSON.parse(matchJsonBlock[1].trim());
                     tags = Array.isArray(j.tags) ? j.tags : null;
@@ -564,7 +564,7 @@
 
             // V27.1 核心邏輯：修復「六獸」重複警告
             $('#go').onclick = async () => {
-                const payload = getPayload();
+                const payload = getPayload(); // ⭐ 核心修復：payload 在這裡被初始化 ⭐
                 let errorMessage = '';
                 const aComplete = payload.aBeast && payload.aKin && payload.aBranch;
                 const bComplete = payload.bBeast && payload.bKin && payload.bBranch;

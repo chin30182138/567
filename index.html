@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>仙人指路神獸七十二型人格 - 分析報告 (V31.0 最終穩定版)</title>
+    <title>仙人指路神獸七十二型人格 - 分析報告 (V43.0 最終穩定版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
 
@@ -116,7 +116,7 @@
         </header>
 
         <header class="space-y-1 no-print">
-            <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 (V31.0 最終穩定版)</h1>
+            <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 (V43.0 最終版)</h1>
             <p class="text-slate-500 text-sm">✨ **已修復邏輯錯誤與報告排版**</p>
         </header>
 
@@ -206,7 +206,7 @@
             <button id="print" class="px-4 py-2 rounded-lg bg-slate-200 text-slate-800 font-semibold">列印 / PDF</button>
             
             <button id="toggleBeauty" class="px-4 py-2 rounded-lg bg-pink-500 text-white font-semibold">🎨 美化</button>
-            
+
             <div id="statusContainer" class="flex items-center gap-3">
                 <span id="status" class="text-sm text-slate-600"></span>
                 <div id="progressBar" class="w-40 h-2 bg-slate-200 rounded-full overflow-hidden hidden">
@@ -376,7 +376,7 @@
         }
         
         // --- V35.0 簡化：現在只提取文本，不再提取分數 ---
-        function formatOutput(text) {
+        function formatOutput(text, payload) {
             if (!text) return { html: '<p class="text-slate-500">無分析結果。</p>', scores: null, tags: null, webScoresHTML: '<p class="text-slate-500">無法獲取分析內容。</p>' };
 
             let scores = null;
@@ -389,7 +389,7 @@
             if (matchJsonBlock && matchJsonBlock[1]) {
                 cleanText = text.replace(matchJsonBlock[0], '').trim();
                 
-                // 嘗試提取 tags
+                // 嘗試提取 tags，但忽略 scores
                 try {
                     const j = JSON.parse(matchJsonBlock[1].trim());
                     tags = Array.isArray(j.tags) ? j.tags : null;
@@ -610,6 +610,11 @@
                 }
                 
                 // V35.1: 提醒 AI 只需要文本，不需要 JSON
+                // V43.1: 修正銷售話術的 Prompt，強制輸出對話
+                if (payload.context === '銷售話術' && payload.mode === 'dual') {
+                    promptText += `\n**【情境模擬要求】**：請根據雙方的六獸和六親特性，模擬一段**銷售對話腳本** (A是銷售，B是客戶)，包含至少一個客戶的反對意見，以及A如何說服B的具體話術。使用 Markdown 區塊引言 (>) 符號來區分對話。`;
+                }
+                
                 promptText += `\n請輸出專業、深入、長度超過 800 字的繁體中文分析報告，嚴格使用 Markdown 格式分段落、標題與清單。報告必須以「仙人指路」為報告主旨。請勿在報告中包含任何 JSON 程式碼塊。`;
 
 

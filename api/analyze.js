@@ -1,11 +1,12 @@
-// api/analyze.js - V32.0 最終穩定版 (使用 OpenAI 官方 SDK)
+// api/analyze.js - V44.0 最終穩定版 (使用 OpenAI 官方 SDK)
 
 // 導入 OpenAI SDK
 const OpenAI = require('openai'); 
 
 // 確保 Vercel 環境變數中 OPENAI_API_KEY 已設定
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || process.env.GEMINI_API_KEY; 
-const FINAL_MODEL = 'gpt-3.5-turbo'; 
+// 核心修正：升級到 gpt-4o 終結超時和格式不穩定的問題
+const FINAL_MODEL = 'gpt-4o'; 
 
 const openai = new OpenAI({
     apiKey: OPENAI_API_KEY, 

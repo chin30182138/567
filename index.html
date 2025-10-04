@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>仙人指路神獸七十二型人格 - 分析報告 (V43.0 最終穩定版)</title>
+    <title>仙人指路神獸七十二型人格 - 分析報告 (V44.1 最終穩定版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
 
@@ -23,7 +23,7 @@
             border-radius: 12px;
         }
 
-        /* ⭐️ V43.0 核心修正：報告排版與品牌視覺 ⭐️ */
+        /* ⭐️ V40.0 核心修正：履歷表式報告排版 ⭐️ */
         #result {
             font-size: 16px;
             line-height: 1.7;
@@ -78,7 +78,7 @@
             margin-top: 1rem;
         }
         
-        /* ⭐️ V43.0 品牌視覺修正：報告頂部的主標題樣式 ⭐️ */
+        /* ⭐️ V40.0 品牌視覺修正：報告頂部的主標題樣式 ⭐️ */
         #reportHeaderContainer {
             display: flex;
             align-items: center;
@@ -116,8 +116,8 @@
         </header>
 
         <header class="space-y-1 no-print">
-            <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 (V43.1 最終穩定版)</h1>
-            <p class="text-slate-500 text-sm">✨ **已修復邏輯錯誤，專注於實戰情境輸出**</p>
+            <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 (V44.1 最終穩定版)</h1>
+            <p class="text-slate-500 text-sm">✨ **已修復邏輯錯誤與報告排版**</p>
         </header>
 
         <div class="flex gap-4 flex-wrap no-print">
@@ -206,7 +206,7 @@
             <button id="print" class="px-4 py-2 rounded-lg bg-slate-200 text-slate-800 font-semibold">列印 / PDF</button>
             
             <button id="toggleBeauty" class="px-4 py-2 rounded-lg bg-pink-500 text-white font-semibold">🎨 美化</button>
-            
+
             <div id="statusContainer" class="flex items-center gap-3">
                 <span id="status" class="text-sm text-slate-600"></span>
                 <div id="progressBar" class="w-40 h-2 bg-slate-200 rounded-full overflow-hidden hidden">

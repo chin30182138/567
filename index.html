@@ -343,7 +343,7 @@
                 const btn = document.createElement('button');
                 // V39.1: 銷售話術按鈕使用不同顏色強調
                 const isSales = p === '銷售話術';
-                const isHealth = p === '靈性健康話術';
+                const isHealth = p === '靈性健康話術'; // V45.1 新增
                 btn.className = `preset px-3 py-1.5 rounded-full ${isSales ? 'bg-emerald-100 text-emerald-800' : (isHealth ? 'bg-purple-100 text-purple-800' : 'bg-slate-100 text-slate-800')} hover:bg-slate-300 transition-colors`;
                 btn.textContent = p;
                 btn.onclick = () => {
@@ -378,7 +378,7 @@
         }
         
         // --- V35.0 簡化：現在只提取文本，不再提取分數 ---
-        function formatOutput(text, payload) {
+        function formatOutput(text) {
             if (!text) return { html: '<p class="text-slate-500">無分析結果。</p>', scores: null, tags: null, webScoresHTML: '<p class="text-slate-500">無法獲取分析內容。</p>' };
 
             let scores = null;
@@ -619,6 +619,7 @@
                 } else if (payload.context === '性愛' && payload.mode === 'dual') {
                     promptText += `\n**【情境模擬要求】**：請根據雙方的六獸和六親特性，模擬一段**高張力、大膽且精采的私密對話腳本**。使用 Markdown 區塊引言 (>) 符號來區分對話。`;
                 }
+
                 
                 promptText += `\n請輸出專業、深入、長度超過 800 字的繁體中文分析報告，嚴格使用 Markdown 格式分段落、標題與清單。報告必須以「仙人指路」為報告主旨。請勿在報告中包含任何 JSON 程式碼塊。`;
 

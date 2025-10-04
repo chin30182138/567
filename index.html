@@ -3,9 +3,9 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>仙人指路神獸七十二型人格 - 分析報告 (V46.1 最終穩定版)</title>
+    <title>仙人指路神獸七十二型人格 - 分析報告 (V47.0 最終穩定版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/showdown@4.4.1/dist/showdown.min.js"></script>
 
     <style>
         /* --- 介面核心樣式 --- */
@@ -23,7 +23,7 @@
             border-radius: 12px;
         }
 
-        /* ⭐️ V40.0 核心修正：履歷表式報告排版 ⭐️ */
+        /* ⭐️ 報告排版與品牌視覺 ⭐️ */
         #result {
             font-size: 16px;
             line-height: 1.7;
@@ -78,7 +78,7 @@
             margin-top: 1rem;
         }
         
-        /* ⭐️ V40.0 品牌視覺修正：報告頂部的主標題樣式 ⭐️ */
+        /* ⭐️ 品牌視覺修正：報告頂部的主標題樣式 ⭐️ */
         #reportHeaderContainer {
             display: flex;
             align-items: center;
@@ -116,7 +116,7 @@
         </header>
 
         <header class="space-y-1 no-print">
-            <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 (V45.1 最終穩定版)</h1>
+            <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 (V47.0 最終穩定版)</h1>
             <p class="text-slate-500 text-sm">✨ **已修復邏輯錯誤與品牌標頭顯示**</p>
         </header>
 
@@ -266,10 +266,10 @@
         // 情境預設 (V39.1 修正：將銷售話術加入預設列表)
         const PRESETS = {
             'personality': ['基礎個性', '職涯優勢', '情緒管理', '人際關係'],
-            'single': ['年度目標協調', '績效回饋會議', '跨部門協作', '壓期交付專案', '人際關係協調', '銷售話術', '靈性健康話術'], // V45.1 新增心靈健康話術
+            'single': ['年度目標協調', '績效回饋會議', '跨部門協作', '壓期交付專案', '人際關係協調', '銷售話術'], 
             'dual': [
                 '年度目標協調', '績效回饋會議', '跨部門協作', '壓期交付專案', '人際關係協調',
-                '性愛', '銷售話術', '靈性健康話術' // V45.1 新增心靈健康話術
+                '性愛', '銷售話術' 
             ]
         };
         const SEX_CONTEXTS = ['性愛'];
@@ -330,362 +330,4 @@
             sectionB.style.display = (mode === 'dual') ? 'block' : 'none';
             
             loadPresets(mode);
-            toggleSexOptions(); 
-        }
-
-        // 載入情境按鈕
-        function loadPresets(mode) {
-            const container = $('#presetContainer');
-            container.innerHTML = ''; 
-            const presets = PRESETS[mode] || [];
-            
-            presets.forEach(p => {
-                const btn = document.createElement('button');
-                // V39.1: 銷售話術按鈕使用不同顏色強調
-                const isSales = p === '銷售話術';
-                const isHealth = p === '靈性健康話術';
-                btn.className = `preset px-3 py-1.5 rounded-full ${isSales ? 'bg-emerald-100 text-emerald-800' : (isHealth ? 'bg-purple-100 text-purple-800' : 'bg-slate-100 text-slate-800')} hover:bg-slate-300 transition-colors`;
-                btn.textContent = p;
-                btn.onclick = () => {
-                    $('#context').value = p;
-                    toggleSexOptions(); 
-                };
-                container.appendChild(btn);
-            });
-            $('#context').value = '';
-        }
-
-        // --- 情境輸入/預設邏輯 (只認「性愛」) ---
-        function toggleSexOptions(){
-            const context = $('#context').value;
-            const isSexContext = SEX_CONTEXTS.includes(context);
-            
-            if(analysisMode === 'dual' && isSexContext){ 
-                $('#sexOptions').classList.remove('hidden'); 
-            }
-            else { 
-                $('#sexOptions').classList.add('hidden'); 
-            }
-        }
-
-        function getPayload(){
-            return {
-                mode:analysisMode,
-                aBeast:$('#aBeast').value, aKin:$('#aKin').value, aBranch:$('#aBranch').value,
-                bBeast:$('#bBeast').value, bKin:$('#bKin').value, bBranch:$('#bBranch').value,
-                context:$('#context').value, sexDetail:$('#sexDetailInput').value
-            };
-        }
-        
-        // --- V35.0 簡化：現在只提取文本，不再提取分數 ---
-        function formatOutput(text, payload) {
-            if (!text) return { html: '<p class="text-slate-500">無分析結果。</p>', scores: null, tags: null, webScoresHTML: '<p class="text-slate-500">無法獲取分析內容。</p>' };
-
-            let scores = null;
-            let tags = null;
-            let jsonText = null;
-            let cleanText = text;
-
-            // 嘗試找到 JSON 區塊並移除（防止 JSON 程式碼塊干擾報告）
-            const matchJsonBlock = text.match(/```json\s*([\s\S]*?)\s*```/i);
-            if (matchJsonBlock && matchJsonBlock[1]) {
-                cleanText = text.replace(matchJsonBlock[0], '').trim();
-                
-                // 嘗試提取 tags，但忽略 scores
-                try {
-                    const j = JSON.parse(matchJsonBlock[1].trim());
-                    tags = Array.isArray(j.tags) ? j.tags : null;
-                } catch (e) {
-                    console.error("JSON Tags 解析失敗 (純文本模式)", e);
-                }
-            } else {
-                 // 嘗試移除結尾的純 JSON 區塊
-                const matchLastCurly = text.match(/\{[\s\S]*\}\s*$/); 
-                if (matchLastCurly) {
-                    cleanText = text.replace(matchLastCurly[0], '').trim(); 
-                }
-            }
-            
-            // 渲染 HTML 內容
-            let html = markdownConverter.makeHtml(cleanText);
-
-            // 清理 AI 有時會輸出的多餘標題/段落
-            html = html.replace(/<p>[\s]*JSON[\s]*輸出[\s]*<\/p>/gi, '')
-                     .replace(/<h[1-6]>[\s]*JSON[\s]*輸出[\s]*<\/h[1-6]>/gi, '')
-                     .replace(/<p>\s*<\/p>/gi, '');
-
-            // V35.0: 移除所有分數相關的 HTML 輸出
-            let webScoresHTML = '<p class="text-slate-500">此模式專注於文本分析。</p>';
-            
-            if (Array.isArray(tags) && tags.length > 0) {
-                 webScoresHTML = `<div style="margin-top: 15px;"><h4 style="margin-bottom: 5px;">關鍵標籤 (AI 建議)</h4><div class="tags">${tags.map(t => `<span class="tag">${t}</span>`).join('')}</div></div>`;
-            }
-
-            // V40.0 報告主標題處理
-            // 提取 AI 輸出的第一個 H2/H3 標題，作為副標題
-            let titleMatch = html.match(/<h[23]>(.*?)<\/h[23]>/i);
-            let aiTitle = payload.context + (payload.mode === 'personality' ? '深度分析' : '協作報告');
-            
-            if (titleMatch) {
-                // 將 AI 輸出的標題，從正文中移除
-                aiTitle = titleMatch[1];
-                html = html.replace(titleMatch[0], '');
-            }
-            
-            // ⭐️ V40.0 最終排版：將 Logo 和 Title 放在頂部容器 ⭐️
-            const finalHeaderContent = `
-                <div id="reportHeaderContainer">
-                    <img id="reportLogo" alt="Logo Image" style="display: none;">
-                    <div style="flex-grow: 1;">
-                        <h2 id="reportMainTitle" style="font-size: 1.8rem; font-weight: 900; color: #1e3a8a; padding-bottom: 5px; margin-bottom: 1.5rem; border-bottom: 5px solid #3b82f6; width: 100%;">${aiTitle}</h2>
-                    </div>
-                </div>
-            `;
-            
-            // 將品牌主標題加到最頂端
-            html = finalHeaderContent + html;
-
-
-            return { html: html, scores: null, tags: null, webScoresHTML: webScoresHTML };
-        }
-
-        // V36.1 移除所有圖表相關函數
-        function renderChart(scores, type){
-             // 函數內容為空，不再執行任何繪圖操作
-             const wrap = $('#chartContainer');
-             wrap.innerHTML = '<div id="chartPlaceholder" class="text-center text-slate-500 p-4">圖表功能已停用，專注於文本分析。</div>';
-        }
-        
-        // --- 核心事件監聽和初始化 ---
-        document.addEventListener('DOMContentLoaded', () => {
-            // 設定報告時間
-            $('#reportTime').textContent = new Date().toLocaleDateString('zh-TW', {
-                year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
-            });
-            
-            // 模式切換按鈕
-            $('#modePersonality').onclick = () => setAnalysisMode('personality');
-            $('#modeSingle').onclick = () => setAnalysisMode('single');
-            $('#modeDual').onclick = () => setAnalysisMode('dual');
-            setAnalysisMode('personality'); 
-
-            // 情境輸入 oninput
-            $('#context').oninput = toggleSexOptions;
-            
-            // 性愛細節按鈕 (點擊添加/移除)
-            $$('.sex-detail').forEach(b => b.onclick = () => { 
-                const current = $('#sexDetailInput').value.trim();
-                const detail = b.dataset.detail;
-                
-                let existingDetails = current.split('；').map(d => d.trim()).filter(d => d);
-                
-                if(existingDetails.includes(detail)) {
-                    existingDetails = existingDetails.filter(d => d !== detail);
-                } else {
-                    existingDetails.push(detail);
-                }
-                
-                $('#sexDetailInput').value = existingDetails.join('；');
-            });
-
-            // 列印
-            $('#print').onclick = () => window.print();
-
-            // 美化面板切換
-            $('#toggleBeauty').onclick = () => {
-                $('#beautyPanel').classList.toggle('hidden');
-            };
-
-            // --- 背景設定功能 ---
-            const body = $('body');
-            const bgColorInput = $('#bgColor');
-            const bgImageFile = $('#bgImageFile');
-            const clearBgBtn = $('#clearBg');
-            const reportLogoFile = $('#reportLogoFile'); // Logo input
-            const reportLogoImg = $('#reportLogo'); // Logo img element
-            
-            // ⭐️ V40.0 Logo 載入/保存邏輯修復 ⭐️
-            const savedLogo = localStorage.getItem('report_logo_img_base64');
-            if (savedLogo) {
-                reportLogoImg.src = savedLogo;
-                reportLogoImg.style.display = 'block';
-            }
-
-            reportLogoFile.onchange = (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        const base64Data = event.target.result;
-                        reportLogoImg.src = base64Data;
-                        reportLogoImg.style.display = 'block';
-                        localStorage.setItem('report_logo_img_base64', base64Data); // 保存到本地
-                    };
-                    reader.readAsDataURL(file);
-                } else {
-                    reportLogoImg.style.display = 'none';
-                    localStorage.removeItem('report_logo_img_base64');
-                }
-            };
-
-            const updateBackground = () => {
-                const color = bgColorInput.value || '#f1f5f9';
-                body.style.backgroundColor = color;
-                body.classList.remove('bg-slate-50'); 
-            };
-
-            bgColorInput.oninput = updateBackground;
-
-            bgImageFile.onchange = (e) => {
-                const file = e.target.files[0];
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = (event) => {
-                        body.style.backgroundImage = `url('${event.target.result}')`;
-                        body.style.backgroundSize = 'cover';
-                        body.style.backgroundPosition = 'center';
-                        body.style.backgroundAttachment = 'fixed';
-                    };
-                    reader.readAsDataURL(file);
-                } else {
-                     body.style.backgroundImage = 'none';
-                }
-            };
-
-            clearBgBtn.onclick = () => {
-                bgImageFile.value = '';
-                bgColorInput.value = '#f1f5f9';
-                body.style.backgroundImage = 'none';
-                body.style.backgroundColor = '#f1f5f9';
-                body.classList.add('bg-slate-50'); 
-                reportLogoImg.src = ''; // 清除 Logo 設置
-                reportLogoImg.style.display = 'none';
-                localStorage.removeItem('report_logo_img_base64');
-            };
-            updateBackground(); 
-
-            // V27.1 核心邏輯：修復「六獸」重複警告
-            $('#go').onclick = async () => {
-                const payload = getPayload();
-                let errorMessage = '';
-                const aComplete = payload.aBeast && payload.aKin && payload.aBranch;
-                const bComplete = payload.bBeast && payload.bKin && payload.bBranch;
-
-                // --- V34.0 邏輯修正：檢查六獸、六親不得相同，但地支可以 ---
-                if (!aComplete) { errorMessage = '請選滿我方「六獸、六親、地支」'; }
-                else if (payload.mode === 'dual' && !bComplete) { errorMessage = '雙人分析請選滿對方「六獸、六親、地支」'; }
-                else if (payload.mode !== 'personality' && !payload.context) { errorMessage = '請輸入或選擇情境'; }
-                else if (payload.context === '性愛' && payload.mode === 'dual' && !payload.sexDetail) { errorMessage = '您選擇了性愛情境，請點選或輸入細節按鈕，以供 AI 參考建議。'; }
-                
-                // ⭐ V28.1 最終邏輯修正：檢查「六獸」AND「六親」是否單獨重複 ⭐
-                else if (payload.mode === 'dual' && payload.aBeast === payload.bBeast) {
-                    errorMessage = '雙人分析中，「六獸」不可相同！請選擇不同的六獸。';
-                }
-                else if (payload.mode === 'dual' && payload.aKin === payload.bKin) {
-                    errorMessage = '雙人分析中，「六親」不可相同！請選擇不同的六親。';
-                }
-
-                if (errorMessage) { alert(errorMessage); return; }
-
-                // --- 準備並顯示狀態 ---
-                $('#result').innerHTML = '<p class="text-slate-500">正在等待 AI 分析...</p>';
-                $('#webScoresAndTags').innerHTML = '<p class="text-slate-500">分析中...</p>'; // 清空分數區塊
-                startProgressBar();
-
-
-                // --- 構建發送給 Vercel 的 Promt 文本 ---
-                const combinedA = `${payload.aBeast}-${payload.aKin}-${payload.aBranch}`;
-                const combinedB = `${payload.bBeast}-${payload.bKin}-${payload.bBranch}`;
-                
-                let promptText = `請根據以下資訊，輸出深度報告：\n`;
-                promptText += `分析模式: ${payload.mode === 'personality' ? '個性分析' : (payload.mode === 'single' ? '單人情境' : '雙人情境')}\n`;
-                promptText += `我方組合 (A): ${combinedA}\n`;
-                
-                if (payload.mode === 'dual') {
-                    promptText += `對方組合 (B): ${combinedB}\n`;
-                }
-
-                promptText += `分析情境/主題: ${payload.context || '基礎個性'}\n`;
-
-                if (payload.context === '性愛' && payload.mode === 'dual' && payload.sexDetail) {
-                    promptText += `性愛劇本細節要求: ${payload.sexDetail}\n`;
-                }
-                
-                // ⭐ V43.1 核心修復：實戰對話內容強化 ⭐
-                if (payload.context === '銷售話術' && payload.mode === 'dual') {
-                    promptText += `\n**【情境模擬要求】**：請根據雙方的六獸和六親特性，模擬一段**長且精采的銷售對話腳本** (A是銷售，B是客戶)，內容必須包含至少一個客戶的反對意見，以及A如何說服B的具體話術。請用 Markdown 標記，例如 **A:** 這是我的話術。 **B:** 這是客戶的反駁。`;
-                } else if (payload.context === '靈性健康話術') {
-                    promptText += `\n**【情境模擬要求】**：請根據我方六獸和六親的特性，模擬一段**健康指導話術** (A是講師，B是學員)，內容須包含對學員五行失衡的分析、可能出現的身體問題，以及講師如何說服/引導學員進行身體調整的具體話術。請用 Markdown 標記，例如 **A:** 這是我的分析。 **B:** 這是學員的提問。`;
-                } else if (payload.context === '性愛' && payload.mode === 'dual') {
-                    promptText += `\n**【情境模擬要求】**：請根據雙方的六獸和六親特性，模擬一段**高張力、大膽且精采的私密對話腳本**。使用 Markdown 區塊引言 (>) 符號來區分對話。`;
-                }
-
-                
-                promptText += `\n請輸出專業、深入、長度超過 800 字的繁體中文分析報告，嚴格使用 Markdown 格式分段落、標題與清單。報告必須以「仙人指路」為報告主旨。請勿在報告中包含任何 JSON 程式碼塊。`;
-
-
-                try {
-                    const response = await fetch('/api/analyze', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({
-                            prompt: promptText // 發送給後端 Function
-                        })
-                    });
-
-                    // 核心修正：只讀取一次響應主體，並處理所有成功或失敗的情況
-                    const rawText = await response.text(); 
-                    
-                    if (!response.ok) {
-                        // 處理 API 錯誤 (Vercel/OpenAI 錯誤)
-                        try {
-                            const errorData = JSON.parse(rawText);
-                            const errorMsg = errorData.detail || errorData.error || '未知 API 錯誤';
-                            $('#result').innerHTML = `<h3 class="text-red-600">❌ 分析失敗 (API 錯誤)</h3><p>錯誤訊息：${errorMsg}</p><p class="text-xs text-slate-500">請檢查 Vercel logs 或 GEMINI/OPENAI_API_KEY 是否有效。</p>`;
-                        } catch (e) {
-                            // 如果不是 JSON，則返回 Vercel 原始錯誤
-                             $('#result').innerHTML = `<h3 class="text-red-600">❌ 網路連接或伺服器錯誤 (Vercel 端)</h3><p>Vercel API 返回非標準響應。這通常是 Vercel 伺服器配置錯誤或超時。</p><p class="text-xs text-slate-500">原始響應開頭：${rawText.substring(0, 200)}...</p>`;
-                        }
-                        stopProgressBar(false);
-                        return;
-                    }
-
-                    // 嘗試將成功響應解析為 JSON
-                    let data;
-                    try {
-                        data = JSON.parse(rawText);
-                    } catch (e) {
-                         $('#result').innerHTML = `<h3 class="text-red-600">❌ API 響應格式錯誤</h3><p>Vercel 成功響應，但前端無法解析為有效的 JSON。這可能是 Vercel/瀏覽器快取問題。</p>`;
-                         stopProgressBar(false);
-                         return;
-                    }
-                    
-                    // 從 Gemini/OpenAI 響應中獲取內容
-                    const aiContent = data.candidates?.[0]?.content?.parts?.[0]?.text || data.choices?.[0]?.message?.content;
-                    
-                    if (!aiContent) {
-                        $('#result').innerHTML = '<h3 class="text-red-600">❌ 分析失敗</h3><p>AI 未返回有效的文本內容，請檢查 Vercel logs。</p>';
-                        stopProgressBar(false);
-                        return;
-                    }
-
-                    // --- 渲染 HTML 內容 (V40.0 報告排版) ---
-                    const { html, webScoresHTML } = formatOutput(aiContent, payload);
-
-                    $('#result').innerHTML = html;
-                    $('#webScoresAndTags').innerHTML = webScoresHTML;
-                    
-                    stopProgressBar(true); // 成功完成
-
-                } catch (e) {
-                    console.error("Fetch Error:", e);
-                    $('#result').innerHTML = `<h3 class="text-red-600">❌ 網路連接或伺服器錯誤 (前端)</h3><p>${e.message || '請檢查您的網路連線。'}</p>`;
-                    stopProgressBar(false);
-                }
-            };
-        });
-    </script>
-</body>
-</html>
+            toggleSex

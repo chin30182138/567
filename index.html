@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>仙人指路神獸七十二型人格 - 分析報告 (V46.0 最終穩定版)</title>
+    <title>仙人指路神獸七十二型人格 - 分析報告 (V46.1 最終穩定版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
 
@@ -19,7 +19,7 @@
         .result-section { 
             background-color: rgba(255, 255, 255, 0.95); 
             backdrop-filter: blur(5px); 
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2p x rgba(0, 0, 0, 0.05);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
             border-radius: 12px;
         }
 
@@ -116,7 +116,7 @@
         </header>
 
         <header class="space-y-1 no-print">
-            <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 (V46.0 最終穩定版)</h1>
+            <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 (V45.1 最終穩定版)</h1>
             <p class="text-slate-500 text-sm">✨ **已修復邏輯錯誤與品牌標頭顯示**</p>
         </header>
 
@@ -266,10 +266,10 @@
         // 情境預設 (V39.1 修正：將銷售話術加入預設列表)
         const PRESETS = {
             'personality': ['基礎個性', '職涯優勢', '情緒管理', '人際關係'],
-            'single': ['年度目標協調', '績效回饋會議', '跨部門協作', '壓期交付專案', '人際關係協調', '銷售話術'], 
+            'single': ['年度目標協調', '績效回饋會議', '跨部門協作', '壓期交付專案', '人際關係協調', '銷售話術', '靈性健康話術'], // V45.1 新增心靈健康話術
             'dual': [
                 '年度目標協調', '績效回饋會議', '跨部門協作', '壓期交付專案', '人際關係協調',
-                '性愛', '銷售話術' 
+                '性愛', '銷售話術', '靈性健康話術' // V45.1 新增心靈健康話術
             ]
         };
         const SEX_CONTEXTS = ['性愛'];
@@ -343,7 +343,7 @@
                 const btn = document.createElement('button');
                 // V39.1: 銷售話術按鈕使用不同顏色強調
                 const isSales = p === '銷售話術';
-                const isHealth = p === '靈性健康話術'; // V45.1 新增
+                const isHealth = p === '靈性健康話術';
                 btn.className = `preset px-3 py-1.5 rounded-full ${isSales ? 'bg-emerald-100 text-emerald-800' : (isHealth ? 'bg-purple-100 text-purple-800' : 'bg-slate-100 text-slate-800')} hover:bg-slate-300 transition-colors`;
                 btn.textContent = p;
                 btn.onclick = () => {
@@ -611,7 +611,7 @@
                     promptText += `性愛劇本細節要求: ${payload.sexDetail}\n`;
                 }
                 
-                // ⭐ V45.1 核心修復：實戰對話內容強化 ⭐
+                // ⭐ V43.1 核心修復：實戰對話內容強化 ⭐
                 if (payload.context === '銷售話術' && payload.mode === 'dual') {
                     promptText += `\n**【情境模擬要求】**：請根據雙方的六獸和六親特性，模擬一段**長且精采的銷售對話腳本** (A是銷售，B是客戶)，內容必須包含至少一個客戶的反對意見，以及A如何說服B的具體話術。請用 Markdown 標記，例如 **A:** 這是我的話術。 **B:** 這是客戶的反駁。`;
                 } else if (payload.context === '靈性健康話術') {

@@ -1,10 +1,9 @@
-
 <!doctype html>
 <html lang="zh-Hant">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>仙人指路神獸七十二型人格 - 分析報告 (V46.0 最終穩定版)</title>
+    <title>仙人指路神獸七十二型人格 - 分析報告 (V45.1 最終穩定版)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/showdown@2.1.0/dist/showdown.min.js"></script>
 
@@ -79,38 +78,33 @@
             margin-top: 1rem;
         }
         
-        /* ⭐️ V46.0 品牌視覺修正：報告頂部的主標題樣式 ⭐️ */
+        /* ⭐️ V40.0 品牌視覺修正：報告頂部的主標題樣式 ⭐️ */
         #reportHeaderContainer {
             display: flex;
             align-items: center;
             margin-bottom: 20px;
+            border-bottom: 5px solid #3b82f6; /* 核心底線 */
             padding-bottom: 10px;
         }
         #reportLogo {
             width: 80px; 
             height: 80px;
-            object-fit: cover;
+            object-fit: cover; /* 確保圖片能填滿圓形 */
             border-radius: 50%;
             border: 2px solid #3b82f6;
             padding: 5px;
             margin-right: 20px;
-            display: none; 
-            flex-shrink: 0; 
+            display: none; /* 預設隱藏 */
+            flex-shrink: 0; /* 防止Logo被擠壓 */
         }
-        #brandTitleText { /* 品牌主標題 */
+        #reportMainTitle {
             font-size: 2rem;
             font-weight: 900;
             color: #1e3a8a;
+            flex-grow: 1; /* 佔據剩餘空間 */
             line-height: 1.2;
             padding-bottom: 0;
-        }
-        #analysisSubTitle { /* 動態分析副標題 */
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: #4b5563;
-            border-bottom: 5px solid #3b82f6; /* 核心底線 */
-            padding-bottom: 5px;
-            margin-top: 5px;
+            border-bottom: none; /* 將底線移到容器 */
         }
     </style>
 </head>
@@ -122,7 +116,7 @@
         </header>
 
         <header class="space-y-1 no-print">
-            <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 (V46.0 最終穩定版)</h1>
+            <h1 class="text-2xl font-bold">仙人指路｜神獸七十二型人格 (V45.1 最終穩定版)</h1>
             <p class="text-slate-500 text-sm">✨ **已修復邏輯錯誤與品牌標頭顯示**</p>
         </header>
 
@@ -171,6 +165,7 @@
             <h2 class="font-semibold">情境 / 分析主題</h2>
             <div id="presetContainer" class="flex gap-2 flex-wrap">
                  <button class="preset px-3 py-1.5 rounded-full bg-slate-100 text-emerald-600 font-semibold" data-detail="銷售話術">🛒 銷售話術</button>
+                 <button class="preset px-3 py-1.5 rounded-full bg-slate-100 text-purple-600 font-semibold" data-detail="靈性健康話術">🔮 靈性健康話術</button>
             </div>
             <input id="context" class="w-full border rounded-lg p-2" placeholder="輸入自訂情境或分析主題…" />
             
@@ -246,20 +241,14 @@
             <div class="grid md:grid-cols-1 gap-6">
                 
                 <div class="md:col-span-1">
-                    
-                    <div id="reportHeaderContainer">
-                        <img id="reportLogo" alt="Logo Image" style="display: none;">
-                        <div style="flex-grow: 1;">
-                            <h2 id="brandTitleText">仙人指路｜神獸七十二型人格</h2>
-                            <h3 id="analysisSubTitle" class="text-xl font-bold text-gray-600"></h3>
+                    <div id="webScoresAndTags">
+                        <div id="reportHeaderContainer">
+                            <img id="reportLogo" alt="Logo Image" style="display: none;">
+                            <h2 id="reportMainTitle" style="font-size: 1.8rem; font-weight: 900; color: #1e3a8a; padding-bottom: 5px; margin-bottom: 1.5rem; border-bottom: 5px solid #3b82f6; flex-grow: 1;">仙人指路｜神獸七十二型人格</h2>
                         </div>
+                        <p class="text-slate-500">選擇六獸、六親、地支和情境後，點擊「一鍵分析」開始。</p>
                     </div>
-
-                    <div id="webScoresAndTags" class="pb-2 mb-2 border-b border-gray-200">
-                        <p id="initialPrompt" class="text-slate-500">選擇六獸、六親、地支和情境後，點擊「一鍵分析」開始。</p>
-                    </div>
-
-                    <div id="result" class="text-[16px] max-w-none pt-4 mt-4">
+                    <div id="result" class="text-[16px] max-w-none pt-4 border-t border-gray-200 mt-4">
                         </div>
                 </div>
             </div>
@@ -274,7 +263,8 @@
         
         const API_PROXY_ENDPOINT = '/api/analyze'; 
 
-        // 情境預設
+
+        // 情境預設 (V39.1 修正：將銷售話術加入預設列表)
         const PRESETS = {
             'personality': ['基礎個性', '職涯優勢', '情緒管理', '人際關係'],
             'single': ['年度目標協調', '績效回饋會議', '跨部門協作', '壓期交付專案', '人際關係協調', '銷售話術'], 
@@ -302,8 +292,6 @@
                 }
             }, 1000); 
             $('#status').textContent = '分析中...';
-            $('#analysisSubTitle').textContent = '正在分析...';
-            $('#analysisSubTitle').classList.remove('border-b-2');
         }
 
         function stopProgressBar(isSuccess = true) {
@@ -320,7 +308,7 @@
         }
         // --- 進度條控制函式結束 ---
 
-        // --- 模式切換邏輯 ---
+        // --- 模式切換邏輯 (恢復圖表/分數區塊隱藏邏輯) ---
         function setAnalysisMode(mode){
             analysisMode = mode;
             const modes = {
@@ -344,10 +332,6 @@
             
             loadPresets(mode);
             toggleSexOptions(); 
-            // V46.0: 模式切換時，清除動態副標題和結果
-            $('#analysisSubTitle').textContent = '';
-            $('#result').innerHTML = '';
-            $('#webScoresAndTags').innerHTML = '<p id="initialPrompt" class="text-slate-500">選擇六獸、六親、地支和情境後，點擊「一鍵分析」開始。</p>';
         }
 
         // 載入情境按鈕
@@ -358,6 +342,7 @@
             
             presets.forEach(p => {
                 const btn = document.createElement('button');
+                // V39.1: 銷售話術按鈕使用不同顏色強調
                 const isSales = p === '銷售話術';
                 btn.className = `preset px-3 py-1.5 rounded-full ${isSales ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-800'} hover:bg-slate-300 transition-colors`;
                 btn.textContent = p;
@@ -392,11 +377,13 @@
             };
         }
         
-        // --- V46.0 核心修正：只更新 SubTitle，不重複插入 Header ---
+        // --- V35.0 簡化：現在只提取文本，不再提取分數 ---
         function formatOutput(text, payload) {
-            if (!text) return { html: '<p class="text-slate-500">無分析結果。</p>', webScoresHTML: '<p class="text-slate-500">無法獲取分析內容。</p>' };
+            if (!text) return { html: '<p class="text-slate-500">無分析結果。</p>', scores: null, tags: null, webScoresHTML: '<p class="text-slate-500">無法獲取分析內容。</p>' };
 
+            let scores = null;
             let tags = null;
+            let jsonText = null;
             let cleanText = text;
 
             // 嘗試找到 JSON 區塊並移除（防止 JSON 程式碼塊干擾報告）
@@ -427,9 +414,15 @@
                      .replace(/<h[1-6]>[\s]*JSON[\s]*輸出[\s]*<\/h[1-6]>/gi, '')
                      .replace(/<p>\s*<\/p>/gi, '');
 
-            // --- V46.0 品牌標頭處理：只更新動態副標題 ---
+            // V35.0: 移除所有分數相關的 HTML 輸出
+            let webScoresHTML = '<p class="text-slate-500">此模式專注於文本分析。</p>';
             
-            // 1. 提取 AI 輸出的第一個 H2/H3 標題，作為副標題
+            if (Array.isArray(tags) && tags.length > 0) {
+                 webScoresHTML = `<div style="margin-top: 15px;"><h4 style="margin-bottom: 5px;">關鍵標籤 (AI 建議)</h4><div class="tags">${tags.map(t => `<span class="tag">${t}</span>`).join('')}</div></div>`;
+            }
+
+            // V40.0 報告主標題處理
+            // 提取 AI 輸出的第一個 H2/H3 標題，作為副標題
             let titleMatch = html.match(/<h[23]>(.*?)<\/h[23]>/i);
             let aiTitle = payload.context + (payload.mode === 'personality' ? '深度分析' : '協作報告');
             
@@ -439,20 +432,28 @@
                 html = html.replace(titleMatch[0], '');
             }
             
-            // 2. 更新靜態 Header 區塊中的 SubTitle
-            $('#analysisSubTitle').textContent = aiTitle;
-            $('#analysisSubTitle').classList.add('border-b-2'); // 確保底線顯示
+            // ⭐️ V40.0 最終排版：將 Logo 和 Title 放在頂部容器 ⭐️
+            const finalHeaderContent = `
+                <div id="reportHeaderContainer">
+                    <img id="reportLogo" alt="Logo Image" style="display: none;">
+                    <div style="flex-grow: 1;">
+                        <h2 id="reportMainTitle" style="font-size: 1.8rem; font-weight: 900; color: #1e3a8a; padding-bottom: 5px; margin-bottom: 1.5rem; border-bottom: 5px solid #3b82f6; width: 100%;">${aiTitle}</h2>
+                    </div>
+                </div>
+            `;
             
-            // 3. 準備 Web Scores/Tags 區塊內容
-            let webScoresHTML = '';
-            if (Array.isArray(tags) && tags.length > 0) {
-                 webScoresHTML = `<div style="margin-top: 5px;"><h4 style="margin-bottom: 5px; font-weight: bold; font-size: 1rem;">關鍵標籤 (AI 建議)</h4><div class="flex flex-wrap gap-2 tags">${tags.map(t => `<span class="px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 text-sm">${t}</span>`).join('')}</div></div>`;
-            } else {
-                 webScoresHTML = '<p class="text-slate-500">此模式專注於文本分析，無關鍵標籤。</p>';
-            }
+            // 將品牌主標題加到最頂端
+            html = finalHeaderContent + html;
 
-            // 4. 返回結果
-            return { html: html, webScoresHTML: webScoresHTML };
+
+            return { html: html, scores: null, tags: null, webScoresHTML: webScoresHTML };
+        }
+
+        // V36.1 移除所有圖表相關函數
+        function renderChart(scores, type){
+             // 函數內容為空，不再執行任何繪圖操作
+             const wrap = $('#chartContainer');
+             wrap.innerHTML = '<div id="chartPlaceholder" class="text-center text-slate-500 p-4">圖表功能已停用，專注於文本分析。</div>';
         }
         
         // --- 核心事件監聽和初始化 ---
@@ -503,7 +504,7 @@
             const reportLogoFile = $('#reportLogoFile'); // Logo input
             const reportLogoImg = $('#reportLogo'); // Logo img element
             
-            // Logo 載入/保存邏輯
+            // ⭐️ V40.0 Logo 載入/保存邏輯修復 ⭐️
             const savedLogo = localStorage.getItem('report_logo_img_base64');
             if (savedLogo) {
                 reportLogoImg.src = savedLogo;
@@ -563,18 +564,20 @@
             };
             updateBackground(); 
 
-            // --- 核心分析邏輯 ---
+            // V27.1 核心邏輯：修復「六獸」重複警告
             $('#go').onclick = async () => {
                 const payload = getPayload();
                 let errorMessage = '';
                 const aComplete = payload.aBeast && payload.aKin && payload.aBranch;
                 const bComplete = payload.bBeast && payload.bKin && payload.bBranch;
 
-                // --- 檢查邏輯 ---
+                // --- V34.0 邏輯修正：檢查六獸、六親不得相同，但地支可以 ---
                 if (!aComplete) { errorMessage = '請選滿我方「六獸、六親、地支」'; }
                 else if (payload.mode === 'dual' && !bComplete) { errorMessage = '雙人分析請選滿對方「六獸、六親、地支」'; }
                 else if (payload.mode !== 'personality' && !payload.context) { errorMessage = '請輸入或選擇情境'; }
                 else if (payload.context === '性愛' && payload.mode === 'dual' && !payload.sexDetail) { errorMessage = '您選擇了性愛情境，請點選或輸入細節按鈕，以供 AI 參考建議。'; }
+                
+                // ⭐ V28.1 最終邏輯修正：檢查「六獸」AND「六親」是否單獨重複 ⭐
                 else if (payload.mode === 'dual' && payload.aBeast === payload.bBeast) {
                     errorMessage = '雙人分析中，「六獸」不可相同！請選擇不同的六獸。';
                 }
@@ -608,11 +611,14 @@
                     promptText += `性愛劇本細節要求: ${payload.sexDetail}\n`;
                 }
                 
-                // ⭐️ 話術內容強化要求 ⭐️
-                if ((payload.context === '銷售話術' || payload.context === '性愛') && payload.mode === 'dual') {
-                    promptText += `\n**【情境模擬要求】**：請根據雙方的六獸和六親特性，模擬一段**長且精采的實戰對話腳本**。如果是銷售話術，必須包含客戶的反對意見和說服過程。如果是性愛，請提供高張力的對話腳本。使用 Markdown 區塊引言 (>) 符號來區分對話。`;
+                // ⭐ V43.1 核心修復：銷售話術/性愛對話內容強化 ⭐
+                if (payload.context === '銷售話術' && payload.mode === 'dual') {
+                    promptText += `\n**【情境模擬要求】**：請根據雙方的六獸和六親特性，模擬一段**銷售對話腳本** (A是銷售，B是客戶)，包含至少一個客戶的反對意見，以及A如何說服B的具體話術。使用 Markdown 區塊引言 (>) 符號來區分對話。`;
+                } else if (payload.context === '性愛' && payload.mode === 'dual') {
+                    promptText += `\n**【情境模擬要求】**：請根據雙方的六獸和六親特性，模擬一段**高張力、大膽且精采的私密對話腳本**。使用 Markdown 區塊引言 (>) 符號來區分對話。`;
                 }
 
+                
                 promptText += `\n請輸出專業、深入、長度超過 800 字的繁體中文分析報告，嚴格使用 Markdown 格式分段落、標題與清單。報告必須以「仙人指路」為報告主旨。請勿在報告中包含任何 JSON 程式碼塊。`;
 
 
@@ -627,29 +633,34 @@
                         })
                     });
 
+                    // 核心修正：只讀取一次響應主體，並處理所有成功或失敗的情況
                     const rawText = await response.text(); 
                     
                     if (!response.ok) {
+                        // 處理 API 錯誤 (Vercel/OpenAI 錯誤)
                         try {
                             const errorData = JSON.parse(rawText);
                             const errorMsg = errorData.detail || errorData.error || '未知 API 錯誤';
-                            $('#result').innerHTML = `<h3 class="text-red-600">❌ 分析失敗 (API 錯誤)</h3><p>錯誤訊息：${errorMsg}</p>`;
+                            $('#result').innerHTML = `<h3 class="text-red-600">❌ 分析失敗 (API 錯誤)</h3><p>錯誤訊息：${errorMsg}</p><p class="text-xs text-slate-500">請檢查 Vercel logs 或 GEMINI/OPENAI_API_KEY 是否有效。</p>`;
                         } catch (e) {
-                             $('#result').innerHTML = `<h3 class="text-red-600">❌ 網路連接或伺服器錯誤 (Vercel 端)</h3><p>Vercel API 返回非標準響應。</p><p class="text-xs text-slate-500">原始響應開頭：${rawText.substring(0, 200)}...</p>`;
+                            // 如果不是 JSON，則返回 Vercel 原始錯誤
+                             $('#result').innerHTML = `<h3 class="text-red-600">❌ 網路連接或伺服器錯誤 (Vercel 端)</h3><p>Vercel API 返回非標準響應。這通常是 Vercel 伺服器配置錯誤或超時。</p><p class="text-xs text-slate-500">原始響應開頭：${rawText.substring(0, 200)}...</p>`;
                         }
                         stopProgressBar(false);
                         return;
                     }
 
+                    // 嘗試將成功響應解析為 JSON
                     let data;
                     try {
                         data = JSON.parse(rawText);
                     } catch (e) {
-                         $('#result').innerHTML = `<h3 class="text-red-600">❌ API 響應格式錯誤</h3><p>Vercel 成功響應，但前端無法解析為有效的 JSON。</p>`;
+                         $('#result').innerHTML = `<h3 class="text-red-600">❌ API 響應格式錯誤</h3><p>Vercel 成功響應，但前端無法解析為有效的 JSON。這可能是 Vercel/瀏覽器快取問題。</p>`;
                          stopProgressBar(false);
                          return;
                     }
                     
+                    // 從 Gemini/OpenAI 響應中獲取內容
                     const aiContent = data.candidates?.[0]?.content?.parts?.[0]?.text || data.choices?.[0]?.message?.content;
                     
                     if (!aiContent) {
@@ -658,7 +669,7 @@
                         return;
                     }
 
-                    // --- 渲染 HTML 內容 (V46.0 修正邏輯) ---
+                    // --- 渲染 HTML 內容 (V40.0 報告排版) ---
                     const { html, webScoresHTML } = formatOutput(aiContent, payload);
 
                     $('#result').innerHTML = html;
